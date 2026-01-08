@@ -211,3 +211,25 @@ ax[2, 2].set_zlabel("Imaginary Part of Difference")
 
 plt.tight_layout()
 plt.show()
+
+# ===========================================
+# ==== PLOTTING HISTOGRAM OF DIFFERENCES ====
+# ===========================================
+
+fig, ax = plt.subplots(3, 1, figsize=(16, 8.8))
+
+bins = [-6, -1, -0.75, -0.5, -0.25, -0.1, 0.1, 0.25, 0.5, 0.75, 1, 6]
+ax[0].hist(np.abs(numericalLaplaceSamples - analyticalLaplaceSamples).flatten(), bins=bins, color='blue')
+ax[0].set_xlabel("Norm of Difference")
+ax[0].set_ylabel("Frequency")
+
+ax[1].hist((numericalLaplaceSamples - analyticalLaplaceSamples).real.flatten(), bins=bins, color='green')
+ax[1].set_xlabel("Real Part of Difference")
+ax[1].set_ylabel("Frequency")
+
+ax[2].hist((numericalLaplaceSamples - analyticalLaplaceSamples).imag.flatten(), bins=bins, color='red')
+ax[2].set_xlabel("Imaginary Part of Difference")
+ax[2].set_ylabel("Frequency")
+
+plt.tight_layout()
+plt.show()
