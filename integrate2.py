@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from mpmath import invertlaplace
 
 tau = 1        # Characteristic decay scale.
-omegaTilde = 0 # Atomic transition frequency - photon frequency.
+omegaTilde = 10 # Atomic transition frequency - photon frequency.
 rabiFreq = 1
 
 def TimeIndependentBlochEquations(t: np.typing.ArrayLike, c: np.ndarray[float]) -> np.ndarray[float]:
@@ -58,7 +58,7 @@ numericalSol = solve_ivp(fun=TimeIndependentBlochEquations, t_span=(0, timeLimit
 # Defines the analytical solution for the time-independent sigma-minus expectation.
 P = lambda s: (s + 2 / tau) * ( (s + 1 / tau)**2 + omegaTilde**2 ) + rabiFreq**2 * (s + 1 / tau)
 analyticalFunc = lambda s: -0.5j * rabiFreq * (s + 2 / tau) * (s + 1 / tau - 1j * omegaTilde) / (s * P(s))
-analyticalSol = analyticalFunc(numericalSol.t)
+analyticalSol = np.array([invertlaplace(analyticalFunc, t) for t in numericalSol.t])
 
 diff = numericalSol.y[0] - analyticalSol
 print(np.vstack((numericalSol.y[0], analyticalSol, diff)).T)
