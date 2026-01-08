@@ -36,7 +36,7 @@ def TimeIndependentBlochEquations(t: np.typing.ArrayLike, c: np.ndarray[float]) 
     # Coefficient matrix.
     M = np.array([[omegaTerm    ,    0                    ,    0.5j * rabiFreq ],
                   [0            ,    omegaTerm.conjugate(),    -0.5j * rabiFreq],
-                  [1j * rabiFreq,    -1j * rabiFreq       ,    -2 / tau        ]])
+                  [1j * rabiFreq,    -1j * rabiFreq       ,    -2 / tau        ]], dtype=complex)
 
     # Inhomogenous coefficient.
     b = np.array([0, 0, - 2 / tau])
@@ -52,7 +52,7 @@ timeLimit = 30
 # The points within the range (0, timeLimit) we will evaluate the numerical solution at.
 tAxis = np.linspace(0, timeLimit, 100)
 # The points that we evaluate the Laplaced solutions at.
-sAxis = np.linspace(0, 50, 100)
+sAxis = np.linspace(0.001, 0.2, 100)
 
 # Numerically solves the ODE for n = 1.
 numericalSol = integrate.solve_ivp(fun=TimeIndependentBlochEquations, t_span=(0, timeLimit), y0=initialConditions, t_eval=tAxis)
@@ -62,6 +62,7 @@ P = lambda s: (s + 2 / tau) * ( (s + 1 / tau)**2 + omegaTilde**2 ) + rabiFreq**2
 analyticalFunc = lambda s: -0.5j * rabiFreq * (s + 2 / tau) * (s + 1 / tau - 1j * omegaTilde) / (s * P(s))
 # Takes the inverse laplace of the solution and evaluates it at each time t that we desire.
 # analyticalSol = np.array([invertlaplace(analyticalFunc, t) for t in numericalSol.t])
+# Evaluates the analytical solution at the points that we desire.
 analyticalSol = analyticalFunc(sAxis)
 
 # Takes the Laplace Transform of the numerical solution.
@@ -70,7 +71,7 @@ print(numericalSol.y[0].shape, numericalSol.t.shape, sAxis.shape) # All of these
 numericalLaplacedSol = np.array([numericalLaplacedFunc(s) for s in sAxis])
 print(numericalLaplacedSol.shape)
 
-diff = numericalSol.y[0] - analyticalSol
+# diff = numericalSol.y[0] - analyticalSol
 # print(np.vstack((numericalSol.y[0], analyticalSol, diff)).T)
 
 # ===========================================================
