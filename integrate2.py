@@ -57,9 +57,16 @@ numericalSol = solve_ivp(fun=TimeIndependentBlochEquations, t_span=(0, timeLimit
 
 # Defines the analytical solution for the time-independent sigma-minus expectation.
 P = lambda s: (s + 2 / tau) * ( (s + 1 / tau)**2 + omegaTilde**2 ) + rabiFreq**2 * (s + 1 / tau)
-analyticalSol = lambda s: -0.5j * rabiFreq * (s + 2 / tau) * (s + 1 / tau - 1j * omegaTilde) / (s * P(s))
+analyticalFunc = lambda s: -0.5j * rabiFreq * (s + 2 / tau) * (s + 1 / tau - 1j * omegaTilde) / (s * P(s))
+analyticalSol = analyticalFunc(numericalSol.t)
 
+diff = numericalSol.y[0] - analyticalSol
+print(np.vstack((numericalSol.y[0], analyticalSol, diff)).T)
+
+# ===========================================================
 # Plotting analytical and numerical solutions for sigma-minus.
+# ===========================================================
+
 numColor = 'black'
 analyticColor = 'blue'
 
@@ -71,15 +78,15 @@ fig, ax = plt.subplots(1, 3, figsize=(32, 6))
 
 # Magnitude of expectation.
 ax[0].plot(numericalSol.t, np.abs(numericalSol.y[0]), color=numColor, label='Numerical Magnitude', linestyle=magStyle)
-ax[0].plot(numericalSol.t, np.abs(analyticalSol(numericalSol.t)), color=analyticColor, label='Analytical Magnitude', linestyle=magStyle)
+ax[0].plot(numericalSol.t, np.abs(analyticalSol), color=analyticColor, label='Analytical Magnitude', linestyle=magStyle)
 
 # Real part of expectation.
-ax[1].plot(numericalSol.t, np.abs(numericalSol.y[0]), color=numColor, label='Numerical Real Part', linestyle=realStyle)
-ax[1].plot(numericalSol.t, np.abs(analyticalSol(numericalSol.t)), color=analyticColor, label='Analytical Real Part', linestyle=realStyle)
+ax[1].plot(numericalSol.t, numericalSol.y[0].real, color=numColor, label='Numerical Real Part', linestyle=realStyle)
+ax[1].plot(numericalSol.t, analyticalSol.real, color=analyticColor, label='Analytical Real Part', linestyle=realStyle)
 
 # Imaginary part of expectation.
-ax[2].plot(numericalSol.t, np.abs(numericalSol.y[0]), color=numColor, label='Numerical Imaginary Part', linestyle=imagStyle)
-ax[2].plot(numericalSol.t, np.abs(analyticalSol(numericalSol.t)), color=analyticColor, label='Analytical Imaginary Part', linestyle=imagStyle)
+ax[2].plot(numericalSol.t, numericalSol.y[0].imag, color=numColor, label='Numerical Imaginary Part', linestyle=imagStyle)
+ax[2].plot(numericalSol.t, analyticalSol.imag, color=analyticColor, label='Analytical Imaginary Part', linestyle=imagStyle)
 
 ax[0].set_xlabel("$t / \\tau$")
 ax[1].set_xlabel("$t / \\tau$")
