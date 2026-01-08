@@ -106,76 +106,75 @@ magStyle = 'solid'
 realStyle = 'dashed'
 imagStyle = 'dotted'
 
-fig, ax = plt.subplots(1, 3, figsize=(32, 6))
+# Creates the figure.
+fig, ax = plt.subplots(3, 3, figsize=(16, 8.8))
+# Rmoves the 2D axes and sets the 3D axes.
+for x in [1, 2]:
+    for y in [0, 1, 2]:
+        ax[x, y].remove()
+        ax[x, y] = fig.add_subplot(3, 3, 3 * x + y + 1, projection='3d')
 
 # Magnitude of expectation.
-ax[0].plot(tAxis, np.abs(numericalSamples.y[0]), color=numColor, label='Numerical Magnitude', linestyle=magStyle)
-ax[0].plot(tAxis[1:], np.abs(analyticalSamples), color=analyticColor, label='Analytical Magnitude', linestyle=magStyle)
+ax[0, 0].plot(tAxis, np.abs(numericalSamples.y[0]), color=numColor, label='Numerical', linestyle=magStyle)
+ax[0, 0].plot(tAxis[1:], np.abs(analyticalSamples), color=analyticColor, label='Analytical', linestyle=magStyle)
 
-# Real part of expectation.
-ax[1].plot(tAxis, numericalSamples.y[0].real, color=numColor, label='Numerical Real Part', linestyle=realStyle)
-ax[1].plot(tAxis[1:], analyticalSamples.real, color=analyticColor, label='Analytical Real Part', linestyle=realStyle)
+# R0, eal part of expectation.
+ax[0, 1].plot(tAxis, numericalSamples.y[0].real, color=numColor, label='Numerical', linestyle=realStyle)
+ax[0, 1].plot(tAxis[1:], analyticalSamples.real, color=analyticColor, label='Analytical', linestyle=realStyle)
 
-# Imaginary part of expectation.
-ax[2].plot(tAxis, numericalSamples.y[0].imag, color=numColor, label='Numerical Imaginary Part', linestyle=imagStyle)
-ax[2].plot(tAxis[1:], analyticalSamples.imag, color=analyticColor, label='Analytical Imaginary Part', linestyle=imagStyle)
+# I0, maginary part of expectation.
+ax[0, 2].plot(tAxis, numericalSamples.y[0].imag, color=numColor, label='Numerical', linestyle=imagStyle)
+ax[0, 2].plot(tAxis[1:], analyticalSamples.imag, color=analyticColor, label='Analytical', linestyle=imagStyle)
 
 xLabel = "$t / \\tau$"
-ax[0].set_xlabel(xLabel)
-ax[1].set_xlabel(xLabel)
-ax[2].set_xlabel(xLabel)
+ax[0, 0].set_xlabel(xLabel)
+ax[0, 1].set_xlabel(xLabel)
+ax[0, 2].set_xlabel(xLabel)
 
-ax[0].set_ylabel("$\\left\\| \\langle \\tilde{\\sigma}_-(t) \\rangle \\right\\|$")
-ax[1].set_ylabel("\\text{Re} \\left[ \\langle \\tilde{\\sigma}_-(t) \\rangle \\right]")
-ax[2].set_ylabel("\\text{Im} \\left[ \\langle \\tilde{\\sigma}_-(t) \\rangle \\right]")
+ax[0, 0].set_ylabel("$\\left\\| \\langle \\tilde{\\sigma}_-(t) \\rangle \\right\\|$")
+ax[0, 1].set_ylabel("$\\text{Re} \\left[ \\langle \\tilde{\\sigma}_-(t) \\rangle \\right]$")
+ax[0, 2].set_ylabel("$\\text{Im} \\left[ \\langle \\tilde{\\sigma}_-(t) \\rangle \\right]$")
 
-ax[0].legend()
-ax[1].legend()
-ax[2].legend()
-
-plt.show()
+ax[0, 0].legend()
+ax[0, 1].legend()
+ax[0, 2].legend()
 
 # ===========================================
 # ==== PLOTTING LAPLACE DOMAIN SOLUTIONS ====
 # ===========================================
 
-fig, ax = plt.subplots(1, 3, figsize=(32, 6), subplot_kw={'projection' : '3d'})
+ax[1, 0].plot_surface(sAxis.real, sAxis.imag, np.abs(numericalLaplaceSamples), color=numColor, label="Numerical Magnitude")
+ax[1, 0].plot_surface(sAxis.real, sAxis.imag, np.abs(analyticalLaplaceSamples), color=analyticColor, label="Analytical Magnitude")
 
-ax[0].plot_surface(sAxis.real, sAxis.imag, np.abs(numericalLaplaceSamples), color=numColor, label="Numerical Magnitude")
-ax[0].plot_surface(sAxis.real, sAxis.imag, np.abs(analyticalLaplaceSamples), color=analyticColor, label="Analytical Magnitude")
+ax[1, 1].plot_surface(sAxis.real, sAxis.imag, numericalLaplaceSamples.real, color=numColor, label="Numerical Real Part")
+ax[1, 1].plot_surface(sAxis.real, sAxis.imag, analyticalLaplaceSamples.real, color=analyticColor, label="Analytical Real Part")
 
-ax[1].plot_surface(sAxis.real, sAxis.imag, numericalLaplaceSamples.real, color=numColor, label="Numerical Magnitude")
-ax[1].plot_surface(sAxis.real, sAxis.imag, analyticalLaplaceSamples.real, color=analyticColor, label="Analytical Magnitude")
-
-ax[2].plot_surface(sAxis.real, sAxis.imag, numericalLaplaceSamples.imag, color=numColor, label="Numerical Magnitude")
-ax[2].plot_surface(sAxis.real, sAxis.imag, analyticalLaplaceSamples.imag, color=analyticColor, label="Analytical Magnitude")
+ax[1, 2].plot_surface(sAxis.real, sAxis.imag, numericalLaplaceSamples.imag, color=numColor, label="Numerical Imaginary Part")
+ax[1, 2].plot_surface(sAxis.real, sAxis.imag, analyticalLaplaceSamples.imag, color=analyticColor, label="Analytical Imaginary Part")
 
 xLabel = "$\\text{Re}(s)$"
-ax[0].set_xlabel(xLabel)
-ax[1].set_xlabel(xLabel)
-ax[2].set_xlabel(xLabel)
+ax[1, 0].set_xlabel(xLabel)
+ax[1, 1].set_xlabel(xLabel)
+ax[1, 2].set_xlabel(xLabel)
 
 yLabel = "$\\text{Im}(s)$"
-ax[0].set_ylabel(yLabel)
-ax[1].set_ylabel(yLabel)
-ax[2].set_ylabel(yLabel)
+ax[1, 0].set_ylabel(yLabel)
+ax[1, 1].set_ylabel(yLabel)
+ax[1, 2].set_ylabel(yLabel)
 
-ax[0].set_zlabel("$\\left\\| \\mathcal{L}_t \\langle \\tilde{\\sigma}_-(t) \\rangle \\right\\|$")
-ax[1].set_zlabel("$\\text{Re} \\left[ \\mathcal{L}_t \\langle \\tilde{\\sigma}_-(t) \\rangle \\right]$")
-ax[2].set_zlabel("$\\text{Im} \\left[ \\mathcal{L}_t \\langle \\tilde{\\sigma}_-(t) \\rangle \\right]$")
+ax[1, 0].set_zlabel("$\\left\\| \\mathcal{L}_t \\langle \\tilde{\\sigma}_-(t) \\rangle \\right\\|$")
+ax[1, 1].set_zlabel("$\\text{Re} \\left[ \\mathcal{L}_t \\langle \\tilde{\\sigma}_-(t) \\rangle \\right]$")
+ax[1, 2].set_zlabel("$\\text{Im} \\left[ \\mathcal{L}_t \\langle \\tilde{\\sigma}_-(t) \\rangle \\right]$")
 
-ax[0].legend()
-ax[1].legend()
-ax[2].legend()
-
-plt.show()
+ax[1, 0].legend()
+ax[1, 1].legend()
+ax[1, 2].legend()
 
 # ============================================
 # ==== PLOTTING LAPLACE DOMAIN DIFFERENCE ====
 # ============================================
 
 zeroColor = 'red'
-fig, ax = plt.subplots(1, 3, figsize=(32, 6), subplot_kw={'projection' : '3d'})
 key = np.abs(numericalLaplaceSamples - analyticalLaplaceSamples) <= 1e-3
 
 # Maps the key values to colors.
@@ -183,22 +182,23 @@ colorMap = np.zeros((sAxis.shape[0], sAxis.shape[1], 3), dtype=float)
 colorMap[key] = mcolors.to_rgb(zeroColor)
 colorMap[~key] = mcolors.to_rgb(numColor)
 
-ax[0].plot_surface(sAxis.real, sAxis.imag, np.abs(numericalLaplaceSamples - analyticalLaplaceSamples), facecolors=colorMap, shade=False)
-ax[1].plot_surface(sAxis.real, sAxis.imag, (numericalLaplaceSamples - analyticalLaplaceSamples).real, facecolors=colorMap, shade=False)
-ax[2].plot_surface(sAxis.real, sAxis.imag, (numericalLaplaceSamples - analyticalLaplaceSamples).imag, facecolors=colorMap, shade=False)
+ax[2, 0].plot_surface(sAxis.real, sAxis.imag, np.abs(numericalLaplaceSamples - analyticalLaplaceSamples), facecolors=colorMap, shade=False)
+ax[2, 1].plot_surface(sAxis.real, sAxis.imag, (numericalLaplaceSamples - analyticalLaplaceSamples).real, facecolors=colorMap, shade=False)
+ax[2, 2].plot_surface(sAxis.real, sAxis.imag, (numericalLaplaceSamples - analyticalLaplaceSamples).imag, facecolors=colorMap, shade=False)
 
 xLabel = "$\\text{Re}(s)$"
-ax[0].set_xlabel(xLabel)
-ax[1].set_xlabel(xLabel)
-ax[2].set_xlabel(xLabel)
+ax[2, 0].set_xlabel(xLabel)
+ax[2, 1].set_xlabel(xLabel)
+ax[2, 2].set_xlabel(xLabel)
 
 yLabel = "$\\text{Im}(s)$"
-ax[0].set_ylabel(yLabel)
-ax[1].set_ylabel(yLabel)
-ax[2].set_ylabel(yLabel)
+ax[2, 0].set_ylabel(yLabel)
+ax[2, 1].set_ylabel(yLabel)
+ax[2, 2].set_ylabel(yLabel)
 
-ax[0].set_zlabel("Norm of Difference")
-ax[1].set_zlabel("Real Part of Difference")
-ax[2].set_zlabel("Imaginary Part of Difference")
+ax[2, 0].set_zlabel("Norm of Difference")
+ax[2, 1].set_zlabel("Real Part of Difference")
+ax[2, 2].set_zlabel("Imaginary Part of Difference")
 
+plt.tight_layout()
 plt.show()
