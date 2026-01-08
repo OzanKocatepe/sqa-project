@@ -178,13 +178,22 @@ zeroColor = 'red'
 key = np.abs(numericalLaplaceSamples - analyticalLaplaceSamples) <= 1e-3
 
 # Maps the key values to colors.
-colorMap = np.zeros((sAxis.shape[0], sAxis.shape[1], 3), dtype=float)
-colorMap[key] = mcolors.to_rgb(zeroColor)
-colorMap[~key] = mcolors.to_rgb(numColor)
+# colorMap = np.zeros((sAxis.shape[0], sAxis.shape[1], 3), dtype=float)
+# colorMap[key] = mcolors.to_rgb(zeroColor)
+# colorMap[~key] = mcolors.to_rgb(numColor)
 
-ax[2, 0].plot_surface(sAxis.real, sAxis.imag, np.abs(numericalLaplaceSamples - analyticalLaplaceSamples), facecolors=colorMap, shade=False)
-ax[2, 1].plot_surface(sAxis.real, sAxis.imag, (numericalLaplaceSamples - analyticalLaplaceSamples).real, facecolors=colorMap, shade=False)
-ax[2, 2].plot_surface(sAxis.real, sAxis.imag, (numericalLaplaceSamples - analyticalLaplaceSamples).imag, facecolors=colorMap, shade=False)
+# Defines the upper and lower range for which we would like to see the range of differences.
+range = (-1, 1)
+
+# Plots the differences.
+ax[2, 0].plot_surface(sAxis.real, sAxis.imag, np.abs(numericalLaplaceSamples - analyticalLaplaceSamples), cmap='viridis', vmin=range[0], vmax=range[1], shade=False)
+ax[2, 1].plot_surface(sAxis.real, sAxis.imag, (numericalLaplaceSamples - analyticalLaplaceSamples).real, cmap='viridis', vmin=range[0], vmax=range[1], shade=False)
+ax[2, 2].plot_surface(sAxis.real, sAxis.imag, (numericalLaplaceSamples - analyticalLaplaceSamples).imag, cmap='viridis', vmin=range[0], vmax=range[1], shade=False)
+
+# Limits the z-axis.
+ax[2, 0].set_zlim(range)
+ax[2, 1].set_zlim(range)
+ax[2, 2].set_zlim(range)
 
 xLabel = "$\\text{Re}(s)$"
 ax[2, 0].set_xlabel(xLabel)
