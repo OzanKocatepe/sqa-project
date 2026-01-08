@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.integrate import solve_ivp
+import scipy.integrate as integrate
 import matplotlib.pyplot as plt
 from mpmath import invertlaplace
 
@@ -50,18 +50,28 @@ initialConditions = np.array([-1, -1, -1], dtype=complex)
 timeLimit = 30
 
 # The points within the range (0, timeLimit) we will evaluate the numerical solution at.
-tAxis = np.linspace(0, timeLimit, 100)[1:]
+tAxis = np.linspace(0, timeLimit, 100)
+# The points that we evaluate the Laplaced solutions at.
+sAxis = np.linspace(0, 50, 100)
 
 # Numerically solves the ODE for n = 1.
-numericalSol = solve_ivp(fun=TimeIndependentBlochEquations, t_span=(0, timeLimit), y0=initialConditions, t_eval=tAxis)
+numericalSol = integrate.solve_ivp(fun=TimeIndependentBlochEquations, t_span=(0, timeLimit), y0=initialConditions, t_eval=tAxis)
 
 # Defines the analytical solution for the time-independent sigma-minus expectation.
 P = lambda s: (s + 2 / tau) * ( (s + 1 / tau)**2 + omegaTilde**2 ) + rabiFreq**2 * (s + 1 / tau)
 analyticalFunc = lambda s: -0.5j * rabiFreq * (s + 2 / tau) * (s + 1 / tau - 1j * omegaTilde) / (s * P(s))
-analyticalSol = np.array([invertlaplace(analyticalFunc, t) for t in numericalSol.t])
+# Takes the inverse laplace of the solution and evaluates it at each time t that we desire.
+# analyticalSol = np.array([invertlaplace(analyticalFunc, t) for t in numericalSol.t])
+analyticalSol = analyticalFunc(sAxis)
+
+# Takes the Laplace Transform of the numerical solution.
+numericalLaplacedFunc = lambda s: integrate.simpson(numericalSol.y[0] * np.exp(-s * numericalSol.t), numericalSol.t)
+print(numericalSol.y[0].shape, numericalSol.t.shape, sAxis.shape) # All of these should have the same shape.
+numericalLaplacedSol = np.array([numericalLaplacedFunc(s) for s in sAxis])
+print(numericalLaplacedSol.shape)
 
 diff = numericalSol.y[0] - analyticalSol
-print(np.vstack((numericalSol.y[0], analyticalSol, diff)).T)
+# print(np.vstack((numericalSol.y[0], analyticalSol, diff)).T)
 
 # ===========================================================
 # Plotting analytical and numerical solutions for sigma-minus.
@@ -77,22 +87,23 @@ imagStyle = 'dotted'
 fig, ax = plt.subplots(1, 3, figsize=(32, 6))
 
 # Magnitude of expectation.
-ax[0].plot(numericalSol.t, np.abs(numericalSol.y[0]), color=numColor, label='Numerical Magnitude', linestyle=magStyle)
-ax[0].plot(numericalSol.t, np.abs(analyticalSol), color=analyticColor, label='Analytical Magnitude', linestyle=magStyle)
+ax[0].plot(sAxis, np.abs(numericalLaplacedSol), color=numColor, label='Numerical Magnitude', linestyle=magStyle)
+ax[0].plot(sAxis, np.abs(analyticalSol), color=analyticColor, label='Analytical Magnitude', linestyle=magStyle)
 
 # Real part of expectation.
-ax[1].plot(numericalSol.t, numericalSol.y[0].real, color=numColor, label='Numerical Real Part', linestyle=realStyle)
-ax[1].plot(numericalSol.t, analyticalSol.real, color=analyticColor, label='Analytical Real Part', linestyle=realStyle)
+ax[1].plot(sAxis, numericalLaplacedSol.real, color=numColor, label='Numerical Real Part', linestyle=realStyle)
+ax[1].plot(sAxis, analyticalSol.real, color=analyticColor, label='Analytical Real Part', linestyle=realStyle)
 
 # Imaginary part of expectation.
-ax[2].plot(numericalSol.t, numericalSol.y[0].imag, color=numColor, label='Numerical Imaginary Part', linestyle=imagStyle)
-ax[2].plot(numericalSol.t, analyticalSol.imag, color=analyticColor, label='Analytical Imaginary Part', linestyle=imagStyle)
+ax[2].plot(sAxis, numericalLaplacedSol.imag, color=numColor, label='Numerical Imaginary Part', linestyle=imagStyle)
+ax[2].plot(sAxis, analyticalSol.imag, color=analyticColor, label='Analytical Imaginary Part', linestyle=imagStyle)
 
-ax[0].set_xlabel("$t / \\tau$")
-ax[1].set_xlabel("$t / \\tau$")
-ax[2].set_xlabel("$t / \\tau$")
+xLabel = "$s$"
+ax[0].set_xlabel(xLabel)
+ax[1].set_xlabel(xLabel)
+ax[2].set_xlabel(xLabel)
 
-ax[0].set_ylabel("$e^{ikt} \\langle \\sigma_-(t) \\rangle$")
+ax[0].set_ylabel("$\\mathcal{L}_t \\left[ e^{ikt} \\langle \\sigma_-(t) \\rangle \\right]$")
 
 ax[0].legend()
 ax[1].legend()
