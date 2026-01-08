@@ -44,7 +44,7 @@ def TimeIndependentBlochEquations(t: np.typing.ArrayLike, c: np.ndarray[float]) 
     return M @ c + b
 
 # Atom is in ground state at t = 0.
-initialConditions = np.array([-1, -1, -1], dtype=complex)
+initialConditions = np.array([0, 0, -1], dtype=complex)
 
 # Plotting up to this many tau time intervals.
 timeLimit = 30
@@ -103,7 +103,7 @@ ax[0].set_xlabel(xLabel)
 ax[1].set_xlabel(xLabel)
 ax[2].set_xlabel(xLabel)
 
-ax[0].set_ylabel("$e^{ikt} \\langle \\sigma_-(t) \\rangle$")
+ax[0].set_ylabel("$\\langle \\tilde{\\sigma}_-(t) \\rangle$")
 
 ax[0].legend()
 ax[1].legend()
