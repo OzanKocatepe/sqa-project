@@ -53,10 +53,11 @@ initialConditions = np.array([0, 0, -1], dtype=complex)
 
 # The points within the range (0, timeLimit) we will evaluate the numerical solution at.
 tDomain = (0, 300)
-tAxis = np.linspace(0, tDomain[1], 1000)
+tAxis = np.linspace(tDomain[0], tDomain[1], 1000)
 # The points (in the complex plane) that we evaluate the Laplaced solutions at.
 sRange = 0.2
-sRealAxis, sImagAxis = np.meshgrid(np.linspace(-sRange, sRange, 20), np.linspace(-sRange, sRange, 20))
+sNum = 50
+sRealAxis, sImagAxis = np.meshgrid(np.linspace(-sRange, sRange, sNum), np.linspace(-sRange, sRange, 20))
 sAxis = sRealAxis + 1j * sImagAxis
 
 # Numerically solves the ODE for n = 1.
@@ -93,7 +94,7 @@ for x in np.arange(sAxis.shape[0]):
 
 # Evaluates the inverse laplace transform of the equation in the papers for each time that we desire.
 # Doesn't calculate at t = 0, because that ends up with a division by 0 apparently.
-analyticalSamples = np.array([invertlaplace(analyticalLaplaceSol, t) for t in tAxis[1:]])
+analyticalSamples = np.array([invertlaplace(analyticalLaplaceSol, t, method='talbot') for t in tAxis[1:]])
 
 # ========================================
 # ==== PLOTTING TIME DOMAIN SOLUTIONS ====
@@ -114,17 +115,22 @@ for x in [1, 2]:
         ax[x, y].remove()
         ax[x, y] = fig.add_subplot(3, 3, 3 * x + y + 1, projection='3d')
 
+tPlottingLimit = 30
+
 # Magnitude of expectation.
 ax[0, 0].plot(tAxis, np.abs(numericalSamples.y[0]), color=numColor, label='Numerical', linestyle=magStyle)
 ax[0, 0].plot(tAxis[1:], np.abs(analyticalSamples), color=analyticColor, label='Analytical', linestyle=magStyle)
+ax[0, 0].set_xlim(0, tPlottingLimit)
 
 # R0, eal part of expectation.
 ax[0, 1].plot(tAxis, numericalSamples.y[0].real, color=numColor, label='Numerical', linestyle=realStyle)
 ax[0, 1].plot(tAxis[1:], analyticalSamples.real, color=analyticColor, label='Analytical', linestyle=realStyle)
+ax[0, 1].set_xlim(0, tPlottingLimit)
 
 # I0, maginary part of expectation.
 ax[0, 2].plot(tAxis, numericalSamples.y[0].imag, color=numColor, label='Numerical', linestyle=imagStyle)
 ax[0, 2].plot(tAxis[1:], analyticalSamples.imag, color=analyticColor, label='Analytical', linestyle=imagStyle)
+ax[0, 2].set_xlim(0, tPlottingLimit)
 
 xLabel = "$t / \\tau$"
 ax[0, 0].set_xlabel(xLabel)
@@ -218,18 +224,21 @@ plt.show()
 
 fig, ax = plt.subplots(3, 1, figsize=(16, 8.8))
 
-bins = [-6, -1, -0.75, -0.5, -0.25, -0.1, 0.1, 0.25, 0.5, 0.75, 1, 6]
+bins = [0, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1, 10]
 ax[0].hist(np.abs(numericalLaplaceSamples - analyticalLaplaceSamples).flatten(), bins=bins, color='blue')
 ax[0].set_xlabel("Norm of Difference")
 ax[0].set_ylabel("Frequency")
+ax[0].set_xscale('log')
 
 ax[1].hist((numericalLaplaceSamples - analyticalLaplaceSamples).real.flatten(), bins=bins, color='green')
 ax[1].set_xlabel("Real Part of Difference")
 ax[1].set_ylabel("Frequency")
+ax[1].set_xscale('log')
 
 ax[2].hist((numericalLaplaceSamples - analyticalLaplaceSamples).imag.flatten(), bins=bins, color='red')
 ax[2].set_xlabel("Imaginary Part of Difference")
 ax[2].set_ylabel("Frequency")
+ax[2].set_xscale('log')
 
 plt.tight_layout()
 plt.show()
