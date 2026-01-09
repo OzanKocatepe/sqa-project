@@ -3,6 +3,7 @@ import scipy.integrate as integrate
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from mpmath import invertlaplace
+import sympy
 
 tau = 1        # Characteristic decay scale.
 omegaTilde = 0 # Atomic transition frequency - photon frequency.
@@ -94,7 +95,21 @@ for x in np.arange(sAxis.shape[0]):
 
 # Evaluates the inverse laplace transform of the equation in the papers for each time that we desire.
 # Doesn't calculate at t = 0, because that ends up with a division by 0 apparently.
-analyticalSamples = np.array([invertlaplace(analyticalLaplaceSol, t, method='talbot') for t in tAxis[1:]])
+# analyticalSamples = np.array([invertlaplace(analyticalLaplaceSol, t, method='talbot') for t in tAxis[1:]])
+
+# Defines some symbols for us to use with sympy.
+t, s = sympy.symbols('t, s')
+T, o, r = sympy.symbols('T, o, r', positive=True, real=True) # tau, omegaTilde, rabiFreq.
+
+# Defines the analytical solution in the laplace domain symbolically for sympy.
+symAnalyticalLaplace = sympy.expand(-0.5j * r * (s + 2 / T) * (s + 1 / T - 1j * o) \
+    / (s * ((s + 2 / T) * ( (s + 1 / T)**2 + o**2 ) + r**2 * (s + 1 / T))))
+
+# Defines the analytical solution in the time domain.
+analyticalSol = sympy.inverse_laplace_transform(symAnalyticalLaplace, s, t)
+print(analyticalSol)
+
+quit()
 
 # ========================================
 # ==== PLOTTING TIME DOMAIN SOLUTIONS ====
