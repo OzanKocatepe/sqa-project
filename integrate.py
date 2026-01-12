@@ -62,7 +62,12 @@ sRealAxis, sImagAxis = np.meshgrid(np.linspace(-sRange, sRange, sNum), np.linspa
 sAxis = sRealAxis + 1j * sImagAxis
 
 # Numerically solves the ODE for n = 1.
-numericalSamples = integrate.solve_ivp(fun=TimeIndependentBlochEquations, t_span=tDomain, y0=initialConditions, t_eval=tAxis)
+numericalSamples = integrate.solve_ivp(fun=TimeIndependentBlochEquations,
+                                       t_span=tDomain,
+                                       y0=initialConditions,
+                                       t_eval=tAxis,
+                                       rtol=1e-10,
+                                       atol=1e-12)
 
 # =====================================
 # ==== FINDING ANALYTICAL SOLUTION ====
@@ -95,21 +100,8 @@ for x in np.arange(sAxis.shape[0]):
 
 # Evaluates the inverse laplace transform of the equation in the papers for each time that we desire.
 # Doesn't calculate at t = 0, because that ends up with a division by 0 apparently.
-# analyticalSamples = np.array([invertlaplace(analyticalLaplaceSol, t, method='talbot') for t in tAxis[1:]])
-
-# Defines some symbols for us to use with sympy.
-t, s = sympy.symbols('t, s')
-T, o, r = sympy.symbols('T, o, r', positive=True, real=True) # tau, omegaTilde, rabiFreq.
-
-# Defines the analytical solution in the laplace domain symbolically for sympy.
-symAnalyticalLaplace = sympy.expand(-0.5j * r * (s + 2 / T) * (s + 1 / T - 1j * o) \
-    / (s * ((s + 2 / T) * ( (s + 1 / T)**2 + o**2 ) + r**2 * (s + 1 / T))))
-
-# Defines the analytical solution in the time domain.
-analyticalSol = sympy.inverse_laplace_transform(symAnalyticalLaplace, s, t)
-print(analyticalSol)
-
-quit()
+analyticalSamples = np.array([complex(invertlaplace(analyticalLaplaceSol, float(t), method='talbot')) 
+                              for t in tAxis[1:]])
 
 # ========================================
 # ==== PLOTTING TIME DOMAIN SOLUTIONS ====
@@ -164,14 +156,14 @@ ax[0, 2].legend()
 # ==== PLOTTING LAPLACE DOMAIN SOLUTIONS ====
 # ===========================================
 
-ax[1, 0].plot_surface(sAxis.real, sAxis.imag, np.abs(numericalLaplaceSamples), color=numColor, label="Numerical Magnitude")
-ax[1, 0].plot_surface(sAxis.real, sAxis.imag, np.abs(analyticalLaplaceSamples), color=analyticColor, label="Analytical Magnitude")
+ax[1, 0].plot_surface(sAxis.real, sAxis.imag, np.abs(numericalLaplaceSamples), color=numColor, label="Numerical Magnitude", alpha=0.7)
+ax[1, 0].plot_surface(sAxis.real, sAxis.imag, np.abs(analyticalLaplaceSamples), color=analyticColor, label="Analytical Magnitude", alpha=0.7)
 
-ax[1, 1].plot_surface(sAxis.real, sAxis.imag, numericalLaplaceSamples.real, color=numColor, label="Numerical Real Part")
-ax[1, 1].plot_surface(sAxis.real, sAxis.imag, analyticalLaplaceSamples.real, color=analyticColor, label="Analytical Real Part")
+ax[1, 1].plot_surface(sAxis.real, sAxis.imag, numericalLaplaceSamples.real, color=numColor, label="Numerical Real Part", alpha=0.7)
+ax[1, 1].plot_surface(sAxis.real, sAxis.imag, analyticalLaplaceSamples.real, color=analyticColor, label="Analytical Real Part", alpha=0.7)
 
-ax[1, 2].plot_surface(sAxis.real, sAxis.imag, numericalLaplaceSamples.imag, color=numColor, label="Numerical Imaginary Part")
-ax[1, 2].plot_surface(sAxis.real, sAxis.imag, analyticalLaplaceSamples.imag, color=analyticColor, label="Analytical Imaginary Part")
+ax[1, 2].plot_surface(sAxis.real, sAxis.imag, numericalLaplaceSamples.imag, color=numColor, label="Numerical Imaginary Part", alpha=0.7)
+ax[1, 2].plot_surface(sAxis.real, sAxis.imag, analyticalLaplaceSamples.imag, color=analyticColor, label="Analytical Imaginary Part", alpha=0.7)
 
 xLabel = "$\\text{Re}(s)$"
 ax[1, 0].set_xlabel(xLabel)
