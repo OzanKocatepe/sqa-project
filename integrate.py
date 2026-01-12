@@ -148,5 +148,5 @@ for row in np.arange(nrows):
 
 plt.suptitle(fr"$\tau = {tau}$, $D = {detuningFreq}$, $R = {rabiFreq}$")
 plt.tight_layout()
-# plt.savefig("Single-Time Correlation Functions", dpi=300)
+plt.savefig("Single-Time Correlation Functions", dpi=300)
 plt.show()
