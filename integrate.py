@@ -59,7 +59,7 @@ tDomain = (0, 300)
 tAxis = np.linspace(tDomain[0], tDomain[1], 1000)
 
 # Numerically solves the ODE for n = 1.
-numericalSamples = integrate.solve_ivp(fun=TimeIndependentBlochEquations,
+numericalSol = integrate.solve_ivp(fun=TimeIndependentBlochEquations,
                                        t_span=tDomain,
                                        y0=initialConditions,
                                        t_eval=tAxis,
@@ -70,29 +70,34 @@ numericalSamples = integrate.solve_ivp(fun=TimeIndependentBlochEquations,
 # ==== FINDING THE ANALYTICAL SOLUTION ====
 # =========================================
 
-# Defines the analytical solution symbolically using sympy.
+# Defines the analytical solutions symbolically using sympy.
 s, tSym, tauSym, omegaTildeSym, rabiFreqSym = sympy.symbols('s, t, tau, omegaTilde, rabiFreq')
-PSym = (s + 2 / tauSym) * ( (s + 1 / tauSym)**2 + omegaTildeSym**2) + rabiFreqSym**2 * (s + 1 / tauSym)
-analyticalLaplaceSolSym = -0.5j * rabiFreqSym * (s + 2 / tauSym) * (s + 1 / tauSym - 1j * omegaTildeSym) / (s * PSym)
+
+# P is the function P(s) defined in equation (B4)
+P = (s + 2 / tauSym) * ( (s + 1 / tauSym)**2 + omegaTildeSym**2) + rabiFreqSym**2 * (s + 1 / tauSym)
+# This is a vector containing the equations (B1-B3)
+analyticalLaplaceSym = sympy.Matrix([-0.5j * rabiFreqSym * (s + 2 / tauSym) * (s + 1 / tauSym - 1j * omegaTildeSym) / (s * P),
+                                     0.5j * rabiFreqSym * (s + 2 / tauSym) * (s + 1 / tauSym + 1j * omegaTildeSym) / (s * P),
+                                     -(s + 2 / tauSym) * ( (s + 1 / tauSym)**2 + omegaTilde**2) / (s * P)])
 
 # Simplifies the expression.
-analyticalLaplaceSolSym = sympy.simplify(analyticalLaplaceSolSym)
+analyticalLaplaceSym = sympy.simplify(analyticalLaplaceSym)
 
 # Substitutes the numerical values of our parameters.
-analyticalLaplaceSolSym = analyticalLaplaceSolSym.subs([
+analyticalLaplaceSym = analyticalLaplaceSym.subs([
     (tauSym, tau),
     (omegaTildeSym, omegaTilde),
     (rabiFreqSym, rabiFreq)
 ])
 
 # Performs partial fraction decomposition.
-analyticalLaplaceSolSym = sympy.apart(analyticalLaplaceSolSym, s)
+analyticalLaplaceSym = sympy.apart(analyticalLaplaceSym, s)
 
 # Simplifies with the new numerical values.
-analyticalLaplaceSolSym = sympy.simplify(analyticalLaplaceSolSym)
+analyticalLaplaceSym = sympy.simplify(analyticalLaplaceSym)
 
 # Takes the inverse laplace transform symbolically.
-analyticalSolSym = sympy.inverse_laplace_transform(analyticalLaplaceSolSym, s, tSym)
+analyticalSolSym = sympy.inverse_laplace_transform(analyticalLaplaceSym, s, tSym)
 
 # Converts it to a numerical function.
 analyticalFunc = sympy.lambdify(tSym, analyticalSolSym, modules=['numpy'])
@@ -107,37 +112,39 @@ numericalColor = 'black'
 analyticalColor = 'blue'
 
 figSize = (16, 8.8)
-tPlottingRanges = [5, 30, 100] # The range each row should plot.
+tLimit = 10
 plottingFunctions = [np.abs, lambda z: z.real, lambda z: z.imag] # The function each column should plot.
 tLineStyles = ['solid', 'dashed', 'dotted'] # The line style for each function/column.
 
 xLabel = r"$t / \tau$" # x-axis label.
-yLabels = [r"$\left| \langle \tilde{\sigma_-(t)} \rangle \right|$",
-           r"$\text{Re} \left[ \langle \tilde{\sigma_-(t)} \rangle \right]$",
-           r"$\text{Im} \left[ \langle \tilde{\sigma_-(t)} \rangle \right]$"]
+yLabels = [[r"$\left\| \langle \tilde{\sigma}_-(t) \rangle \right\|$", r"$\text{Re} \left[ \langle \tilde{\sigma}_-(t) \rangle \right]$", r"$\text{Im} \left[ \langle \tilde{\sigma}_-(t) \rangle \right]$"],
+           [r"$\left\| \langle \tilde{\sigma}_+(t) \rangle \right\|$", r"$\text{Re} \left[ \langle \tilde{\sigma}_+(t) \rangle \right]$", r"$\text{Im} \left[ \langle \tilde{\sigma}_+(t) \rangle \right]$"],
+           [r"$\left\| \langle \tilde{\sigma}_z(t) \rangle \right\|$", r"$\text{Re} \left[ \langle \tilde{\sigma}_z(t) \rangle \right]$", r"$\text{Im} \left[ \langle \tilde{\sigma}_z(t) \rangle \right]$"]]
 
 # Creates the figure.
-fig, ax = plt.subplots(len(tPlottingRanges), len(plottingFunctions), figsize=figSize)
+nrows = 3
+ncols = len(plottingFunctions)
+fig, ax = plt.subplots(nrows, ncols, figsize=figSize)
 
 # Looping through the subplots.
-for row in np.arange(len(tPlottingRanges)):
-    for col in np.arange(len(plottingFunctions)):
+for row in np.arange(nrows):
+    for col in np.arange(ncols):
         # Plot numerical solution.
-        ax[row, col].plot(tAxis, plottingFunctions[col](numericalSamples.y[0]),
+        ax[row, col].plot(tAxis, plottingFunctions[col](numericalSol.y[row]),
                           color = numericalColor,
-                          label = "Numerical",
+                          label = "Numerical Sol",
                           linestyle = tLineStyles[col])
         
         # Plots analytical solution.
-        ax[row, col].plot(tAxis, plottingFunctions[col](analyticalSamples),
+        ax[row, col].plot(tAxis, plottingFunctions[col](analyticalSamples[row, 0, :]),
                           color = analyticalColor,
-                          label = "Analytical",
+                          label = "Analytical Sol",
                           linestyle = tLineStyles[col])
         
         # Sets other properties.
-        ax[row, col].set_xlim(0, tPlottingRanges[row])
+        ax[row, col].set_xlim(0, tLimit)
         ax[row, col].set_xlabel(xLabel)
-        ax[row, col].set_ylabel(yLabels[col])
+        ax[row, col].set_ylabel(yLabels[row][col])
         ax[row, col].legend()
 
 plt.tight_layout()
