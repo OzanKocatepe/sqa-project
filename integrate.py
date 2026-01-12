@@ -7,7 +7,7 @@ tau = 1             # Characteristic decay scale.
 detuningFreq = 0    # Normalised detuning frequency, described in Appendix B.
 rabiFreq = 2        # Normalised rabi frequency, described in appendix B.
 
-def TimeIndependentBlochEquations(t: np.typing.ArrayLike, c: np.ndarray[float]) -> np.ndarray[float]:
+def TimeIndependentBlochEquations(t: np.typing.ArrayLike, c: np.ndarray[float], b: float) -> np.ndarray[float]:
     """
     Function for the optical Bloch equations with radiative damping from
     the (Kocabas et. al., 2012) paper - https://link.aps.org/doi/10.1103/PhysRevA.85.023817.
@@ -20,6 +20,8 @@ def TimeIndependentBlochEquations(t: np.typing.ArrayLike, c: np.ndarray[float]) 
             this should only impact the inhomogenous term.
         c : ndarray[float, dtype[Any]]
             The array of correlations.
+        b : float
+            The inhomogenous term. The inhomogenous term vector is (0, 0, b)
 
     Returns
     -------
@@ -39,9 +41,9 @@ def TimeIndependentBlochEquations(t: np.typing.ArrayLike, c: np.ndarray[float]) 
                             [1j * rabiFreq  , -1j * rabiFreq         , -2               ]], dtype=complex)
 
     # Inhomogenous coefficient.
-    b = np.array([0, 0, - 2 / tau])
+    inhomTerm = np.array([0, 0, b])
 
-    return M @ c + b
+    return M @ c + inhomTerm
 
 # ====================================
 # ==== FINDING NUMERICAL SOLUTION ====
@@ -56,11 +58,12 @@ tAxis = np.linspace(tDomain[0], tDomain[1], 1000)
 
 # Numerically solves the ODE for n = 1.
 numericalSol = integrate.solve_ivp(fun=TimeIndependentBlochEquations,
-                                       t_span=tDomain,
-                                       y0=initialConditions,
-                                       t_eval=tAxis,
-                                       rtol=1e-10,
-                                       atol=1e-12)
+                                   t_span=tDomain,
+                                   y0=initialConditions,
+                                   t_eval=tAxis,
+                                   rtol=1e-10,
+                                   atol=1e-12,
+                                   args=(-2 / tau,))
 
 # =========================================
 # ==== FINDING THE ANALYTICAL SOLUTION ====
