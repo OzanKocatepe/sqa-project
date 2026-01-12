@@ -143,5 +143,7 @@ for row in np.arange(nrows):
         ax[row, col].set_ylabel(yLabels[row][col])
         ax[row, col].legend()
 
+plt.suptitle(fr"$\tau = {tau}$, $\tilde \Omega = {omegaTilde} \tau^ {-1 }$, $\omega_R = {rabiFreq} \tau^ {-1 }$")
 plt.tight_layout()
-plt.show()
+plt.savefig("Single-Time Correlation Functions")
+# plt.show()
