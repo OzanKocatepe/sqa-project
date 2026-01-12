@@ -1,10 +1,6 @@
 import numpy as np
 import scipy.integrate as integrate
 import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
-from mpmath import invertlaplace
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import sympy
 
 tau = 1        # Characteristic decay scale.
@@ -55,7 +51,7 @@ def TimeIndependentBlochEquations(t: np.typing.ArrayLike, c: np.ndarray[float]) 
 initialConditions = np.array([0, 0, -1], dtype=complex)
 
 # The points within the range (0, timeLimit) we will evaluate the numerical solution at.
-tDomain = (0, 300)
+tDomain = (0, 50)
 tAxis = np.linspace(tDomain[0], tDomain[1], 1000)
 
 # Numerically solves the ODE for n = 1.
