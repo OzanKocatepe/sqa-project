@@ -3,9 +3,9 @@ import scipy.integrate as integrate
 import matplotlib.pyplot as plt
 import sympy
 
-tau = 1        # Characteristic decay scale.
-omegaTilde = 0 # Atomic transition frequency - photon frequency.
-rabiFreq = 2
+tau = 1             # Characteristic decay scale.
+detuningFreq = 0    # Normalised detuning frequency, described in Appendix B.
+rabiFreq = 2        # Normalised rabi frequency, described in appendix B.
 
 def TimeIndependentBlochEquations(t: np.typing.ArrayLike, c: np.ndarray[float]) -> np.ndarray[float]:
     """
@@ -31,7 +31,7 @@ def TimeIndependentBlochEquations(t: np.typing.ArrayLike, c: np.ndarray[float]) 
     t = np.array(t)
 
     # Common term defined for convenience.
-    omegaTerm = -(1 + 1j * omegaTilde)
+    omegaTerm = -(1 + 1j * detuningFreq)
 
     # Coefficient matrix (in form parameterised by tau).
     M = 1 / tau * np.array([[omegaTerm      , 0                      , 0.5j * rabiFreq  ],
@@ -67,14 +67,14 @@ numericalSol = integrate.solve_ivp(fun=TimeIndependentBlochEquations,
 # =========================================
 
 # Defines the analytical solutions symbolically using sympy.
-s, tSym, tauSym, omegaTildeSym, rabiFreqSym = sympy.symbols('s, t, tau, omegaTilde, rabiFreq')
+s, tSym, tauSym, detuningFreqSym, rabiFreqSym = sympy.symbols('s, t, tau, detuningFreq, rabiFreq')
 
 # P is the function P(s) defined in equation (B4)
-P = (s + 2 / tauSym) * ( (s + 1 / tauSym)**2 + omegaTildeSym**2) + rabiFreqSym**2 * (s + 1 / tauSym)
+P = (s + 2 / tauSym) * ( (s + 1 / tauSym)**2 + detuningFreqSym**2) + rabiFreqSym**2 * (s + 1 / tauSym)
 # This is a vector containing the equations (B1-B3)
-analyticalLaplaceSym = sympy.Matrix([-0.5j * rabiFreqSym * (s + 2 / tauSym) * (s + 1 / tauSym - 1j * omegaTildeSym) / (s * P),
-                                     0.5j * rabiFreqSym * (s + 2 / tauSym) * (s + 1 / tauSym + 1j * omegaTildeSym) / (s * P),
-                                     -(s + 2 / tauSym) * ( (s + 1 / tauSym)**2 + omegaTilde**2) / (s * P)])
+analyticalLaplaceSym = sympy.Matrix([-0.5j * rabiFreqSym * (s + 2 / tauSym) * (s + 1 / tauSym - 1j * detuningFreqSym) / (s * P),
+                                     0.5j * rabiFreqSym * (s + 2 / tauSym) * (s + 1 / tauSym + 1j * detuningFreqSym) / (s * P),
+                                     -(s + 2 / tauSym) * ( (s + 1 / tauSym)**2 + detuningFreq**2) / (s * P)])
 
 # Simplifies the expression.
 analyticalLaplaceSym = sympy.simplify(analyticalLaplaceSym)
@@ -82,7 +82,7 @@ analyticalLaplaceSym = sympy.simplify(analyticalLaplaceSym)
 # Substitutes the numerical values of our parameters.
 analyticalLaplaceSym = analyticalLaplaceSym.subs([
     (tauSym, tau),
-    (omegaTildeSym, omegaTilde),
+    (detuningFreqSym, detuningFreq),
     (rabiFreqSym, rabiFreq)
 ])
 
@@ -143,7 +143,7 @@ for row in np.arange(nrows):
         ax[row, col].set_ylabel(yLabels[row][col])
         ax[row, col].legend()
 
-plt.suptitle(fr"$\tau = {tau}$, $\tilde \Omega = {omegaTilde} \tau^ {-1 }$, $\omega_R = {rabiFreq} \tau^ {-1 }$")
+plt.suptitle(fr"$\tau = {tau}$, $D = {detuningFreq}$, $R = {rabiFreq}$")
 plt.tight_layout()
 # plt.savefig("Single-Time Correlation Functions", dpi=300)
 plt.show()
