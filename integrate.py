@@ -31,12 +31,12 @@ def TimeIndependentBlochEquations(t: np.typing.ArrayLike, c: np.ndarray[float]) 
     t = np.array(t)
 
     # Common term defined for convenience.
-    omegaTerm = -(1 / tau + 1j * omegaTilde)
+    omegaTerm = -(1 + 1j * omegaTilde)
 
-    # Coefficient matrix (NOT IN PARAMETERISED FORM - CHANGE ONCE SOLUTIONS MATCH FOR TAU = 1)
-    M = np.array([[omegaTerm    ,    0                    ,    0.5j * rabiFreq ],
-                  [0            ,    omegaTerm.conjugate(),    -0.5j * rabiFreq],
-                  [1j * rabiFreq,    -1j * rabiFreq       ,    -2 / tau        ]], dtype=complex)
+    # Coefficient matrix (in form parameterised by tau).
+    M = 1 / tau * np.array([[omegaTerm      , 0                      , 0.5j * rabiFreq  ],
+                            [0              , omegaTerm.conjugate()  , -0.5j * rabiFreq ],
+                            [1j * rabiFreq  , -1j * rabiFreq         , -2               ]], dtype=complex)
 
     # Inhomogenous coefficient.
     b = np.array([0, 0, - 2 / tau])
@@ -145,5 +145,5 @@ for row in np.arange(nrows):
 
 plt.suptitle(fr"$\tau = {tau}$, $\tilde \Omega = {omegaTilde} \tau^ {-1 }$, $\omega_R = {rabiFreq} \tau^ {-1 }$")
 plt.tight_layout()
-plt.savefig("Single-Time Correlation Functions")
-# plt.show()
+# plt.savefig("Single-Time Correlation Functions", dpi=300)
+plt.show()
