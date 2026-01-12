@@ -3,3 +3,4 @@ scipy
 matplotlib
 mpmath
 plotly
+sympy

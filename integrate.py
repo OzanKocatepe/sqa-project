@@ -5,6 +5,7 @@ import matplotlib.colors as mcolors
 from mpmath import invertlaplace
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import sympy
 
 tau = 1        # Characteristic decay scale.
 omegaTilde = 0 # Atomic transition frequency - photon frequency.
@@ -101,8 +102,45 @@ for x in np.arange(sAxis.shape[0]):
 
 # Evaluates the inverse laplace transform of the equation in the papers for each time that we desire.
 # Doesn't calculate at t = 0, because that ends up with a division by 0 apparently.
-analyticalSamples = np.array([complex(invertlaplace(analyticalLaplaceSol, float(t), method='talbot')) 
-                              for t in tAxis[1:]])
+# analyticalSamples = np.array([complex(invertlaplace(analyticalLaplaceSol, float(t), method='talbot')) 
+#                               for t in tAxis[1:]])
+
+# Defines the analytical solution symbolically using sympy.
+s, tSym, tauSym, omegaTildeSym, rabiFreqSym = sympy.symbols('s, t, tau, omegaTilde, rabiFreq')
+PSym = (s + 2 / tauSym) * ( (s + 1 / tauSym)**2 + omegaTildeSym**2) + rabiFreqSym**2 * (s + 1 / tauSym)
+analyticalLaplaceSolSym = -0.5j * rabiFreqSym * (s + 2 / tauSym) * (s + 1 / tauSym - 1j * omegaTildeSym) / (s * PSym)
+
+# Simplifies the expression.
+print("Simplifying...")
+analyticalLaplaceSolSym = sympy.simplify(analyticalLaplaceSolSym)
+
+# Substitutes the numerical values of our parameters.
+print("Substituting numerical values of parameters...")
+analyticalLaplaceSolSym = analyticalLaplaceSolSym.subs([
+    (tauSym, tau),
+    (omegaTildeSym, omegaTilde),
+    (rabiFreqSym, rabiFreq)
+])
+
+# Performs partial fraction decomposition.
+print("Performing partial fraction decomposition...")
+analyticalLaplaceSolSym = sympy.apart(analyticalLaplaceSolSym, s)
+
+# Simplifies with the new numerical values.
+print("Simplifying again...")
+analyticalLaplaceSolSym = sympy.simplify(analyticalLaplaceSolSym)
+
+# Takes the inverse laplace transform symbolically.
+print("Taking the inverse laplace transform...")
+analyticalSolSym = sympy.inverse_laplace_transform(analyticalLaplaceSolSym, s, tSym)
+
+# Converts it to a numerical function.
+print("Converting the symbolic expression to a numerical function...")
+analyticalFunc = sympy.lambdify(tSym, analyticalSolSym, modules=['numpy'])
+
+analyticalSamples = analyticalFunc(tAxis)
+
+print("Done!")
 
 # ========================================
 # ==== PLOTTING TIME DOMAIN SOLUTIONS ====
@@ -134,7 +172,7 @@ for row in np.arange(len(tPlottingRanges)):
                           linestyle = tLineStyles[col])
         
         # Plots analytical solution.
-        ax[row, col].plot(tAxis[1:], plottingFunctions[col](analyticalSamples),
+        ax[row, col].plot(tAxis, plottingFunctions[col](analyticalSamples),
                           color = analyticalColor,
                           label = "Analytical",
                           linestyle = tLineStyles[col])
@@ -147,6 +185,7 @@ for row in np.arange(len(tPlottingRanges)):
 
 plt.tight_layout()
 plt.show()
+quit()
 
 # ===========================================
 # ==== PLOTTING LAPLACE DOMAIN SOLUTIONS ====
