@@ -100,22 +100,15 @@ for x in np.arange(sAxis.shape[0]):
 # ==== INVERSE LAPLACE OF THE ANALYTICAL SOLUTION ====
 # ====================================================
 
-# Evaluates the inverse laplace transform of the equation in the papers for each time that we desire.
-# Doesn't calculate at t = 0, because that ends up with a division by 0 apparently.
-# analyticalSamples = np.array([complex(invertlaplace(analyticalLaplaceSol, float(t), method='talbot')) 
-#                               for t in tAxis[1:]])
-
 # Defines the analytical solution symbolically using sympy.
 s, tSym, tauSym, omegaTildeSym, rabiFreqSym = sympy.symbols('s, t, tau, omegaTilde, rabiFreq')
 PSym = (s + 2 / tauSym) * ( (s + 1 / tauSym)**2 + omegaTildeSym**2) + rabiFreqSym**2 * (s + 1 / tauSym)
 analyticalLaplaceSolSym = -0.5j * rabiFreqSym * (s + 2 / tauSym) * (s + 1 / tauSym - 1j * omegaTildeSym) / (s * PSym)
 
 # Simplifies the expression.
-print("Simplifying...")
 analyticalLaplaceSolSym = sympy.simplify(analyticalLaplaceSolSym)
 
 # Substitutes the numerical values of our parameters.
-print("Substituting numerical values of parameters...")
 analyticalLaplaceSolSym = analyticalLaplaceSolSym.subs([
     (tauSym, tau),
     (omegaTildeSym, omegaTilde),
@@ -123,24 +116,18 @@ analyticalLaplaceSolSym = analyticalLaplaceSolSym.subs([
 ])
 
 # Performs partial fraction decomposition.
-print("Performing partial fraction decomposition...")
 analyticalLaplaceSolSym = sympy.apart(analyticalLaplaceSolSym, s)
 
 # Simplifies with the new numerical values.
-print("Simplifying again...")
 analyticalLaplaceSolSym = sympy.simplify(analyticalLaplaceSolSym)
 
 # Takes the inverse laplace transform symbolically.
-print("Taking the inverse laplace transform...")
 analyticalSolSym = sympy.inverse_laplace_transform(analyticalLaplaceSolSym, s, tSym)
 
 # Converts it to a numerical function.
-print("Converting the symbolic expression to a numerical function...")
 analyticalFunc = sympy.lambdify(tSym, analyticalSolSym, modules=['numpy'])
-
+# Calculates the desired time domain values.
 analyticalSamples = analyticalFunc(tAxis)
-
-print("Done!")
 
 # ========================================
 # ==== PLOTTING TIME DOMAIN SOLUTIONS ====
@@ -185,119 +172,118 @@ for row in np.arange(len(tPlottingRanges)):
 
 plt.tight_layout()
 plt.show()
-quit()
 
-# ===========================================
-# ==== PLOTTING LAPLACE DOMAIN SOLUTIONS ====
-# ===========================================
+# # ===========================================
+# # ==== PLOTTING LAPLACE DOMAIN SOLUTIONS ====
+# # ===========================================
 
-zLabels = ["Norm of Sigma",
-           "Re(Sigma)",
-           "Im(Sigma)"]
+# zLabels = ["Norm of Sigma",
+#            "Re(Sigma)",
+#            "Im(Sigma)"]
 
-for page in np.arange(len(plottingFunctions)):
-    # Plots the analytical and numerical solutions separately on the same page.
-    fig = make_subplots(
-        rows = 1, cols = 2,
-        specs = [[{'type' : 'surface'}, {'type' : 'surface'}]],
-        subplot_titles = ("Analytical Solution", "Numerical Solution")
-    )
+# for page in np.arange(len(plottingFunctions)):
+#     # Plots the analytical and numerical solutions separately on the same page.
+#     fig = make_subplots(
+#         rows = 1, cols = 2,
+#         specs = [[{'type' : 'surface'}, {'type' : 'surface'}]],
+#         subplot_titles = ("Analytical Solution", "Numerical Solution")
+#     )
 
-    # Plotting the analytical solution.
-    fig.add_trace(
-        go.Surface(z = plottingFunctions[page](analyticalLaplaceSamples), x = sAxis.real, y = sAxis.imag, showscale = False),
-        row = 1, col = 1
-    )
+#     # Plotting the analytical solution.
+#     fig.add_trace(
+#         go.Surface(z = plottingFunctions[page](analyticalLaplaceSamples), x = sAxis.real, y = sAxis.imag, showscale = False),
+#         row = 1, col = 1
+#     )
 
-    # Plotting the numerical solution.
-    # mask = np.abs(numericalLaplaceSamples) >= 0
-    fig.add_trace(
-        go.Surface(z = plottingFunctions[page](numericalLaplaceSamples), x = sAxis.real, y = sAxis.imag, showscale = False),
-        row = 1, col = 2
-    )
+#     # Plotting the numerical solution.
+#     # mask = np.abs(numericalLaplaceSamples) >= 0
+#     fig.add_trace(
+#         go.Surface(z = plottingFunctions[page](numericalLaplaceSamples), x = sAxis.real, y = sAxis.imag, showscale = False),
+#         row = 1, col = 2
+#     )
 
-    # Sets the layout of the plot.
-    fig.update_layout(
-        width=1500, height=800,
-        scene = dict(
-            xaxis = dict( title = "Re(s)" ),
-            yaxis = dict( title = "Im(s)" ),
-            zaxis = dict( title = zLabels[page])
-        ),
-        scene2 = dict(
-            xaxis = dict( title = "Re(s)" ),
-            yaxis = dict( title = "Im(s)" ),
-            zaxis = dict( title = zLabels[page])
-        )
-    )
+#     # Sets the layout of the plot.
+#     fig.update_layout(
+#         width=1500, height=800,
+#         scene = dict(
+#             xaxis = dict( title = "Re(s)" ),
+#             yaxis = dict( title = "Im(s)" ),
+#             zaxis = dict( title = zLabels[page])
+#         ),
+#         scene2 = dict(
+#             xaxis = dict( title = "Re(s)" ),
+#             yaxis = dict( title = "Im(s)" ),
+#             zaxis = dict( title = zLabels[page])
+#         )
+#     )
     
-    fig.show()
+#     fig.show()
 
-quit()
+# quit()
 
-# ============================================
-# ==== PLOTTING LAPLACE DOMAIN DIFFERENCE ====
-# ============================================
+# # ============================================
+# # ==== PLOTTING LAPLACE DOMAIN DIFFERENCE ====
+# # ============================================
 
-zeroColor = 'red'
-key = np.abs(numericalLaplaceSamples - analyticalLaplaceSamples) <= 1e-3
+# zeroColor = 'red'
+# key = np.abs(numericalLaplaceSamples - analyticalLaplaceSamples) <= 1e-3
 
-# Maps the key values to colors.
-# colorMap = np.zeros((sAxis.shape[0], sAxis.shape[1], 3), dtype=float)
-# colorMap[key] = mcolors.to_rgb(zeroColor)
-# colorMap[~key] = mcolors.to_rgb(numColor)
+# # Maps the key values to colors.
+# # colorMap = np.zeros((sAxis.shape[0], sAxis.shape[1], 3), dtype=float)
+# # colorMap[key] = mcolors.to_rgb(zeroColor)
+# # colorMap[~key] = mcolors.to_rgb(numColor)
 
-# Defines the upper and lower range for which we would like to see the range of differences.
-range = (-1, 1)
+# # Defines the upper and lower range for which we would like to see the range of differences.
+# range = (-1, 1)
 
-# Plots the differences.
-ax[2, 0].plot_surface(sAxis.real, sAxis.imag, np.abs(numericalLaplaceSamples - analyticalLaplaceSamples), cmap='viridis', vmin=range[0], vmax=range[1], shade=False)
-ax[2, 1].plot_surface(sAxis.real, sAxis.imag, (numericalLaplaceSamples - analyticalLaplaceSamples).real, cmap='viridis', vmin=range[0], vmax=range[1], shade=False)
-ax[2, 2].plot_surface(sAxis.real, sAxis.imag, (numericalLaplaceSamples - analyticalLaplaceSamples).imag, cmap='viridis', vmin=range[0], vmax=range[1], shade=False)
+# # Plots the differences.
+# ax[2, 0].plot_surface(sAxis.real, sAxis.imag, np.abs(numericalLaplaceSamples - analyticalLaplaceSamples), cmap='viridis', vmin=range[0], vmax=range[1], shade=False)
+# ax[2, 1].plot_surface(sAxis.real, sAxis.imag, (numericalLaplaceSamples - analyticalLaplaceSamples).real, cmap='viridis', vmin=range[0], vmax=range[1], shade=False)
+# ax[2, 2].plot_surface(sAxis.real, sAxis.imag, (numericalLaplaceSamples - analyticalLaplaceSamples).imag, cmap='viridis', vmin=range[0], vmax=range[1], shade=False)
 
-# Limits the z-axis.
-ax[2, 0].set_zlim(range)
-ax[2, 1].set_zlim(range)
-ax[2, 2].set_zlim(range)
+# # Limits the z-axis.
+# ax[2, 0].set_zlim(range)
+# ax[2, 1].set_zlim(range)
+# ax[2, 2].set_zlim(range)
 
-xLabel = "$\\text{Re}(s)$"
-ax[2, 0].set_xlabel(xLabel)
-ax[2, 1].set_xlabel(xLabel)
-ax[2, 2].set_xlabel(xLabel)
+# xLabel = "$\\text{Re}(s)$"
+# ax[2, 0].set_xlabel(xLabel)
+# ax[2, 1].set_xlabel(xLabel)
+# ax[2, 2].set_xlabel(xLabel)
 
-yLabel = "$\\text{Im}(s)$"
-ax[2, 0].set_ylabel(yLabel)
-ax[2, 1].set_ylabel(yLabel)
-ax[2, 2].set_ylabel(yLabel)
+# yLabel = "$\\text{Im}(s)$"
+# ax[2, 0].set_ylabel(yLabel)
+# ax[2, 1].set_ylabel(yLabel)
+# ax[2, 2].set_ylabel(yLabel)
 
-ax[2, 0].set_zlabel("Norm of Difference")
-ax[2, 1].set_zlabel("Real Part of Difference")
-ax[2, 2].set_zlabel("Imaginary Part of Difference")
+# ax[2, 0].set_zlabel("Norm of Difference")
+# ax[2, 1].set_zlabel("Real Part of Difference")
+# ax[2, 2].set_zlabel("Imaginary Part of Difference")
 
-plt.tight_layout()
-plt.show()
+# plt.tight_layout()
+# plt.show()
 
-# ===========================================
-# ==== PLOTTING HISTOGRAM OF DIFFERENCES ====
-# ===========================================
+# # ===========================================
+# # ==== PLOTTING HISTOGRAM OF DIFFERENCES ====
+# # ===========================================
 
-fig, ax = plt.subplots(3, 1, figsize=(16, 8.8))
+# fig, ax = plt.subplots(3, 1, figsize=(16, 8.8))
 
-bins = [0, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1, 10]
-ax[0].hist(np.abs(numericalLaplaceSamples - analyticalLaplaceSamples).flatten(), bins=bins, color='blue')
-ax[0].set_xlabel("Norm of Difference")
-ax[0].set_ylabel("Frequency")
-ax[0].set_xscale('log')
+# bins = [0, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1, 10]
+# ax[0].hist(np.abs(numericalLaplaceSamples - analyticalLaplaceSamples).flatten(), bins=bins, color='blue')
+# ax[0].set_xlabel("Norm of Difference")
+# ax[0].set_ylabel("Frequency")
+# ax[0].set_xscale('log')
 
-ax[1].hist((numericalLaplaceSamples - analyticalLaplaceSamples).real.flatten(), bins=bins, color='green')
-ax[1].set_xlabel("Real Part of Difference")
-ax[1].set_ylabel("Frequency")
-ax[1].set_xscale('log')
+# ax[1].hist((numericalLaplaceSamples - analyticalLaplaceSamples).real.flatten(), bins=bins, color='green')
+# ax[1].set_xlabel("Real Part of Difference")
+# ax[1].set_ylabel("Frequency")
+# ax[1].set_xscale('log')
 
-ax[2].hist((numericalLaplaceSamples - analyticalLaplaceSamples).imag.flatten(), bins=bins, color='red')
-ax[2].set_xlabel("Imaginary Part of Difference")
-ax[2].set_ylabel("Frequency")
-ax[2].set_xscale('log')
+# ax[2].hist((numericalLaplaceSamples - analyticalLaplaceSamples).imag.flatten(), bins=bins, color='red')
+# ax[2].set_xlabel("Imaginary Part of Difference")
+# ax[2].set_ylabel("Frequency")
+# ax[2].set_xscale('log')
 
-plt.tight_layout()
-plt.show()
+# plt.tight_layout()
+# plt.show()
