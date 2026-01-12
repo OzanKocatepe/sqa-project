@@ -107,50 +107,46 @@ analyticalSamples = np.array([complex(invertlaplace(analyticalLaplaceSol, float(
 # ==== PLOTTING TIME DOMAIN SOLUTIONS ====
 # ========================================
 
-numColor = 'black'
-analyticColor = 'blue'
+numericalColor = 'black'
+analyticalColor = 'blue'
 
-magStyle = 'solid'
-realStyle = 'dashed'
-imagStyle = 'dotted'
+figSize = (16, 8.8)
+tPlottingRanges = [5, 30, 100] # The range each row should plot.
+tPlottingFunctions = [np.abs, lambda z: z.real, lambda z: z.imag] # The function each column should plot.
+tLineStyles = ['solid', 'dashed', 'dotted'] # The line style for each function/column.
+
+xLabel = r"$t / \tau$" # x-axis label.
+yLabels = [r"$\left| \langle \tilde{\sigma_-(t)} \rangle \right|$",
+           r"$\text{Re} \left[ \langle \tilde{\sigma_-(t)} \rangle \right]$",
+           r"$\text{Im} \left[ \langle \tilde{\sigma_-(t)} \rangle \right]$"]
 
 # Creates the figure.
-fig, ax = plt.subplots(3, 3, figsize=(16, 8.8))
-# Rmoves the 2D axes and sets the 3D axes.
-for x in [1, 2]:
-    for y in [0, 1, 2]:
-        ax[x, y].remove()
-        ax[x, y] = fig.add_subplot(3, 3, 3 * x + y + 1, projection='3d')
+fig, ax = plt.subplots(len(tPlottingRanges), len(tPlottingFunctions), figsize=figSize)
 
-tPlottingLimit = 30
+# Looping through the subplots.
+for row in np.arange(len(tPlottingRanges)):
+    for col in np.arange(len(tPlottingFunctions)):
+        # Plot numerical solution.
+        ax[row, col].plot(tAxis, tPlottingFunctions[col](numericalSamples.y[0]),
+                          color = numericalColor,
+                          label = "Numerical",
+                          linestyle = tLineStyles[col])
+        
+        # Plots analytical solution.
+        ax[row, col].plot(tAxis[1:], tPlottingFunctions[col](analyticalSamples),
+                          color = analyticalColor,
+                          label = "Analytical",
+                          linestyle = tLineStyles[col])
+        
+        # Sets other properties.
+        ax[row, col].set_xlim(0, tPlottingRanges[row])
+        ax[row, col].set_xlabel(xLabel)
+        ax[row, col].set_ylabel(yLabels[col])
+        ax[row, col].legend()
 
-# Magnitude of expectation.
-ax[0, 0].plot(tAxis, np.abs(numericalSamples.y[0]), color=numColor, label='Numerical', linestyle=magStyle)
-ax[0, 0].plot(tAxis[1:], np.abs(analyticalSamples), color=analyticColor, label='Analytical', linestyle=magStyle)
-ax[0, 0].set_xlim(0, tPlottingLimit)
-
-# R0, eal part of expectation.
-ax[0, 1].plot(tAxis, numericalSamples.y[0].real, color=numColor, label='Numerical', linestyle=realStyle)
-ax[0, 1].plot(tAxis[1:], analyticalSamples.real, color=analyticColor, label='Analytical', linestyle=realStyle)
-ax[0, 1].set_xlim(0, tPlottingLimit)
-
-# I0, maginary part of expectation.
-ax[0, 2].plot(tAxis, numericalSamples.y[0].imag, color=numColor, label='Numerical', linestyle=imagStyle)
-ax[0, 2].plot(tAxis[1:], analyticalSamples.imag, color=analyticColor, label='Analytical', linestyle=imagStyle)
-ax[0, 2].set_xlim(0, tPlottingLimit)
-
-xLabel = "$t / \\tau$"
-ax[0, 0].set_xlabel(xLabel)
-ax[0, 1].set_xlabel(xLabel)
-ax[0, 2].set_xlabel(xLabel)
-
-ax[0, 0].set_ylabel("$\\left\\| \\langle \\tilde{\\sigma}_-(t) \\rangle \\right\\|$")
-ax[0, 1].set_ylabel("$\\text{Re} \\left[ \\langle \\tilde{\\sigma}_-(t) \\rangle \\right]$")
-ax[0, 2].set_ylabel("$\\text{Im} \\left[ \\langle \\tilde{\\sigma}_-(t) \\rangle \\right]$")
-
-ax[0, 0].legend()
-ax[0, 1].legend()
-ax[0, 2].legend()
+plt.tight_layout()
+plt.show()
+quit()
 
 # ===========================================
 # ==== PLOTTING LAPLACE DOMAIN SOLUTIONS ====
