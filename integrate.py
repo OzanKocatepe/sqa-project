@@ -79,22 +79,22 @@ numericalSamples = integrate.solve_ivp(fun=TimeIndependentBlochEquations,
 P = lambda s: (s + 2 / tau) * ( (s + 1 / tau)**2 + omegaTilde**2 ) + rabiFreq**2 * (s + 1 / tau)
 analyticalLaplaceSol = lambda s: -0.5j * rabiFreq * (s + 2 / tau) * (s + 1 / tau - 1j * omegaTilde) / (s * P(s))
 # Evaluates the analytical solution in the complex plane.
-analyticalLaplaceSamples = analyticalLaplaceSol(sAxis)
+# analyticalLaplaceSamples = analyticalLaplaceSol(sAxis)
 
 # =================================================
 # ==== LAPLACE TRANSFORM OF NUMERICAL SOLUTION ====
 # =================================================
 
-# Defines the laplace transformation of the function as a function of s.
-numericalLaplaceSol = lambda s: integrate.simpson(
-    numericalSamples.y[0] * np.exp(-s * numericalSamples.t), # Laplace transform integrand.
-    numericalSamples.t                                       # Points at which numerical solution was evaluated.
-)
-# Evaluates the laplaced numerical solution at the desired points in the complex plane.
-numericalLaplaceSamples = np.zeros(shape=(sAxis.shape), dtype=complex)
-for x in np.arange(sAxis.shape[0]):
-    for y in np.arange(sAxis.shape[1]):
-        numericalLaplaceSamples[x, y] = numericalLaplaceSol(sAxis[x, y])
+# # Defines the laplace transformation of the function as a function of s.
+# numericalLaplaceSol = lambda s: integrate.simpson(
+#     numericalSamples.y[0] * np.exp(-s * numericalSamples.t), # Laplace transform integrand.
+#     numericalSamples.t                                       # Points at which numerical solution was evaluated.
+# )
+# # Evaluates the laplaced numerical solution at the desired points in the complex plane.
+# numericalLaplaceSamples = np.zeros(shape=(sAxis.shape), dtype=complex)
+# for x in np.arange(sAxis.shape[0]):
+#     for y in np.arange(sAxis.shape[1]):
+#         numericalLaplaceSamples[x, y] = numericalLaplaceSol(sAxis[x, y])
 
 # ====================================================
 # ==== INVERSE LAPLACE OF THE ANALYTICAL SOLUTION ====
