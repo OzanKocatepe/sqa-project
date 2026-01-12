@@ -146,7 +146,7 @@ for row in np.arange(len(tPlottingRanges)):
         ax[row, col].legend()
 
 plt.tight_layout()
-# plt.show()
+plt.show()
 
 # ===========================================
 # ==== PLOTTING LAPLACE DOMAIN SOLUTIONS ====
@@ -171,9 +171,9 @@ for page in np.arange(len(plottingFunctions)):
     )
 
     # Plotting the numerical solution.
-    mask = np.abs(numericalLaplaceSamples) <= 10
+    # mask = np.abs(numericalLaplaceSamples) >= 0
     fig.add_trace(
-        go.Surface(z = plottingFunctions[page](numericalLaplaceSamples[mask]), x = sAxis.real[mask], y = sAxis.imag[mask], showscale = False),
+        go.Surface(z = plottingFunctions[page](numericalLaplaceSamples), x = sAxis.real, y = sAxis.imag, showscale = False),
         row = 1, col = 2
     )
 
@@ -183,14 +183,15 @@ for page in np.arange(len(plottingFunctions)):
         scene = dict(
             xaxis = dict( title = "Re(s)" ),
             yaxis = dict( title = "Im(s)" ),
-            zaxis = dict( title = zLabels[page], range = [-10, 10])
+            zaxis = dict( title = zLabels[page])
         ),
         scene2 = dict(
             xaxis = dict( title = "Re(s)" ),
             yaxis = dict( title = "Im(s)" ),
-            zaxis = dict( title = zLabels[page], range = [-10, 10])
+            zaxis = dict( title = zLabels[page])
         )
     )
+    
     fig.show()
 
 quit()
