@@ -3,7 +3,8 @@ import scipy.integrate as integrate
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from mpmath import invertlaplace
-import sympy
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 tau = 1        # Characteristic decay scale.
 omegaTilde = 0 # Atomic transition frequency - photon frequency.
@@ -56,9 +57,9 @@ initialConditions = np.array([0, 0, -1], dtype=complex)
 tDomain = (0, 300)
 tAxis = np.linspace(tDomain[0], tDomain[1], 1000)
 # The points (in the complex plane) that we evaluate the Laplaced solutions at.
-sRange = 0.2
-sNum = 50
-sRealAxis, sImagAxis = np.meshgrid(np.linspace(-sRange, sRange, sNum), np.linspace(-sRange, sRange, 20))
+sRange = 5
+sNum = 200
+sRealAxis, sImagAxis = np.meshgrid(np.linspace(-sRange, sRange, sNum), np.linspace(-sRange, sRange, sNum))
 sAxis = sRealAxis + 1j * sImagAxis
 
 # Numerically solves the ODE for n = 1.
@@ -112,7 +113,7 @@ analyticalColor = 'blue'
 
 figSize = (16, 8.8)
 tPlottingRanges = [5, 30, 100] # The range each row should plot.
-tPlottingFunctions = [np.abs, lambda z: z.real, lambda z: z.imag] # The function each column should plot.
+plottingFunctions = [np.abs, lambda z: z.real, lambda z: z.imag] # The function each column should plot.
 tLineStyles = ['solid', 'dashed', 'dotted'] # The line style for each function/column.
 
 xLabel = r"$t / \tau$" # x-axis label.
@@ -121,19 +122,19 @@ yLabels = [r"$\left| \langle \tilde{\sigma_-(t)} \rangle \right|$",
            r"$\text{Im} \left[ \langle \tilde{\sigma_-(t)} \rangle \right]$"]
 
 # Creates the figure.
-fig, ax = plt.subplots(len(tPlottingRanges), len(tPlottingFunctions), figsize=figSize)
+fig, ax = plt.subplots(len(tPlottingRanges), len(plottingFunctions), figsize=figSize)
 
 # Looping through the subplots.
 for row in np.arange(len(tPlottingRanges)):
-    for col in np.arange(len(tPlottingFunctions)):
+    for col in np.arange(len(plottingFunctions)):
         # Plot numerical solution.
-        ax[row, col].plot(tAxis, tPlottingFunctions[col](numericalSamples.y[0]),
+        ax[row, col].plot(tAxis, plottingFunctions[col](numericalSamples.y[0]),
                           color = numericalColor,
                           label = "Numerical",
                           linestyle = tLineStyles[col])
         
         # Plots analytical solution.
-        ax[row, col].plot(tAxis[1:], tPlottingFunctions[col](analyticalSamples),
+        ax[row, col].plot(tAxis[1:], plottingFunctions[col](analyticalSamples),
                           color = analyticalColor,
                           label = "Analytical",
                           linestyle = tLineStyles[col])
@@ -145,39 +146,54 @@ for row in np.arange(len(tPlottingRanges)):
         ax[row, col].legend()
 
 plt.tight_layout()
-plt.show()
-quit()
+# plt.show()
 
 # ===========================================
 # ==== PLOTTING LAPLACE DOMAIN SOLUTIONS ====
 # ===========================================
 
-ax[1, 0].plot_surface(sAxis.real, sAxis.imag, np.abs(numericalLaplaceSamples), color=numColor, label="Numerical Magnitude", alpha=0.7)
-ax[1, 0].plot_surface(sAxis.real, sAxis.imag, np.abs(analyticalLaplaceSamples), color=analyticColor, label="Analytical Magnitude", alpha=0.7)
+zLabels = ["Norm of Sigma",
+           "Re(Sigma)",
+           "Im(Sigma)"]
 
-ax[1, 1].plot_surface(sAxis.real, sAxis.imag, numericalLaplaceSamples.real, color=numColor, label="Numerical Real Part", alpha=0.7)
-ax[1, 1].plot_surface(sAxis.real, sAxis.imag, analyticalLaplaceSamples.real, color=analyticColor, label="Analytical Real Part", alpha=0.7)
+for page in np.arange(len(plottingFunctions)):
+    # Plots the analytical and numerical solutions separately on the same page.
+    fig = make_subplots(
+        rows = 1, cols = 2,
+        specs = [[{'type' : 'surface'}, {'type' : 'surface'}]],
+        subplot_titles = ("Analytical Solution", "Numerical Solution")
+    )
 
-ax[1, 2].plot_surface(sAxis.real, sAxis.imag, numericalLaplaceSamples.imag, color=numColor, label="Numerical Imaginary Part", alpha=0.7)
-ax[1, 2].plot_surface(sAxis.real, sAxis.imag, analyticalLaplaceSamples.imag, color=analyticColor, label="Analytical Imaginary Part", alpha=0.7)
+    # Plotting the analytical solution.
+    fig.add_trace(
+        go.Surface(z = plottingFunctions[page](analyticalLaplaceSamples), x = sAxis.real, y = sAxis.imag, showscale = False),
+        row = 1, col = 1
+    )
 
-xLabel = "$\\text{Re}(s)$"
-ax[1, 0].set_xlabel(xLabel)
-ax[1, 1].set_xlabel(xLabel)
-ax[1, 2].set_xlabel(xLabel)
+    # Plotting the numerical solution.
+    mask = np.abs(numericalLaplaceSamples) <= 10
+    fig.add_trace(
+        go.Surface(z = plottingFunctions[page](numericalLaplaceSamples[mask]), x = sAxis.real[mask], y = sAxis.imag[mask], showscale = False),
+        row = 1, col = 2
+    )
 
-yLabel = "$\\text{Im}(s)$"
-ax[1, 0].set_ylabel(yLabel)
-ax[1, 1].set_ylabel(yLabel)
-ax[1, 2].set_ylabel(yLabel)
+    # Sets the layout of the plot.
+    fig.update_layout(
+        width=1500, height=800,
+        scene = dict(
+            xaxis = dict( title = "Re(s)" ),
+            yaxis = dict( title = "Im(s)" ),
+            zaxis = dict( title = zLabels[page], range = [-10, 10])
+        ),
+        scene2 = dict(
+            xaxis = dict( title = "Re(s)" ),
+            yaxis = dict( title = "Im(s)" ),
+            zaxis = dict( title = zLabels[page], range = [-10, 10])
+        )
+    )
+    fig.show()
 
-ax[1, 0].set_zlabel("$\\left\\| \\mathcal{L}_t \\langle \\tilde{\\sigma}_-(t) \\rangle \\right\\|$")
-ax[1, 1].set_zlabel("$\\text{Re} \\left[ \\mathcal{L}_t \\langle \\tilde{\\sigma}_-(t) \\rangle \\right]$")
-ax[1, 2].set_zlabel("$\\text{Im} \\left[ \\mathcal{L}_t \\langle \\tilde{\\sigma}_-(t) \\rangle \\right]$")
-
-ax[1, 0].legend()
-ax[1, 1].legend()
-ax[1, 2].legend()
+quit()
 
 # ============================================
 # ==== PLOTTING LAPLACE DOMAIN DIFFERENCE ====

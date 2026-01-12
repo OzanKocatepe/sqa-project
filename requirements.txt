@@ -2,4 +2,4 @@ numpy
 scipy
 matplotlib
 mpmath
-sympy
+plotly
