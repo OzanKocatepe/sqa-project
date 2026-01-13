@@ -111,14 +111,14 @@ for n in np.arange(2):
     if n == 0:
         # This is a vector containing the equations (B1-B3), which are the analytical solutions for the
         # single-time correlation functions.
-        analyticalLaplaceSym = sympy.Matrix([-0.5j * rabiFreqSym * (s + 2 / tauSym) * (s + 1 / tauSym - 1j * detuningFreqSym) / (s * P),
-                                            0.5j * rabiFreqSym * (s + 2 / tauSym) * (s + 1 / tauSym + 1j * detuningFreqSym) / (s * P),
-                                            -(s + 2 / tauSym) * ( (s + 1 / tauSym)**2 + detuningFreq**2) / (s * P)])
+        analyticalLaplaceSym = sympy.Matrix([-0.5j * rabiFreqSym / tau * (s + 2 / tauSym) * (s + 1 / tauSym - 1j * detuningFreqSym / tau) / (s * P),
+                                            0.5j * rabiFreqSym / tau * (s + 2 / tauSym) * (s + 1 / tauSym + 1j * detuningFreqSym / tau) / (s * P),
+                                            -(s + 2 / tauSym) * ( (s + 1 / tauSym)**2 + detuningFreqSym**2 / tau**2) / (s * P)])
     elif n == 1:
         # This is a 'vector' containing just the analytical solution for the first component of the
         # double-time correlation functions. We have chosen at this time not to plot the remaining analytical
         # solutions.
-        analyticalLaplaceSym = sympy.Matrix([ 0.25 * rabiFreqSym**2 * (P - 0.5 * rabiFreqSym**2 * (s + 2 / tauSym) / tauSym**2) / (s * P * (1 + detuningFreq**2 + 0.5 * rabiFreq**2)) ])
+        analyticalLaplaceSym = sympy.Matrix([ 0.25 * rabiFreqSym**2 * (P - 0.5 * rabiFreqSym**2 * (s + 2 / tauSym) / tauSym**2) / (s * P * (1 + detuningFreqSym**2 + 0.5 * rabiFreqSym**2)) ])
 
     # Simplifies the expression.
     analyticalLaplaceSym = sympy.simplify(analyticalLaplaceSym)
