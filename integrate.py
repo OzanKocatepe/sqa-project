@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import sympy
 
 tau = 1             # Characteristic decay scale.
-detuningFreq = 0    # Normalised detuning frequency, described in Appendix B. Denoted D in the paper.
+detuningFreq = 1    # Normalised detuning frequency, described in Appendix B. Denoted D in the paper.
 rabiFreq = 2        # Normalised rabi frequency, described in appendix B. Denoted R in the paper.
 
 def TimeIndependentBlochEquations(t: np.typing.ArrayLike, c: np.ndarray[float], b: float) -> np.ndarray[float]:
@@ -86,8 +86,8 @@ for n in np.arange(2):
     """
 
     # The points within the range (0, timeLimit) we will evaluate the numerical solution at.
-    tDomain = (1e-6, 10)
-    tAxis = np.linspace(tDomain[0], tDomain[1], 500)
+    tDomain = (1e-6 * tau, 10 * tau)
+    tAxis = np.linspace(tDomain[0], tDomain[1], 50) * tau
 
     # Numerically solves the ODE.
     numericalSol = integrate.solve_ivp(fun=TimeIndependentBlochEquations,
@@ -112,7 +112,7 @@ for n in np.arange(2):
         # This is a vector containing the equations (B1-B3), which are the analytical solutions for the
         # single-time correlation functions.
         analyticalLaplaceSym = sympy.Matrix([-0.5j * rabiFreqSym / tauSym * (s + 2 / tauSym) * (s + 1 / tauSym - 1j * detuningFreqSym / tauSym) / (s * P),
-                                            0.5j * rabiFreqSym / tau * (s + 2 / tauSym) * (s + 1 / tauSym + 1j * detuningFreqSym / tauSym) / (s * P),
+                                            0.5j * rabiFreqSym / tauSym * (s + 2 / tauSym) * (s + 1 / tauSym + 1j * detuningFreqSym / tauSym) / (s * P),
                                             -(s + 2 / tauSym) * ( (s + 1 / tauSym)**2 + detuningFreqSym**2 / tauSym**2) / (s * P)])
     elif n == 1:
         # This is a 'vector' containing just the analytical solution for the first component of the
@@ -139,10 +139,17 @@ for n in np.arange(2):
     # Takes the inverse laplace transform symbolically.
     analyticalSolSym = sympy.inverse_laplace_transform(analyticalLaplaceSym, s, tSym)
 
-    # Converts it to a numerical function.
-    analyticalFunc = sympy.lambdify(tSym, analyticalSolSym, modules=['numpy'])
-    # Calculates the desired time domain values.
-    analyticalSamples = analyticalFunc(tAxis)
+    # Converts it to a numerical function. numpy module would apparently be faster, but the way it deals with
+    # complex values breaks this line when D != 0.
+    analyticalFunc = sympy.lambdify(tSym, analyticalSolSym, modules=['sympy'])
+    # Creates an array to store the samples in, of the right shape for a sympy matrix output.
+    analyticalSamples = np.zeros((3, 1, tAxis.size), dtype=complex)
+    # Calculates each t value manually, because for some reason putting in a vector,
+    # at least while the module is sympy, breaks the line.
+    for i in np.arange(tAxis.size):
+        if (round(i / tAxis.size * 100, 1) == round(i / tAxis.size * 100)):
+            print(f"{i / tAxis.size * 100:.0f}%")
+        analyticalSamples[:, :, i] = analyticalFunc(tAxis[i])
 
     # ========================================
     # ==== PLOTTING TIME DOMAIN SOLUTIONS ====
