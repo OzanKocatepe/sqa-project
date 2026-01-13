@@ -5,7 +5,7 @@ import sympy
 
 tau = 2             # Characteristic decay scale.
 detuningFreq = 1    # Normalised detuning frequency, described in Appendix B. Denoted D in the paper.
-rabiFreq = 2        # Normalised rabi frequency, described in appendix B. Denoted R in the paper.
+rabiFreq = 5        # Normalised rabi frequency, described in appendix B. Denoted R in the paper.
 
 def TimeIndependentBlochEquations(t: np.typing.ArrayLike, c: np.ndarray[float], b: float) -> np.ndarray[float]:
     """
@@ -203,5 +203,5 @@ for n in np.arange(2):
 
     plt.suptitle(fr"$\tau = {tau}$, $D = {detuningFreq}$, $R = {rabiFreq}$")
     plt.tight_layout()
-    # plt.savefig(titles[n], dpi=300)
+    plt.savefig(titles[n], dpi=300)
     plt.show()
