@@ -3,7 +3,7 @@ import scipy.integrate as integrate
 import matplotlib.pyplot as plt
 import sympy
 
-tau = 1             # Characteristic decay scale.
+tau = 2             # Characteristic decay scale.
 detuningFreq = 1    # Normalised detuning frequency, described in Appendix B. Denoted D in the paper.
 rabiFreq = 2        # Normalised rabi frequency, described in appendix B. Denoted R in the paper.
 
@@ -87,7 +87,7 @@ for n in np.arange(2):
 
     # The points within the range (0, timeLimit) we will evaluate the numerical solution at.
     tDomain = np.array([1e-6, 10])
-    tAxis = np.linspace(tDomain[0], tDomain[1], 250)
+    tAxis = np.linspace(tDomain[0], tDomain[1], 50)
 
     # Numerically solves the ODE.
     numericalSol = integrate.solve_ivp(fun=TimeIndependentBlochEquations,
@@ -106,7 +106,7 @@ for n in np.arange(2):
     s, tSym, tauSym, detuningFreqSym, rabiFreqSym = sympy.symbols('s, t, tau, detuningFreq, rabiFreq')
 
     # P is the function P(s) defined in equation (B4).
-    P = (s + 2 / tauSym) * ( (s + 1 / tauSym)**2 + detuningFreqSym**2) + rabiFreqSym**2 * (s + 1 / tauSym)
+    P = (s + 2 / tauSym) * ( (s + 1 / tauSym)**2 + detuningFreqSym**2 / tauSym**2) + rabiFreqSym**2 / tauSym**2 * (s + 1 / tauSym)
 
     if n == 0:
         # This is a vector containing the equations (B1-B3), which are the analytical solutions for the
@@ -203,5 +203,5 @@ for n in np.arange(2):
 
     plt.suptitle(fr"$\tau = {tau}$, $D = {detuningFreq}$, $R = {rabiFreq}$")
     plt.tight_layout()
-    plt.savefig(titles[n], dpi=300)
+    # plt.savefig(titles[n], dpi=300)
     plt.show()
