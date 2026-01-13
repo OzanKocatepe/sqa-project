@@ -3,7 +3,7 @@ import scipy.integrate as integrate
 import matplotlib.pyplot as plt
 import sympy
 
-tau = 1             # Characteristic decay scale.
+tau = 2             # Characteristic decay scale.
 detuningFreq = 1    # Normalised detuning frequency, described in Appendix B. Denoted D in the paper.
 rabiFreq = 2        # Normalised rabi frequency, described in appendix B. Denoted R in the paper.
 
@@ -86,14 +86,14 @@ for n in np.arange(2):
     """
 
     # The points within the range (0, timeLimit) we will evaluate the numerical solution at.
-    tDomain = (1e-6 * tau, 10 * tau)
-    tAxis = np.linspace(tDomain[0], tDomain[1], 50) * tau
+    tDomain = np.array([1e-6, 10])
+    tAxis = np.linspace(tDomain[0], tDomain[1], 50)
 
     # Numerically solves the ODE.
     numericalSol = integrate.solve_ivp(fun=TimeIndependentBlochEquations,
-                                       t_span=tDomain,
+                                       t_span=tDomain * tau,
                                        y0=initialConditions,
-                                       t_eval=tAxis,
+                                       t_eval=tAxis * tau,
                                        rtol=1e-10,
                                        atol=1e-12,
                                        args=(inhomTerm,))
@@ -149,7 +149,7 @@ for n in np.arange(2):
     for i in np.arange(tAxis.size):
         if (round(i / tAxis.size * 100, 1) == round(i / tAxis.size * 100)):
             print(f"{i / tAxis.size * 100:.0f}%")
-        analyticalSamples[:, :, i] = analyticalFunc(tAxis[i])
+        analyticalSamples[:, :, i] = analyticalFunc(tAxis[i] * tau)
 
     # ========================================
     # ==== PLOTTING TIME DOMAIN SOLUTIONS ====
