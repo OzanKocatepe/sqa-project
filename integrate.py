@@ -3,7 +3,7 @@ import scipy.integrate as integrate
 import matplotlib.pyplot as plt
 import sympy
 
-tau = 2             # Characteristic decay scale.
+tau = 1             # Characteristic decay scale.
 detuningFreq = 1    # Normalised detuning frequency, described in Appendix B. Denoted D in the paper.
 rabiFreq = 2        # Normalised rabi frequency, described in appendix B. Denoted R in the paper.
 
@@ -87,7 +87,7 @@ for n in np.arange(2):
 
     # The points within the range (0, timeLimit) we will evaluate the numerical solution at.
     tDomain = np.array([1e-6, 10])
-    tAxis = np.linspace(tDomain[0], tDomain[1], 50)
+    tAxis = np.linspace(tDomain[0], tDomain[1], 250)
 
     # Numerically solves the ODE.
     numericalSol = integrate.solve_ivp(fun=TimeIndependentBlochEquations,
