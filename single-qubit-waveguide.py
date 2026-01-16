@@ -169,9 +169,9 @@ for n in np.arange(2):
                    [r"$\left\| \langle \tilde{\sigma}_+(\delta t) \rangle \right\|$", r"$\text{Re} \left[ \langle \tilde{\sigma}_+(\delta t) \rangle \right]$", r"$\text{Im} \left[ \langle \tilde{\sigma}_+(\delta t) \rangle \right]$"],
                    [r"$\left\| \langle \tilde{\sigma}_z(\delta t) \rangle \right\|$", r"$\text{Re} \left[ \langle \tilde{\sigma}_z(\delta t) \rangle \right]$", r"$\text{Im} \left[ \langle \tilde{\sigma}_z(\delta t) \rangle \right]$"]]
     elif n == 1:
-        yLabels = [[r"$\left\| \langle \tilde{\sigma}_(t) \tilde{\sigma}_-(t + \delta t) \rangle \right\|$", r"$\text{Re} \left[ \langle \tilde{\sigma}_(t) \tilde{\sigma}_-(t + \delta t) \rangle \right]$", r"$\text{Im} \left[ \langle \tilde{\sigma}_(t) \tilde{\sigma}_-(t + \delta t) \rangle \right]$"],
-                   [r"$\left\| \langle \tilde{\sigma}_(t) \tilde{\sigma}_+(t + \delta t) \rangle \right\|$", r"$\text{Re} \left[ \langle \tilde{\sigma}_(t) \tilde{\sigma}_+(t + \delta t) \rangle \right]$", r"$\text{Im} \left[ \langle \tilde{\sigma}_(t) \tilde{\sigma}_+(t + \delta t) \rangle \right]$"],
-                   [r"$\left\| \langle \tilde{\sigma}_(t) \tilde{\sigma}_z(t + \delta t) \rangle \right\|$", r"$\text{Re} \left[ \langle \tilde{\sigma}_(t) \tilde{\sigma}_z(t + \delta t) \rangle \right]$", r"$\text{Im} \left[ \langle \tilde{\sigma}_(t) \tilde{\sigma}_z(t + \delta t) \rangle \right]$"]]
+        yLabels = [[r"$\left\| \langle \tilde{\sigma}_+(t) \tilde{\sigma}_-(t + \delta t) \rangle \right\|$", r"$\text{Re} \left[ \langle \tilde{\sigma}_+(t) \tilde{\sigma}_-(t + \delta t) \rangle \right]$", r"$\text{Im} \left[ \langle \tilde{\sigma}_+(t) \tilde{\sigma}_-(t + \delta t) \rangle \right]$"],
+                   [r"$\left\| \langle \tilde{\sigma}_+(t) \tilde{\sigma}_+(t + \delta t) \rangle \right\|$", r"$\text{Re} \left[ \langle \tilde{\sigma}_+(t) \tilde{\sigma}_+(t + \delta t) \rangle \right]$", r"$\text{Im} \left[ \langle \tilde{\sigma}_+(t) \tilde{\sigma}_+(t + \delta t) \rangle \right]$"],
+                   [r"$\left\| \langle \tilde{\sigma}_+(t) \tilde{\sigma}_z(t + \delta t) \rangle \right\|$", r"$\text{Re} \left[ \langle \tilde{\sigma}_+(t) \tilde{\sigma}_z(t + \delta t) \rangle \right]$", r"$\text{Im} \left[ \langle \tilde{\sigma}_+(t) \tilde{\sigma}_z(t + \delta t) \rangle \right]$"]]
 
     # Creates the figure.
     nrows = 3
