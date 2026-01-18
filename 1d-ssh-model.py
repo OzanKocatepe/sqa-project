@@ -48,8 +48,8 @@ def ClassicallyDrivenSSHEquations(t: float, c: np.ndarray[float], A: Callable[[n
     # Coefficient matrix at time t.
     Ek = t1 + t2 * np.exp(1j * k)
     phiK = np.angle(Ek)
-    vZ = 2 * t2 * np.sin(k - phiK - 0.5 * A(t))
-    vPm = 2j * t2 * np.cos(k - phiK - 0.5 * A(t))
+    vZ = 2 * t2 * np.sin(k - phiK - 0.5 * A(t)) * np.sin(0.5 * A(t))
+    vPm = 2j * t2 * np.cos(k - phiK - 0.5 * A(t)) * np.sin(0.5 * A(t))
 
     B = np.array([[2j * (vZ - np.abs(Ek))  , 0                       ,  -1j * vPm  ],
                   [0                       , 2j * (np.abs(Ek) - vZ)  ,  -1j * vPm  ],
@@ -63,7 +63,7 @@ def ClassicallyDrivenSSHEquations(t: float, c: np.ndarray[float], A: Callable[[n
 
 tDomain = (0, 5)
 tAxis = np.linspace(tDomain[0], tDomain[1], 250)
-initialConditions = np.array([0, 0, -1], dtype=complex) # We assume that the system is in its ground state at time 0.
+initialConditions = np.array([1, 1, 1], dtype=complex) # We assume that the system is in its ground state at time 0.
 
 numericalSol = integrate.solve_ivp(fun=ClassicallyDrivenSSHEquations,
                                     t_span=tDomain,
