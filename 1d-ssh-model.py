@@ -63,7 +63,7 @@ def ClassicallyDrivenSSHEquations(t: float, c: np.ndarray[float], A: Callable[[n
 
 tDomain = (0, 5)
 tAxis = np.linspace(tDomain[0], tDomain[1], 250)
-initialConditions = np.array([0, 0, -1]) # We assume that the system is in its ground state at time 0.
+initialConditions = np.array([0, 0, -1], dtype=complex) # We assume that the system is in its ground state at time 0.
 
 numericalSol = integrate.solve_ivp(fun=ClassicallyDrivenSSHEquations,
                                     t_span=tDomain,
@@ -71,7 +71,7 @@ numericalSol = integrate.solve_ivp(fun=ClassicallyDrivenSSHEquations,
                                     t_eval=tAxis,
                                     rtol=1e-10,
                                     atol=1e-12,
-                                    args=(ClassicalDrivingTerm,))
+                                    args=(lambda t: 0,))
 
 # ===========================================
 # ==== PLOTTING SINGLE-TIME CORRELATIONS ====
@@ -91,7 +91,6 @@ for i in range(len(correlationLabels)):
          f"Real Part of {correlationLabels[i]}",
          f"Imaginary Part of {correlationLabels[i]}"]
     )
-print(yLabels)
 
 # The functions that we will be applying to the correlation functions.
 plottingFunctions = [lambda z: np.abs(z), lambda z: z.real, lambda z: z.imag]
