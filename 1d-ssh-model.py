@@ -63,7 +63,7 @@ def ClassicallyDrivenSSHEquations(t: float, c: np.ndarray[float], A: Callable[[n
 
 tDomain = (0, 5)
 tAxis = np.linspace(tDomain[0], tDomain[1], 250)
-initialConditions = np.array([1, 1, 1], dtype=complex) # We assume that the system is in its ground state at time 0.
+initialConditions = np.array([0, 0, -1], dtype=complex) # We assume that the system is in its ground state at time 0.
 
 numericalSol = integrate.solve_ivp(fun=ClassicallyDrivenSSHEquations,
                                     t_span=tDomain,
