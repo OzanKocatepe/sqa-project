@@ -3,10 +3,10 @@ import scipy.integrate as integrate
 import matplotlib.pyplot as plt
 from typing import Callable
 
-t1 = 1
-t2 = 1
-drivingAmplitude = 1
-drivingFreq = 1
+t1 = 0.2
+t2 = 0.8 + 0j
+drivingAmplitude = 5
+drivingFreq = 0.5
 k = np.pi / 4
 
 def ClassicalDrivingTerm(t: np.typing.ArrayLike) -> np.typing.ArrayLike:
@@ -45,12 +45,15 @@ def ClassicallyDrivenSSHEquations(t: float, c: np.ndarray[float], A: Callable[[n
             The value of dc/dt at some time t.
     """
 
-    # Coefficient matrix at time t. Don't know if we can make a useful time-independent transformation here.
-    HPlus = t1 + t2 * np.exp(-1j * (k - A(t)))
-    HMinus = t1 + t2 * np.exp(1j * (k - A(t)))
-    B = np.array([[0            , 0          ,  1j * HPlus    ],
-                  [0            , 0          ,  -1j * HMinus  ],
-                  [2j * HMinus  , -2j * HPlus,  0             ]], dtype=complex)
+    # Coefficient matrix at time t.
+    Ek = t1 + t2 * np.exp(1j * k)
+    phiK = np.angle(Ek)
+    vZ = 2 * t2 * np.sin(k - phiK - 0.5 * A(t))
+    vPm = 2j * t2 * np.cos(k - phiK - 0.5 * A(t))
+
+    B = np.array([[2j * (vZ - np.abs(Ek))  , 0                       ,  -1j * vPm  ],
+                  [0                       , 2j * (np.abs(Ek) - vZ)  ,  -1j * vPm  ],
+                  [2j * vPm                , 2j * vPm                ,  0          ]], dtype=complex)
     
     return B @ c
 
@@ -58,7 +61,7 @@ def ClassicallyDrivenSSHEquations(t: float, c: np.ndarray[float], A: Callable[[n
 # ==== NUMERICALLY SOLVE ODE ====
 # ===============================
 
-tDomain = (0, 30)
+tDomain = (0, 5)
 tAxis = np.linspace(tDomain[0], tDomain[1], 250)
 initialConditions = np.array([0, 0, -1]) # We assume that the system is in its ground state at time 0.
 
@@ -69,3 +72,42 @@ numericalSol = integrate.solve_ivp(fun=ClassicallyDrivenSSHEquations,
                                     rtol=1e-10,
                                     atol=1e-12,
                                     args=(ClassicalDrivingTerm,))
+
+# ===========================================
+# ==== PLOTTING SINGLE-TIME CORRELATIONS ====
+# ===========================================
+
+# Writes the labels for each correlation that we are plotting.
+correlationLabels = [r"$\langle \tilde \sigma_-(t) \rangle$",
+                     r"$\langle \tilde \sigma_+(t) \rangle$",
+                     r"$\langle \tilde \sigma_z(t) \rangle$"]
+
+# Writes the labels for each individal subplot.
+xLabel = "$t$"
+yLabels = []
+for i in range(len(correlationLabels)):
+    yLabels.append(
+        [f"Magnitude of {correlationLabels[i]}",
+         f"Real Part of {correlationLabels[i]}",
+         f"Imaginary Part of {correlationLabels[i]}"]
+    )
+print(yLabels)
+
+# The functions that we will be applying to the correlation functions.
+plottingFunctions = [lambda z: np.abs(z), lambda z: z.real, lambda z: z.imag]
+
+nrows, ncols = 3, 3
+fig, ax = plt.subplots(nrows, ncols, figsize=(16, 8.8))
+
+for row in np.arange(nrows):
+    for col in np.arange(ncols):
+        # Plot numerical solution.
+        ax[row, col].plot(tAxis, plottingFunctions[col](numericalSol.y[row]),
+                          color = "Black")
+        
+        # Sets other properties.
+        ax[row, col].set_xlabel(xLabel)
+        ax[row, col].set_ylabel(yLabels[row][col])
+
+plt.tight_layout()
+plt.show()
