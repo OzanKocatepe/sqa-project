@@ -61,6 +61,8 @@ def ClassicallyDrivenSSHEquations(t: float, c: np.ndarray[float], A: Callable[[n
 # ==== NUMERICALLY SOLVE ODE ====
 # ===============================
 
+# Define the choice of driving term.
+A = ClassicalDrivingTerm
 tDomain = (0, 5)
 tAxis = np.linspace(tDomain[0], tDomain[1], 250)
 initialConditions = np.array([0, 0, -1], dtype=complex) # We assume that the system is in its ground state at time 0.
@@ -71,7 +73,15 @@ numericalSol = integrate.solve_ivp(fun=ClassicallyDrivenSSHEquations,
                                     t_eval=tAxis,
                                     rtol=1e-10,
                                     atol=1e-12,
-                                    args=(lambda t: 0,))
+                                    args=(A,))
+
+# ==========================================
+# ==== CALCULATING THE CURRENT OPERATOR ====
+# ==========================================
+
+# Calculates the current operator in terms of the pauli matrices in the eigenbasis.
+currentCoeff = 1j * t2 * np.exp(1j * (k - A(tAxis)))
+currentOperatorSol = -(currentCoeff * numericalSol.y[0] + currentCoeff.conjugate() * numericalSol.y[1])
 
 # ===========================================
 # ==== PLOTTING SINGLE-TIME CORRELATIONS ====
@@ -107,6 +117,31 @@ for row in np.arange(nrows):
         # Sets other properties.
         ax[row, col].set_xlabel(xLabel)
         ax[row, col].set_ylabel(yLabels[row][col])
+
+plt.tight_layout()
+plt.show()
+
+# ===================================
+# ==== PLOTTING CURRENT OPERATOR ====
+# ===================================
+
+currentLabel = r"$\langle \tilde j_k \rangle$"
+yLabels = [
+    f"Magnitude of {currentLabel}",
+    f"Real Part of {currentLabel}",
+    f"Imaginary Part of {currentLabel}"
+]
+
+nrows, ncols = 3, 1
+fig, ax = plt.subplots(nrows, ncols, figsize=(16, 8.8))
+
+for row in np.arange(nrows):
+    # Plot the numerical solution.
+    ax[row].plot(tAxis, plottingFunctions[row](currentOperatorSol),
+                 color = "Black")
+    
+    ax[row].set_xlabel(xLabel)
+    ax[row].set_ylabel(yLabels[row])
 
 plt.tight_layout()
 plt.show()
