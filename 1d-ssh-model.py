@@ -62,9 +62,11 @@ def ClassicallyDrivenSSHEquations(t: float, c: np.ndarray[float], A: Callable[[n
 # ===============================
 
 # Define the choice of driving term.
+# A = lambda t: 0
 A = ClassicalDrivingTerm
 tDomain = (0, 5)
-tAxis = np.linspace(tDomain[0], tDomain[1], 250)
+n_tSamples = 250
+tAxis = np.linspace(tDomain[0], tDomain[1], n_tSamples)
 initialConditions = np.array([0, 0, -1], dtype=complex) # We assume that the system is in its ground state at time 0.
 
 numericalSol = integrate.solve_ivp(fun=ClassicallyDrivenSSHEquations,
@@ -82,6 +84,11 @@ numericalSol = integrate.solve_ivp(fun=ClassicallyDrivenSSHEquations,
 # Calculates the current operator in terms of the pauli matrices in the eigenbasis.
 currentCoeff = 1j * t2 * np.exp(1j * (k - A(tAxis)))
 currentOperatorSol = -(currentCoeff * numericalSol.y[0] + currentCoeff.conjugate() * numericalSol.y[1])
+
+# Takes the fourier transform of the current operator.
+sampleSpacing = (tDomain[1] - tDomain[0]) / n_tSamples
+fourierCurrentOperator = np.fft.fftshift(np.fft.fft(currentOperatorSol))
+freqAxis = np.fft.fftshift(np.fft.fftfreq(n_tSamples, sampleSpacing))
 
 # ===========================================
 # ==== PLOTTING SINGLE-TIME CORRELATIONS ====
@@ -125,7 +132,7 @@ plt.show()
 # ==== PLOTTING CURRENT OPERATOR ====
 # ===================================
 
-currentLabel = r"$\langle \tilde j_k \rangle$"
+currentLabel = r"$\langle\tilde j_k \rangle$"
 yLabels = [
     f"Magnitude of {currentLabel}",
     f"Real Part of {currentLabel}",
@@ -144,4 +151,13 @@ for row in np.arange(nrows):
     ax[row].set_ylabel(yLabels[row])
 
 plt.tight_layout()
+plt.show()
+
+# Plotting the fourier transform of the current operator.
+plt.plot(freqAxis, np.abs(fourierCurrentOperator)**2,
+        color = 'black')
+
+plt.xlim(-2.5, 2.5)
+plt.xlabel("Frequency (Hz)")
+plt.ylabel(r"$\| \tilde j (w) \|^2$")
 plt.show()
