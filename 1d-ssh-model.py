@@ -6,8 +6,7 @@ from typing import Callable
 t1 = 2
 t2 = 1 + 0j
 drivingAmplitude = 0.2
-drivingFreq = 2 / 3.01
-k = np.pi / 4
+drivingFreq = 2 / 3.01      # In units of $\gamma_-$.
 decayConstant = 0.1
 
 def ClassicalDrivingTerm(t: np.typing.ArrayLike) -> np.typing.ArrayLike:
@@ -64,36 +63,40 @@ def ClassicallyDrivenSSHEquations(t: float, c: np.ndarray[float], A: Callable[[n
 # ==== NUMERICALLY SOLVE ODE ====
 # ===============================
 
-# Define the choice of driving term.
-# A = lambda t: 0
-A = ClassicalDrivingTerm
+fourierCurrents = []
 
-# Here, the tDomain is defined in terms of $1 / \gamma_-$.
-tDomain = np.array([0, 50])
-n_tSamples = 250
-tAxis = np.linspace(tDomain[0], tDomain[1], n_tSamples)
-initialConditions = np.array([0, 0, -1], dtype=complex) # We assume that the system is in its ground state at time 0.
+for k in [np.pi / 4, -np.pi / 4]:
+    # Define the choice of driving term.
+    # A = lambda t: 0
+    A = ClassicalDrivingTerm
 
-numericalSol = integrate.solve_ivp(fun=ClassicallyDrivenSSHEquations,
-                                   t_span=tDomain / decayConstant,
-                                   y0=initialConditions,
-                                   t_eval=tAxis / decayConstant,
-                                   rtol=1e-10,
-                                   atol=1e-12,
-                                   args=(A,))
+    # Here, the tDomain is defined in terms of $1 / \gamma_-$.
+    tDomain = np.array([0, 50])
+    n_tSamples = 250
+    tAxis = np.linspace(tDomain[0], tDomain[1], n_tSamples)
+    initialConditions = np.array([0, 0, -1], dtype=complex) # We assume that the system is in its ground state at time 0.
 
-# ==========================================
-# ==== CALCULATING THE CURRENT OPERATOR ====
-# ==========================================
+    numericalSol = integrate.solve_ivp(fun=ClassicallyDrivenSSHEquations,
+                                    t_span=tDomain / decayConstant,
+                                    y0=initialConditions,
+                                    t_eval=tAxis / decayConstant,
+                                    rtol=1e-10,
+                                    atol=1e-12,
+                                    args=(A,))
 
-# Calculates the current operator in terms of the pauli matrices in the eigenbasis.
-currentCoeff = 1j * t2 * np.exp(1j * (k - A(tAxis / decayConstant)))
-currentOperatorSol = -(currentCoeff * numericalSol.y[0] + currentCoeff.conjugate() * numericalSol.y[1])
+    # ==========================================
+    # ==== CALCULATING THE CURRENT OPERATOR ====
+    # ==========================================
 
-# Takes the fourier transform of the current operator.
-sampleSpacing = (tDomain[1] - tDomain[0]) * decayConstant / n_tSamples
-fourierCurrentOperator = np.fft.fftshift(np.fft.fft(currentOperatorSol))
-freqAxis = np.fft.fftshift(np.fft.fftfreq(n_tSamples, sampleSpacing))
+    # Calculates the current operator in terms of the pauli matrices in the eigenbasis.
+    currentCoeff = 1j * t2 * np.exp(1j * (k - A(tAxis / decayConstant)))
+    currentOperatorSol = -(currentCoeff * numericalSol.y[0] + currentCoeff.conjugate() * numericalSol.y[1])
+
+    # Takes the fourier transform of the current operator.
+    sampleSpacing = (tDomain[1] - tDomain[0]) * decayConstant / n_tSamples
+    fourierCurrentOperator = np.fft.fftshift(np.fft.fft(currentOperatorSol))
+    fourierCurrents.append(fourierCurrentOperator)
+    freqAxis = np.fft.fftshift(np.fft.fftfreq(n_tSamples, sampleSpacing))
 
 # ===========================================
 # ==== PLOTTING SINGLE-TIME CORRELATIONS ====
@@ -101,11 +104,11 @@ freqAxis = np.fft.fftshift(np.fft.fftfreq(n_tSamples, sampleSpacing))
 
 # Writes the labels for each correlation that we are plotting.
 correlationLabels = [r"$\langle \tilde \sigma_-(t) \rangle$",
-                     r"$\langle \tilde \sigma_+(t) \rangle$",
-                     r"$\langle \tilde \sigma_z(t) \rangle$"]
+                    r"$\langle \tilde \sigma_+(t) \rangle$",
+                    r"$\langle \tilde \sigma_z(t) \rangle$"]
 
 # Title of the plot.
-title = rf"$t_1 = {t1},\, t_2 = {t2},\, A_0 = {drivingAmplitude},\, \Omega = {drivingFreq},\, k = {k / np.pi} \pi,\, \gamma_- = {decayConstant}$"
+title = rf"$t_1 = {t1},\, t_2 = {t2},\, A_0 = {drivingAmplitude},\, \Omega = {drivingFreq:.2f} \gamma_-,\, k = {k / np.pi} \pi,\, \gamma_- = {decayConstant}$"
 
 # Writes the labels for each individal subplot.
 xLabel = r"$t / \gamma_-$"
@@ -113,8 +116,8 @@ yLabels = []
 for i in range(len(correlationLabels)):
     yLabels.append(
         [f"Magnitude of {correlationLabels[i]}",
-         f"Real Part of {correlationLabels[i]}",
-         f"Imaginary Part of {correlationLabels[i]}"]
+        f"Real Part of {correlationLabels[i]}",
+        f"Imaginary Part of {correlationLabels[i]}"]
     )
 
 # The functions that we will be applying to the correlation functions.
@@ -127,7 +130,7 @@ for row in np.arange(nrows):
     for col in np.arange(ncols):
         # Plot numerical solution.
         ax[row, col].plot(tAxis, plottingFunctions[col](numericalSol.y[row]),
-                          color = "Black")
+                        color = "Black")
         
         # Sets other properties.
         ax[row, col].set_xlabel(xLabel)
@@ -154,7 +157,7 @@ fig, ax = plt.subplots(nrows, ncols, figsize=(16, 8.8))
 for row in np.arange(nrows):
     # Plot the numerical solution.
     ax[row].plot(tAxis, plottingFunctions[row](currentOperatorSol),
-                 color = "Black")
+                color = "Black")
     
     ax[row].set_xlabel(xLabel)
     ax[row].set_ylabel(yLabels[row])
@@ -164,11 +167,11 @@ plt.tight_layout()
 plt.show()
 
 # Plotting the fourier transform of the current operator.
-plt.plot(freqAxis, np.abs(fourierCurrentOperator)**2,
+plt.plot(freqAxis / (drivingFreq * decayConstant), np.abs(fourierCurrents[0] + fourierCurrents[1])**2,
         color = 'black')
 
 plt.suptitle(title)
-plt.xlim(-2.5, 2.5)
-plt.xlabel("Frequency (Hz)")
-plt.ylabel(r"$\| \tilde j (w) \|^2$")
+# plt.xlim(-2.5, 2.5)
+plt.xlabel("$\omega / \Omega$")
+plt.ylabel(r"$\| \tilde j (\omega) \|^2$")
 plt.show()
