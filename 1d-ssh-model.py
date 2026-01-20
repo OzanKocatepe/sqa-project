@@ -3,29 +3,11 @@ import scipy.integrate as integrate
 import matplotlib.pyplot as plt
 from typing import Callable
 
-# DIMENSIONLESS PARAMETERS
-
-# Natural time? energy? scale.
-tau = 3
-
-# Amplitude and frequency of driving term.
-drivingAmplitude = 1    # ~ 1
-drivingFreq = 1
-
-# Determines relative amplitudes of t1 and t2.
-# Between $[0, \pi / 2]$.
-theta = np.pi / 4
-
-# Phase of t2, between $[-\pi, \pi]$.
-phi = 0
-
-# Momentum (in Brillouin Zone).
-# Between $[-\pi, \pi]$.
+t1 = 0.2
+t2 = 0.8 + 0j
+drivingAmplitude = 5
+drivingFreq = 0.5
 k = np.pi / 4
-
-# DERIVED PARAMETERS
-t1 = tau * np.cos(theta)
-t2 = tau * np.sin(theta) * np.exp(1j * phi)
 
 def ClassicalDrivingTerm(t: np.typing.ArrayLike) -> np.typing.ArrayLike:
     """
@@ -67,10 +49,11 @@ def ClassicallyDrivenSSHEquations(t: float, c: np.ndarray[float], A: Callable[[n
     Ek = t1 + t2 * np.exp(1j * k)
     phiK = np.angle(Ek)
     vZ = 2 * t2 * np.sin(k - phiK - 0.5 * A(t)) * np.sin(0.5 * A(t))
+    vPm = 2j * t2 * np.cos(k - phiK - 0.5 * A(t)) * np.sin(0.5 * A(t))
 
-    B = np.array([[2j * (vZ - np.abs(Ek))  , 0                       ,  vZ  ],
-                  [0                       , 2j * (np.abs(Ek) - vZ)  ,  vZ  ],
-                  [-2 * vZ                 , -2 * vZ                 ,  0   ]], dtype=complex)
+    B = np.array([[2j * (vZ - np.abs(Ek))  , 0                       ,  -1j * vPm  ],
+                  [0                       , 2j * (np.abs(Ek) - vZ)  ,  -1j * vPm  ],
+                  [2j * vPm                , 2j * vPm                ,  0          ]], dtype=complex)
     
     return B @ c
 
@@ -82,7 +65,7 @@ def ClassicallyDrivenSSHEquations(t: float, c: np.ndarray[float], A: Callable[[n
 # A = lambda t: 0
 A = ClassicalDrivingTerm
 tDomain = (0, 5)
-n_tSamples = 10000
+n_tSamples = 250
 tAxis = np.linspace(tDomain[0], tDomain[1], n_tSamples)
 initialConditions = np.array([0, 0, -1], dtype=complex) # We assume that the system is in its ground state at time 0.
 
@@ -117,7 +100,7 @@ correlationLabels = [r"$\langle \tilde \sigma_-(t) \rangle$",
                      r"$\langle \tilde \sigma_z(t) \rangle$"]
 
 # Writes the labels for each individal subplot.
-xLabel = r"$t / \tau$"
+xLabel = "$t$"
 yLabels = []
 for i in range(len(correlationLabels)):
     yLabels.append(
