@@ -8,7 +8,7 @@ t2 = 0.8 + 0j
 drivingAmplitude = 1
 drivingFreq = 0.5
 k = np.pi / 4
-decayConstant = 10
+decayConstant = 1
 
 def ClassicalDrivingTerm(t: np.typing.ArrayLike) -> np.typing.ArrayLike:
     """
@@ -104,6 +104,9 @@ correlationLabels = [r"$\langle \tilde \sigma_-(t) \rangle$",
                      r"$\langle \tilde \sigma_+(t) \rangle$",
                      r"$\langle \tilde \sigma_z(t) \rangle$"]
 
+# Title of the plot.
+title = rf"$t_1 = {t1},\, t_2 = {t2},\, A_0 = {drivingAmplitude},\, \Omega = {drivingFreq},\, k = {k / np.pi} \pi,\, \gamma_- = {decayConstant}$"
+
 # Writes the labels for each individal subplot.
 xLabel = r"$t / \gamma_-$"
 yLabels = []
@@ -130,6 +133,7 @@ for row in np.arange(nrows):
         ax[row, col].set_xlabel(xLabel)
         ax[row, col].set_ylabel(yLabels[row][col])
 
+plt.suptitle(title)
 plt.tight_layout()
 plt.show()
 
@@ -155,6 +159,7 @@ for row in np.arange(nrows):
     ax[row].set_xlabel(xLabel)
     ax[row].set_ylabel(yLabels[row])
 
+plt.suptitle(title)
 plt.tight_layout()
 plt.show()
 
@@ -162,6 +167,7 @@ plt.show()
 plt.plot(freqAxis, np.abs(fourierCurrentOperator)**2,
         color = 'black')
 
+plt.suptitle(title)
 plt.xlim(-2.5, 2.5)
 plt.xlabel("Frequency (Hz)")
 plt.ylabel(r"$\| \tilde j (w) \|^2$")
