@@ -35,7 +35,7 @@ correlationLabels = [r"$\langle \tilde \sigma_-(t) \rangle$",
 
 # Title of the plot.
 title = rf"$t_1 = {ssh.t1},\, t_2 = {ssh.t2},\, A_0 = {ssh.drivingAmplitude},\, \Omega = {ssh.drivingFreq:.5f},\, k = {ssh.k / np.pi} \pi,\, \gamma_- = {ssh.decayConstant}$"
-xLabel = r"$t / \gamma_-$"
+xLabel = r"$t \gamma_-$"
 
 # Writes the labels for each individal subplot.
 yLabels = []
@@ -94,7 +94,7 @@ plt.show()
 
 # Plotting the fourier transform of the current operator.
 freqAxis = ssh.GetFrequencyAxis()
-plt.plot(freqAxis / (ssh.drivingFreq), np.abs(currentOperatorFourier)**2,
+plt.plot(freqAxis / ssh.drivingFreq, np.abs(currentOperatorFourier)**2,
         color = 'black')
 
 plt.suptitle(title)
