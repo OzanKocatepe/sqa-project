@@ -1,102 +1,28 @@
 import numpy as np
 import scipy.integrate as integrate
 import matplotlib.pyplot as plt
-from typing import Callable
+from typing import Callable, Any
 
-t1 = 2
-t2 = 1 + 0j
-drivingAmplitude = 0.2
-decayConstant = 0.1
-drivingFreq = 2 / (3.01 * decayConstant)     # In units of $\gamma_-$.
+from SSH import SSH
 
-def ClassicalDrivingTerm(t: np.typing.ArrayLike) -> np.typing.ArrayLike:
-    """
-    The classical sinusoidal driving term that we are considering. This models a laser with frequency $\Omega$ and amplitude $A_0$.
+tAxis = np.linspace(0, 30, 250)
+initialConditions = np.array([0, 0, -1], dtype=complex)
 
-    Parameters
-    ----------
-        t : ArrayLike
-            The absolute value of time.
+# Initialises the model with the desired values.
+ssh = SSH(
+    k = np.pi / 4,
+    t1 = 2,
+    t2 = 1 + 0j,
+    decayConstant = 0.1,
+    drivingAmplitude = 0.2,
+    drivingFreq = 2 / 3.01
+)
 
-    Returns
-    -------
-        ArrayLike
-            The value of the driving term at that time.
-    """
+# Calculates the numerical solution.
+numericalSol = ssh.CalculateSingleTimeCorrelations(tAxis, initialConditions, ssh.ClassicalDrivingTerm)
+# Calculates the current operator.
+currentOperator, currentOperatorFourier = ssh.CalculateCurrentOperator()
 
-    return drivingAmplitude * np.sin(drivingFreq * decayConstant * t)
-
-def ClassicallyDrivenSSHEquations(t: float, c: np.ndarray[float], A: Callable[[np.typing.ArrayLike], np.typing.ArrayLike]) -> np.ndarray[float]:
-    """
-    The ODE (equations of motion) for the single-time expectations of $\sigma_-(t)$, $\sigma_+(t)$, and $\sigma_z(t)$. 
-
-    Parameters
-    ----------
-        t : float
-            The time t.
-        c : ndarray[float, dtype[Any]]
-            The 3-component single-time correlation array.
-        A : Callable[[np.typing.ArrayLike], np.typing.ArrayLike]
-            The classical driving term. Should be a vectorisable function of t.
-
-    Returns:
-    --------
-        ndarraypfloat, dtype[Any]] 
-            The value of dc/dt at some time t.
-    """
-
-    # Coefficient matrix at time t.
-    Ek = t1 + t2 * np.exp(1j * k)
-    phiK = np.angle(Ek)
-    vZ = 2 * t2 * np.sin(k - phiK - 0.5 * A(t)) * np.sin(0.5 * A(t))
-
-    B = np.array([[2j * (vZ - np.abs(Ek)) - 0.5 * decayConstant  , 0                                             ,  vZ                      ],
-                  [0                                             , 2j * (np.abs(Ek) - vZ) - 0.5 * decayConstant  ,  vZ                      ],
-                  [-2 * vZ                                       , -2 * vZ                                       ,  -decayConstant          ]], dtype=complex)
-    
-    # Inhomogenous part.
-    d = np.array([0, 0, -decayConstant], dtype=complex)
-    
-    return B @ c + d
-
-# ===============================
-# ==== NUMERICALLY SOLVE ODE ====
-# ===============================
-
-fourierCurrents = []
-
-for k in [np.pi / 4, -np.pi / 4]:
-    # Define the choice of driving term.
-    # A = lambda t: 0
-    A = ClassicalDrivingTerm
-
-    # Here, the tDomain is defined in terms of $1 / \gamma_-$.
-    tDomain = np.array([0, 50])
-    n_tSamples = 250
-    tAxis = np.linspace(tDomain[0], tDomain[1], n_tSamples)
-    initialConditions = np.array([0, 0, -1], dtype=complex) # We assume that the system is in its ground state at time 0.
-
-    numericalSol = integrate.solve_ivp(fun=ClassicallyDrivenSSHEquations,
-                                    t_span=tDomain / decayConstant,
-                                    y0=initialConditions,
-                                    t_eval=tAxis / decayConstant,
-                                    rtol=1e-10,
-                                    atol=1e-12,
-                                    args=(A,))
-
-    # ==========================================
-    # ==== CALCULATING THE CURRENT OPERATOR ====
-    # ==========================================
-
-    # Calculates the current operator in terms of the pauli matrices in the eigenbasis.
-    currentCoeff = 1j * t2 * np.exp(1j * (k - A(tAxis / decayConstant)))
-    currentOperatorSol = -(currentCoeff * numericalSol.y[0] + currentCoeff.conjugate() * numericalSol.y[1])
-    fourierCurrents.append(currentOperatorSol)
-
-# Takes the fourier transform of the current operator.
-sampleSpacing = (tDomain[1] - tDomain[0]) / (n_tSamples * decayConstant)
-fourierCurrentOperator = np.fft.fftshift(np.fft.fft(fourierCurrents[0] + fourierCurrents[1]))
-freqAxis = np.fft.fftshift(np.fft.fftfreq(n_tSamples, sampleSpacing))
 
 # ===========================================
 # ==== PLOTTING SINGLE-TIME CORRELATIONS ====
@@ -104,14 +30,14 @@ freqAxis = np.fft.fftshift(np.fft.fftfreq(n_tSamples, sampleSpacing))
 
 # Writes the labels for each correlation that we are plotting.
 correlationLabels = [r"$\langle \tilde \sigma_-(t) \rangle$",
-                    r"$\langle \tilde \sigma_+(t) \rangle$",
-                    r"$\langle \tilde \sigma_z(t) \rangle$"]
+                     r"$\langle \tilde \sigma_+(t) \rangle$",
+                     r"$\langle \tilde \sigma_z(t) \rangle$"]
 
 # Title of the plot.
-title = rf"$t_1 = {t1},\, t_2 = {t2},\, A_0 = {drivingAmplitude},\, \Omega = {drivingFreq:.2f} \gamma_-,\, k = {k / np.pi} \pi,\, \gamma_- = {decayConstant}$"
+title = rf"$t_1 = {ssh.t1},\, t_2 = {ssh.t2},\, A_0 = {ssh.drivingAmplitude},\, \Omega = {ssh.drivingFreq:.5f},\, k = {ssh.k / np.pi} \pi,\, \gamma_- = {ssh.decayConstant}$"
+xLabel = r"$t / \gamma_-$"
 
 # Writes the labels for each individal subplot.
-xLabel = r"$t / \gamma_-$"
 yLabels = []
 for i in range(len(correlationLabels)):
     yLabels.append(
@@ -156,7 +82,7 @@ fig, ax = plt.subplots(nrows, ncols, figsize=(16, 8.8))
 
 for row in np.arange(nrows):
     # Plot the numerical solution.
-    ax[row].plot(tAxis, plottingFunctions[row](currentOperatorSol),
+    ax[row].plot(tAxis, plottingFunctions[row](currentOperator),
                 color = "Black")
     
     ax[row].set_xlabel(xLabel)
@@ -167,11 +93,12 @@ plt.tight_layout()
 plt.show()
 
 # Plotting the fourier transform of the current operator.
-plt.plot(freqAxis / (drivingFreq * decayConstant), np.abs(fourierCurrentOperator)**2,
+freqAxis = ssh.GetFrequencyAxis()
+plt.plot(freqAxis / (ssh.drivingFreq), np.abs(currentOperatorFourier)**2,
         color = 'black')
 
 plt.suptitle(title)
 # plt.xlim(-2.5, 2.5)
-plt.xlabel("$\omega / \Omega$")
+plt.xlabel(r"$\omega / \Omega$")
 plt.ylabel(r"$\| \tilde j (\omega) \|^2$")
 plt.show()
