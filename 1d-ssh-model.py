@@ -5,10 +5,10 @@ from typing import Callable
 
 t1 = 0.2
 t2 = 0.8 + 0j
-drivingAmplitude = 5
+drivingAmplitude = 1
 drivingFreq = 0.5
 k = np.pi / 4
-decayConstant = 1
+decayConstant = 10
 
 def ClassicalDrivingTerm(t: np.typing.ArrayLike) -> np.typing.ArrayLike:
     """
@@ -17,7 +17,7 @@ def ClassicalDrivingTerm(t: np.typing.ArrayLike) -> np.typing.ArrayLike:
     Parameters
     ----------
         t : ArrayLike
-            The time.
+            The absolute value of time.
 
     Returns
     -------
@@ -25,7 +25,7 @@ def ClassicalDrivingTerm(t: np.typing.ArrayLike) -> np.typing.ArrayLike:
             The value of the driving term at that time.
     """
 
-    return drivingAmplitude * np.sin(drivingFreq * t)
+    return drivingAmplitude * np.sin(drivingFreq * decayConstant * t)
 
 def ClassicallyDrivenSSHEquations(t: float, c: np.ndarray[float], A: Callable[[np.typing.ArrayLike], np.typing.ArrayLike]) -> np.ndarray[float]:
     """
@@ -68,15 +68,16 @@ def ClassicallyDrivenSSHEquations(t: float, c: np.ndarray[float], A: Callable[[n
 # A = lambda t: 0
 A = ClassicalDrivingTerm
 
+# Here, the tDomain is defined in terms of $1 / \gamma_-$.
 tDomain = np.array([0, 50])
 n_tSamples = 250
 tAxis = np.linspace(tDomain[0], tDomain[1], n_tSamples)
 initialConditions = np.array([0, 0, -1], dtype=complex) # We assume that the system is in its ground state at time 0.
 
 numericalSol = integrate.solve_ivp(fun=ClassicallyDrivenSSHEquations,
-                                   t_span=tDomain * decayConstant,
+                                   t_span=tDomain / decayConstant,
                                    y0=initialConditions,
-                                   t_eval=tAxis * decayConstant,
+                                   t_eval=tAxis / decayConstant,
                                    rtol=1e-10,
                                    atol=1e-12,
                                    args=(A,))
@@ -86,7 +87,7 @@ numericalSol = integrate.solve_ivp(fun=ClassicallyDrivenSSHEquations,
 # ==========================================
 
 # Calculates the current operator in terms of the pauli matrices in the eigenbasis.
-currentCoeff = 1j * t2 * np.exp(1j * (k - A(tAxis * decayConstant)))
+currentCoeff = 1j * t2 * np.exp(1j * (k - A(tAxis / decayConstant)))
 currentOperatorSol = -(currentCoeff * numericalSol.y[0] + currentCoeff.conjugate() * numericalSol.y[1])
 
 # Takes the fourier transform of the current operator.
