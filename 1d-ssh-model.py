@@ -65,18 +65,18 @@ def ClassicallyDrivenSSHEquations(t: float, c: np.ndarray[float], A: Callable[[n
 # ===============================
 
 # Define the choice of driving term.
-A = lambda t: 0
-# A = ClassicalDrivingTerm
+# A = lambda t: 0
+A = ClassicalDrivingTerm
 
-tDomain = (0, 5)
+tDomain = np.array([0, 50])
 n_tSamples = 250
 tAxis = np.linspace(tDomain[0], tDomain[1], n_tSamples)
 initialConditions = np.array([0, 0, -1], dtype=complex) # We assume that the system is in its ground state at time 0.
 
 numericalSol = integrate.solve_ivp(fun=ClassicallyDrivenSSHEquations,
-                                   t_span=tDomain,
+                                   t_span=tDomain * decayConstant,
                                    y0=initialConditions,
-                                   t_eval=tAxis,
+                                   t_eval=tAxis * decayConstant,
                                    rtol=1e-10,
                                    atol=1e-12,
                                    args=(A,))
@@ -86,11 +86,11 @@ numericalSol = integrate.solve_ivp(fun=ClassicallyDrivenSSHEquations,
 # ==========================================
 
 # Calculates the current operator in terms of the pauli matrices in the eigenbasis.
-currentCoeff = 1j * t2 * np.exp(1j * (k - A(tAxis)))
+currentCoeff = 1j * t2 * np.exp(1j * (k - A(tAxis * decayConstant)))
 currentOperatorSol = -(currentCoeff * numericalSol.y[0] + currentCoeff.conjugate() * numericalSol.y[1])
 
 # Takes the fourier transform of the current operator.
-sampleSpacing = (tDomain[1] - tDomain[0]) / n_tSamples
+sampleSpacing = (tDomain[1] - tDomain[0]) * decayConstant / n_tSamples
 fourierCurrentOperator = np.fft.fftshift(np.fft.fft(currentOperatorSol))
 freqAxis = np.fft.fftshift(np.fft.fftfreq(n_tSamples, sampleSpacing))
 
@@ -104,7 +104,7 @@ correlationLabels = [r"$\langle \tilde \sigma_-(t) \rangle$",
                      r"$\langle \tilde \sigma_z(t) \rangle$"]
 
 # Writes the labels for each individal subplot.
-xLabel = "$t$"
+xLabel = r"$t / \gamma_-$"
 yLabels = []
 for i in range(len(correlationLabels)):
     yLabels.append(
