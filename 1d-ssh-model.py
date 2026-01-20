@@ -3,12 +3,12 @@ import scipy.integrate as integrate
 import matplotlib.pyplot as plt
 from typing import Callable
 
-t1 = 0.2
-t2 = 0.8 + 0j
-drivingAmplitude = 1
-drivingFreq = 0.5
+t1 = 2
+t2 = 1 + 0j
+drivingAmplitude = 0.2
+drivingFreq = 2 / 3.01
 k = np.pi / 4
-decayConstant = 1
+decayConstant = 0.1
 
 def ClassicalDrivingTerm(t: np.typing.ArrayLike) -> np.typing.ArrayLike:
     """
