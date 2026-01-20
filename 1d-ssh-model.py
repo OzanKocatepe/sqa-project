@@ -6,8 +6,8 @@ from typing import Callable
 t1 = 2
 t2 = 1 + 0j
 drivingAmplitude = 0.2
-drivingFreq = 2 / 3.01      # In units of $\gamma_-$.
 decayConstant = 0.1
+drivingFreq = 2 / (3.01 * decayConstant)     # In units of $\gamma_-$.
 
 def ClassicalDrivingTerm(t: np.typing.ArrayLike) -> np.typing.ArrayLike:
     """
@@ -91,12 +91,12 @@ for k in [np.pi / 4, -np.pi / 4]:
     # Calculates the current operator in terms of the pauli matrices in the eigenbasis.
     currentCoeff = 1j * t2 * np.exp(1j * (k - A(tAxis / decayConstant)))
     currentOperatorSol = -(currentCoeff * numericalSol.y[0] + currentCoeff.conjugate() * numericalSol.y[1])
+    fourierCurrents.append(currentOperatorSol)
 
-    # Takes the fourier transform of the current operator.
-    sampleSpacing = (tDomain[1] - tDomain[0]) * decayConstant / n_tSamples
-    fourierCurrentOperator = np.fft.fftshift(np.fft.fft(currentOperatorSol))
-    fourierCurrents.append(fourierCurrentOperator)
-    freqAxis = np.fft.fftshift(np.fft.fftfreq(n_tSamples, sampleSpacing))
+# Takes the fourier transform of the current operator.
+sampleSpacing = (tDomain[1] - tDomain[0]) / (n_tSamples * decayConstant)
+fourierCurrentOperator = np.fft.fftshift(np.fft.fft(fourierCurrents[0] + fourierCurrents[1]))
+freqAxis = np.fft.fftshift(np.fft.fftfreq(n_tSamples, sampleSpacing))
 
 # ===========================================
 # ==== PLOTTING SINGLE-TIME CORRELATIONS ====
@@ -167,7 +167,7 @@ plt.tight_layout()
 plt.show()
 
 # Plotting the fourier transform of the current operator.
-plt.plot(freqAxis / (drivingFreq * decayConstant), np.abs(fourierCurrents[0] + fourierCurrents[1])**2,
+plt.plot(freqAxis / (drivingFreq * decayConstant), np.abs(fourierCurrentOperator)**2,
         color = 'black')
 
 plt.suptitle(title)
