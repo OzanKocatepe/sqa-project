@@ -8,6 +8,7 @@ t2 = 0.8 + 0j
 drivingAmplitude = 5
 drivingFreq = 0.5
 k = np.pi / 4
+decayConstant = 1
 
 def ClassicalDrivingTerm(t: np.typing.ArrayLike) -> np.typing.ArrayLike:
     """
@@ -49,33 +50,36 @@ def ClassicallyDrivenSSHEquations(t: float, c: np.ndarray[float], A: Callable[[n
     Ek = t1 + t2 * np.exp(1j * k)
     phiK = np.angle(Ek)
     vZ = 2 * t2 * np.sin(k - phiK - 0.5 * A(t)) * np.sin(0.5 * A(t))
-    vPm = 2j * t2 * np.cos(k - phiK - 0.5 * A(t)) * np.sin(0.5 * A(t))
 
-    B = np.array([[2j * (vZ - np.abs(Ek))  , 0                       ,  -1j * vPm  ],
-                  [0                       , 2j * (np.abs(Ek) - vZ)  ,  -1j * vPm  ],
-                  [2j * vPm                , 2j * vPm                ,  0          ]], dtype=complex)
+    B = np.array([[2j * (vZ - np.abs(Ek)) - 0.5 * decayConstant  , 0                                             ,  vZ                      ],
+                  [0                                             , 2j * (np.abs(Ek) - vZ) - 0.5 * decayConstant  ,  vZ                      ],
+                  [-2 * vZ                                       , -2 * vZ                                       ,  -decayConstant          ]], dtype=complex)
     
-    return B @ c
+    # Inhomogenous part.
+    d = np.array([0, 0, -decayConstant], dtype=complex)
+    
+    return B @ c + d
 
 # ===============================
 # ==== NUMERICALLY SOLVE ODE ====
 # ===============================
 
 # Define the choice of driving term.
-# A = lambda t: 0
-A = ClassicalDrivingTerm
+A = lambda t: 0
+# A = ClassicalDrivingTerm
+
 tDomain = (0, 5)
 n_tSamples = 250
 tAxis = np.linspace(tDomain[0], tDomain[1], n_tSamples)
 initialConditions = np.array([0, 0, -1], dtype=complex) # We assume that the system is in its ground state at time 0.
 
 numericalSol = integrate.solve_ivp(fun=ClassicallyDrivenSSHEquations,
-                                    t_span=tDomain,
-                                    y0=initialConditions,
-                                    t_eval=tAxis,
-                                    rtol=1e-10,
-                                    atol=1e-12,
-                                    args=(A,))
+                                   t_span=tDomain,
+                                   y0=initialConditions,
+                                   t_eval=tAxis,
+                                   rtol=1e-10,
+                                   atol=1e-12,
+                                   args=(A,))
 
 # ==========================================
 # ==== CALCULATING THE CURRENT OPERATOR ====
