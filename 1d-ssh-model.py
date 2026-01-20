@@ -8,20 +8,26 @@ from SSH import SSH
 tAxis = np.linspace(0, 30, 250)
 initialConditions = np.array([0, 0, -1], dtype=complex)
 
-# Initialises the model with the desired values.
-ssh = SSH(
-    k = np.pi / 4,
-    t1 = 2,
-    t2 = 1 + 0j,
-    decayConstant = 0.1,
-    drivingAmplitude = 0.2,
-    drivingFreq = 2 / 3.01
-)
+fouriers = []
 
-# Calculates the numerical solution.
-numericalSol = ssh.CalculateSingleTimeCorrelations(tAxis, initialConditions, ssh.ClassicalDrivingTerm)
-# Calculates the current operator.
-currentOperator, currentOperatorFourier = ssh.CalculateCurrentOperator()
+for k in [np.pi / 4, -np.pi / 4]:
+    # Initialises the model with the desired values.
+    ssh = SSH(
+        k = np.pi / 4,
+        t1 = 2,
+        t2 = 1 + 0j,
+        decayConstant = 0.1,
+        drivingAmplitude = 0.2,
+        drivingFreq = 2 / 3.01
+    )
+
+    # Calculates the numerical solution.
+    numericalSol = ssh.CalculateSingleTimeCorrelations(tAxis, initialConditions, ssh.ClassicalDrivingTerm)
+    # Calculates the current operator.
+    currentOperator, currentOperatorFourier = ssh.CalculateCurrentOperator()
+    fouriers.append(currentOperatorFourier)
+
+currentOperatorFourier = fouriers[0] + fouriers[1]
 
 
 # ===========================================

@@ -71,10 +71,11 @@ class SSH:
         Ek = self.t1 + self.t2 * np.exp(1j * self.k)
         phiK = np.angle(Ek)
         vZ = 2 * self.t2 * np.sin(self.k - phiK - 0.5 * A(t)) * np.sin(0.5 * A(t))
+        vPm = 2j * self.t2 * np.cos(self.k - phiK - 0.5 * A(t)) * np.sin(0.5 * A(t))
 
-        B = np.array([[2j * (vZ - np.abs(Ek)) - 0.5 * self.decayConstant  , 0                                                  ,  vZ                   ],
-                      [0                                                  , 2j * (np.abs(Ek) - vZ) - 0.5 * self.decayConstant  ,  vZ                   ],
-                      [-2 * vZ                                            , -2 * vZ                                            ,  -self.decayConstant  ]], dtype=complex)
+        B = np.array([[2j * (vZ - np.abs(Ek)) - 0.5 * self.decayConstant  , 0                                                  ,  -1j * vPm                   ],
+                      [0                                                  , 2j * (np.abs(Ek) - vZ) - 0.5 * self.decayConstant  ,  -1j * vPm                   ],
+                      [2j * vPm                                            , 2j * vPm                                            ,  -self.decayConstant  ]], dtype=complex)
     
         # Inhomogenous part.
         d = np.array([0, 0, -self.decayConstant], dtype=complex)
