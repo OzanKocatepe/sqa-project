@@ -6,7 +6,7 @@ from typing import Callable, Any
 from SSH import SSH
 
 tAxis = np.linspace(0, 30, 10000)
-initialConditions = np.array([0, 0, -1], dtype=complex)
+initialConditions = np.array([-0.5, -0.5, 0], dtype=complex)
 
 operators = []
 fouriers = []
@@ -14,7 +14,7 @@ fouriers = []
 # for k in [np.pi / 4, -np.pi / 4]:
 # Initialises the model with the desired values.
 ssh = SSH(
-    k = 0,
+    k = np.pi / 4,
     t1 = 2,
     t2 = 1 + 0j,
     decayConstant = 0.1,
