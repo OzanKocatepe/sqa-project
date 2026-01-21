@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.integrate as integrate
 from typing import Callable, Any
+import time
 
 class SSH:
     
@@ -82,7 +83,10 @@ class SSH:
     
         return B @ c + d
 
-    def CalculateSingleTimeCorrelations(self, tAxis: np.ndarray[float], initialConditions: np.ndarray[complex], drivingTerm: Callable[[float], float]) -> Any:
+    def CalculateSingleTimeCorrelations(self, tAxis: np.ndarray[float],
+                                        initialConditions: np.ndarray[complex],
+                                        drivingTerm: Callable[[float], float],
+                                        debug: bool=False) -> Any:
         """
         Solves the system ODE to get the single time correlations,.
     
@@ -94,6 +98,8 @@ class SSH:
             The initial conditions for the single time correlations.
         drivingTerm : Callable[[float], float]
             The function that describes the driving term, as a function of time in units of seconds.
+        debug : bool
+            Whether to print out debug statements.
 
         Returns
         -------
@@ -107,6 +113,10 @@ class SSH:
         self.n_tSamples = tAxis.size
         self.drivingTerm = drivingTerm
 
+        if debug:
+            print("Solving ODE...")
+            startTime = time.perf_counter()
+
         self.numericalSol = integrate.solve_ivp(fun=self.ClassicallyDrivenSSHEquations,
                                         t_span=self.tDomain / self.decayConstant,
                                         y0=initialConditions,
@@ -115,14 +125,23 @@ class SSH:
                                         atol=1e-12,
                                         args=(drivingTerm,))
         
+        if debug:
+            print(f"ODE solved in {time.perf_counter() - startTime:.2f}s.\n")
+
         return self.numericalSol
 
 
-    def CalculateCurrentOperator(self) -> tuple[np.ndarray[float], np.ndarray[float]]:
+    def CalculateCurrentOperator(self, debug: bool=False) -> tuple[np.ndarray[float], np.ndarray[float]]:
         """
         Calculates the value of the current operator in the time domain.
 
-        Returns:
+        Parameters
+        ----------
+            debug : bool
+                Whether to print out the debug statements.
+
+        Returns
+        -------
             ndarray[float]
                 The first element of the tuple is the current operator in the time-domain, evaluated at the
                 points along tAxis.
@@ -130,12 +149,24 @@ class SSH:
                 The second element is the fourier transform of the current operator, in the frequency domain.
         """
 
+        if debug:
+            print("Calculating current operator...")
+            startTime = time.perf_counter()
+
         # Calculates the current operator in terms of the pauli matrices in the eigenbasis.
         currentCoeff = 1j * self.t2 * np.exp(1j * (self.k - self.drivingTerm(self.tAxis / self.decayConstant)))
         currentOperatorSol = -(currentCoeff * self.numericalSol.y[0] + currentCoeff.conjugate() * self.numericalSol.y[1])
 
+        if debug:
+            print(f"Current operator calculated in {time.perf_counter() - startTime:.2f}s.\n")
+            print("Taking fourier transform of current operator...")
+            startTime = time.perf_counter()
+
         # Takes the fourier transform of the current operator.
         fourierCurrentOperator = np.fft.fftshift(np.fft.fft(currentOperatorSol))
+
+        if debug:
+            print(f"Fourier transform calculated in {time.perf_counter() - startTime:.2f}s.\n")
 
         return currentOperatorSol, fourierCurrentOperator
 
