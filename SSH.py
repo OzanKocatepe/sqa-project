@@ -33,7 +33,7 @@ class SSH:
         self.drivingFreq = drivingFreq
 
     def ClassicalDrivingTerm(self, t: np.typing.ArrayLike) -> np.typing.ArrayLike:
-        """
+        r"""
         The classical sinusoidal driving term that we are considering. This models a laser with frequency $\Omega$ and amplitude $A_0$.
 
         Parameters
@@ -50,7 +50,7 @@ class SSH:
         return self.drivingAmplitude * np.sin(self.drivingFreq * t)
 
     def ClassicallyDrivenSSHEquations(self, t: float, c: np.ndarray[float], A: Callable[[np.typing.ArrayLike], np.typing.ArrayLike]) -> np.ndarray[float]:
-        """
+        r"""
         The ODE (equations of motion) for the single-time expectations of $\sigma_-(t)$, $\sigma_+(t)$, and $\sigma_z(t)$. 
 
         Parameters
@@ -87,7 +87,7 @@ class SSH:
                                         initialConditions: np.ndarray[complex],
                                         drivingTerm: Callable[[float], float],
                                         debug: bool=False) -> Any:
-        """
+        r"""
         Solves the system ODE to get the single time correlations,.
     
         Parameters
