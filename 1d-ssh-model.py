@@ -5,9 +5,10 @@ from typing import Callable, Any
 
 from SSH import SSH
 
-tAxis = np.linspace(0, 30, 250)
+tAxis = np.linspace(0, 30, 10000)
 initialConditions = np.array([0, 0, -1], dtype=complex)
 
+operators = []
 fouriers = []
 
 for k in [np.pi / 4, -np.pi / 4]:
@@ -25,8 +26,10 @@ for k in [np.pi / 4, -np.pi / 4]:
     numericalSol = ssh.CalculateSingleTimeCorrelations(tAxis, initialConditions, ssh.ClassicalDrivingTerm)
     # Calculates the current operator.
     currentOperator, currentOperatorFourier = ssh.CalculateCurrentOperator()
+    operators.append(currentOperator)
     fouriers.append(currentOperatorFourier)
 
+currentOperator = operators[0] + operators[1]
 currentOperatorFourier = fouriers[0] + fouriers[1]
 
 
