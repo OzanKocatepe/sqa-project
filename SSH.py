@@ -181,8 +181,13 @@ class SSH:
             startTime = time.perf_counter()
 
         # Calculates the current operator in terms of the pauli matrices in the eigenbasis.
-        currentCoeff = 1j * self.t2 * np.exp(1j * (self.k - self.drivingTerm(self.tAxis / self.decayConstant)))
-        currentOperatorSol = -(currentCoeff * self.numericalSol.y[0] + currentCoeff.conjugate() * self.numericalSol.y[1])
+        Ek = self.t1 + self.t2 * np.exp(1j * self.k)
+        phiK = np.angle(Ek)
+        drivingSamples = self.drivingTerm(self.tAxis / self.decayConstant)
+        currentOperatorSol = self.t2 * (
+            -np.sin(self.k - phiK - drivingSamples) * self.numericalSol.y[2]
+            + 1j * np.cos(self.k - phiK - drivingSamples) * (self.numericalSol.y[1] - self.numericalSol.y[0])
+        )
 
         if debug:
             print(f"Current operator calculated in {time.perf_counter() - startTime:.2f}s.\n")
