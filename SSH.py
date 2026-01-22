@@ -208,7 +208,7 @@ class SSH:
         """
 
         sampleSpacing = (np.max(self.tAxis) - np.min(self.tAxis)) / (self.tAxis.size * self.decayConstant)
-        return np.fft.fftshift(np.fft.fftfreq(self.tAxis.size, sampleSpacing))
+        return np.fft.fftshift(np.fft.fftfreq(self.tAxis.size))
     
     def TransformToCoordinateBasis(self, c: np.ndarray[float]) -> np.ndarray[float]:
         """
