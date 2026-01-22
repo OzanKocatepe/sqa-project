@@ -75,43 +75,6 @@ plt.suptitle(title)
 plt.tight_layout()
 plt.show()
 
-# ============================================================
-# ==== PLOTTING COORDINATE BASIS SINGLE-TIME CORRELATIONS ====
-# ============================================================
-
-# Transform into coordinate basis.
-coordinateCorrelations = ssh.TransformToCoordinateBasis(numericalSol.y.T).T
-
-correlationLabels = [r"$\langle \sigma_-(t) \rangle$",
-                     r"$\langle \sigma_+(t) \rangle$",
-                     r"$\langle \sigma_z(t) \rangle$"]
-
-# Writes the labels for each individal subplot.
-yLabels = []
-for i in range(len(correlationLabels)):
-    yLabels.append(
-        [f"Magnitude of {correlationLabels[i]}",
-        f"Real Part of {correlationLabels[i]}",
-        f"Imaginary Part of {correlationLabels[i]}"]
-    )
-
-nrows, ncols = 3, 3
-fig, ax = plt.subplots(nrows, ncols, figsize=(16, 8.8))
-
-for row in np.arange(nrows):
-    for col in np.arange(ncols):
-        # Plot numerical solution.
-        ax[row, col].plot(tAxis, plottingFunctions[col](coordinateCorrelations[row]),
-                        color = "Black")
-        
-        # Sets other properties.
-        ax[row, col].set_xlabel(xLabel)
-        ax[row, col].set_ylabel(yLabels[row][col])
-
-plt.suptitle(title)
-plt.tight_layout()
-plt.show()
-
 # ==============================================
 # ==== PLOTTING EIGENBASIS CURRENT OPERATOR ====
 # ==============================================
