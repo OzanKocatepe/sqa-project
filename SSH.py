@@ -4,6 +4,36 @@ from typing import Callable, Any
 import time
 
 class SSH:
+    r"""
+    Models the 1-dimensional SSH model in momentum-space, with some classical driving term.
+
+    Attributes
+    ---------- 
+    k : float
+        The momentum.
+    t1 : float
+        The intracell(?) hopping amplitude.
+    t2 : float
+        The intercell(?) hopping amplitude.
+    decayConstant: float
+        The decay constant, in units of Hz.
+    drivingAmplitude : float
+        The amplitude of the classical driving term.
+    drivingFreq : float
+        The frequency of the driving term, in Hz.
+    tAxis : float
+        The points in the time-domain that the single-time correlation functions are evaluated at.
+    drivingTerm : Callable[[float], float]
+        The chosen classical driving term for this system.
+        By default, this is the classical sinusoidal driving term with amplitude $A_0$ and
+        frequency $\Omega$. 
+    initialConditions : np.ndarray[complex]
+        The initial conditions of the system for $\tilde \sigma_-$, $\tilde \sigma_+$, and $\tilde \sigma_z$. It is important
+        that the initial conditions are in the eigenbasis.
+    numericalSol : Any
+        The object returned from scipy.integrate.solve_ivp when we solve the
+        ODE for the single-time correlations in the eigenbasis.
+    """
     
     def __init__(self, k: float, t1: float, t2: complex, decayConstant: float, drivingAmplitude: float, drivingFreq: float):
         """
@@ -85,7 +115,7 @@ class SSH:
 
     def CalculateSingleTimeCorrelations(self, tAxis: np.ndarray[float],
                                         initialConditions: np.ndarray[complex],
-                                        drivingTerm: Callable[[float], float],
+                                        drivingTerm: Callable[[float], float]=ClassicallyDrivenSSHEquations,
                                         debug: bool=False) -> Any:
         r"""
         Solves the system ODE to get the single time correlations,.
@@ -109,8 +139,6 @@ class SSH:
 
         # Note, the tDomain is defined in terms of $1 / \gamma_-$.
         self.tAxis = tAxis
-        self.tDomain = np.array([np.min(tAxis), np.max(tAxis)])
-        self.n_tSamples = tAxis.size
         self.drivingTerm = drivingTerm
 
         if debug:
@@ -118,7 +146,7 @@ class SSH:
             startTime = time.perf_counter()
 
         self.numericalSol = integrate.solve_ivp(fun=self.ClassicallyDrivenSSHEquations,
-                                        t_span=self.tDomain / self.decayConstant,
+                                        t_span= np.array([np.min(tAxis), np.max(tAxis)]) / self.decayConstant,
                                         y0=initialConditions,
                                         t_eval=tAxis / self.decayConstant,
                                         rtol=1e-10,
@@ -129,7 +157,6 @@ class SSH:
             print(f"ODE solved in {time.perf_counter() - startTime:.2f}s.\n")
 
         return self.numericalSol
-
 
     def CalculateCurrentOperator(self, debug: bool=False) -> tuple[np.ndarray[float], np.ndarray[float]]:
         """
@@ -175,5 +202,67 @@ class SSH:
         Calculates the frequency axis for the fourier transform of the current operator.
         """
 
-        sampleSpacing = (self.tDomain[1] - self.tDomain[0]) / (self.n_tSamples * self.decayConstant)
-        return np.fft.fftshift(np.fft.fftfreq(self.n_tSamples, sampleSpacing))
+        sampleSpacing = (np.max(self.tAxis) - np.min(self.tAxis)) / (self.tAxis.size * self.decayConstant)
+        return np.fft.fftshift(np.fft.fftfreq(self.tAxis.size, sampleSpacing))
+    
+    def TransformToCoordinateBasis(self, c: np.ndarray[float]) -> np.ndarray[float]:
+        """
+        Transforms the correlation functions in the eigenbasis to the coordinate basis.
+
+        Parameters
+        ----------
+        c : np.ndarray[float]
+            An array of shape (t_samples, 3), where the first dimension corresponds
+            to the points in time that the correlation functions are evaluated at,
+            and the second dimension corresponds to which of the single-time correlation functions
+            we are considering.
+
+        Returns
+        -------
+        np.ndarray[float]
+            An array of the same shape as c, but where the vectors in the last
+            dimension have been transformed to the coordinate basis.
+        """
+
+        Ek = self.t1 + self.t2 * np.exp(1j * self.k)
+        phiK = np.angle(Ek)
+        # Defines the common exponential terms
+        exp = np.exp(1j * phiK)
+        expConj = exp.conjugate()
+
+        transformationMatrix = 0.5 * np.array([[-expConj, expConj, expConj ],
+                                               [exp     , -exp   , exp     ],
+                                               [2       , 2      , 0       ]], dtype=complex)
+        
+        return np.matvec(transformationMatrix, c)
+    
+    def TransformToEigenbasis(self, c: np.ndarray[float]) -> np.ndarray[float]:
+        """
+        Transforms the correlation functions in the coordinate to the eigenbasis.
+
+        Parameters
+        ----------
+        c : np.ndarray[float]
+            An array of shape (t_samples, 3), where the first dimension corresponds
+            to the points in time that the correlation functions are evaluated at,
+            and the second dimension corresponds to which of the single-time correlation functions
+            we are considering.
+
+        Returns
+        -------
+        np.ndarray[float]
+            An array of the same shape as c, but where the vectors in the last
+            dimension have been transformed to the eigenbasis.
+        """
+
+        Ek = self.t1 + self.t2 * np.exp(1j * self.k)
+        phiK = np.angle(Ek)
+        # Defines the common exponential terms
+        exp = np.exp(1j * phiK)
+        expConj = exp.conjugate()
+
+        transformationMatrix = 0.5 * np.array([[-exp, expConj , 1 ],
+                                               [exp , -expConj, 1 ],
+                                               [exp , expConj , 0 ]], dtype=complex)
+        
+        return np.matvec(transformationMatrix, c)
