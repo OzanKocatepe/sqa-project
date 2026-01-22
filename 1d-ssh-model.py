@@ -11,7 +11,7 @@ initialConditions = np.array([-0.5, -0.5, 0], dtype=complex)
 operators = []
 fouriers = []
 
-for k in [np.pi / 4, -np.pi / 4]:
+for k in [np.pi / 8, -np.pi / 8]:
     # Initialises the model with the desired values.
     ssh = SSH(
         k = k,
@@ -31,7 +31,6 @@ for k in [np.pi / 4, -np.pi / 4]:
 
 currentOperator = operators[0] + operators[1]
 currentOperatorFourier = fouriers[0] + fouriers[1]
-
 
 # ======================================================
 # ==== PLOTTING EIGENBASIS SINGLE-TIME CORRELATIONS ====
@@ -91,7 +90,7 @@ fig, ax = plt.subplots(nrows, ncols, figsize=(16, 8.8))
 
 for row in np.arange(nrows):
     # Plot the numerical solution.
-    ax[row].plot(tAxis, plottingFunctions[row](currentOperator),
+    ax[row].plot(tAxis / ssh.decayConstant, plottingFunctions[row](currentOperator),
                 color = "Black")
     
     ax[row].set_xlabel(xLabel)

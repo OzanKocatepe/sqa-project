@@ -194,21 +194,27 @@ class SSH:
             print("Taking fourier transform of current operator...")
             startTime = time.perf_counter()
 
-        # Takes the fourier transform of the current operator.
-        fourierCurrentOperator = np.fft.fftshift(np.fft.fft(currentOperatorSol))
+        # Takes the fourier transform of the current operator in the steady state.
+        mask = (25.292 <= self.tAxis) & (self.tAxis <= 30)
+        tAxisForFreq = self.tAxis[mask]
+        fourierCurrentOperator = np.fft.fftshift(np.fft.fft(currentOperatorSol[mask]))
 
         if debug:
             print(f"Fourier transform calculated in {time.perf_counter() - startTime:.2f}s.\n")
 
+        # Calculates the frequency axis for later use.
+        sampleSpacing = (np.max(tAxisForFreq) - np.min(tAxisForFreq)) / (tAxisForFreq.size * self.decayConstant)
+        self.freqAxis = np.fft.fftshift(np.fft.fftfreq(tAxisForFreq.size, sampleSpacing))
+
         return currentOperatorSol, fourierCurrentOperator
 
-    def GetFrequencyAxis(self):
+    def GetFrequencyAxis(self) -> np.ndarray[float]:
         """
         Calculates the frequency axis for the fourier transform of the current operator.
         """
 
-        sampleSpacing = (np.max(self.tAxis) - np.min(self.tAxis)) / (self.tAxis.size * self.decayConstant)
-        return np.fft.fftshift(np.fft.fftfreq(self.tAxis.size))
+        return self.freqAxis
+
     
     def TransformToCoordinateBasis(self, c: np.ndarray[float]) -> np.ndarray[float]:
         """
