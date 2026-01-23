@@ -11,7 +11,7 @@ initialConditions = np.array([-0.5, -0.5, 0], dtype=complex)
 operators = []
 fouriers = []
 
-for k in [np.pi / 8, -np.pi / 8]:
+for k in [np.pi / 4, -np.pi / 4]:
     # Initialises the model with the desired values.
     ssh = SSH(
         k = k,

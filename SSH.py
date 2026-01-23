@@ -195,7 +195,7 @@ class SSH:
             startTime = time.perf_counter()
 
         # Takes the fourier transform of the current operator in the steady state.
-        mask = (25.292 <= self.tAxis) & (self.tAxis <= 30)
+        mask = self.tAxis >= 10
         tAxisForFreq = self.tAxis[mask]
         fourierCurrentOperator = np.fft.fftshift(np.fft.fft(currentOperatorSol[mask]))
 
