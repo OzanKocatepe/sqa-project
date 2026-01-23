@@ -92,8 +92,6 @@ for row in np.arange(nrows):
     # Plot the numerical solution.
     ax[row].plot(tAxis, plottingFunctions[row](currentOperator),
                 color = "Black")
-    ax[row].plot(tAxis, plottingFunctions[row](ssh.ClassicalDrivingTerm(tAxis / ssh.decayConstant)),
-                color = "blue")
     
     ax[row].set_xlabel(xLabel)
     ax[row].set_ylabel(yLabels[row])

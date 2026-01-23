@@ -77,7 +77,7 @@ class SSH:
                 The value of the driving term at that time.
         """
 
-        return self.drivingAmplitude * np.sin(self.drivingFreq * t)
+        return self.drivingAmplitude * np.sin(self.drivingFreq * 2 * np.pi * t)
 
     def ClassicallyDrivenSSHEquations(self, t: float, c: np.ndarray[float], A: Callable[[np.typing.ArrayLike], np.typing.ArrayLike]) -> np.ndarray[float]:
         r"""
