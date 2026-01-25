@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.integrate as integrate
 from typing import Callable, Any
+from tqdm import tqdm
 
 class SSH:
     """
@@ -269,3 +270,53 @@ class SSH:
         self._freqAxis = np.fft.fftshift(np.fft.fftfreq(steadyStateAxis.size, sampleSpacing))
 
         return self._currentTime, self._currentFreq
+    
+    def CalculateFourierCoefficients(self, n: int, steadyStateCutoff: float=15):
+        r"""Calculates the first n coefficients in the fourier expansion of the correlation functions.
+        
+        Parameters
+        ----------
+        n : int
+            The number of coefficients to calculate. Must be a positive number, as the function calculates
+            the coefficients in the range -n to n.
+        steadyStateCutoff : float
+            The time, in units of $\gamma_-^{-1}$, after which we assume the system is in its periodic steady-state.
+
+        Raises
+        ------
+        ValueError
+            If the correlations have not been calculated.
+        """
+
+        if self._solution is None:
+            raise ValueError("Run Solve() first.")
+
+        # Creates an array of shape (3, 2n + 1) such that the first dimension corresponds to which correlation function
+        # we want, and the second corresponds to which coefficient we want, from -n to n.
+        # Since the indices go from 0 to 2n, the index for coefficient $c_i$ is actually $n + i$.
+        coefficients = np.zeros((3, 2 * n + 1), dtype=complex)
+
+        # Creates a mask over one period in steady state.
+        periodMask = (steadyStateCutoff <= self._tAxis) & (self._tAxis <= steadyStateCutoff + 1 / self.drivingFreq)
+
+        # Loops through which function we are looking at.
+        for functionIndex in np.arange(3):
+            print(f"Calculating coefficients of function {functionIndex}...\n")
+            # Loops through the coefficients.
+            for i in tqdm(np.arange(n + 1)):
+                # NOTE: potential optimisation when the function is entirely real-valued, $c_n$ should be
+                # the conjugate of $c_{-n}$. Would only optimise $\langle \tilde \sigma_z(t) \rangle$.
+
+                # Integrates to find the +n coefficient.
+                coefficients[functionIndex, n + i] = self.drivingFreq * integrate.simpson(
+                    y = self._solution.y[functionIndex][periodMask] * np.exp(-2j * np.pi * n * self.drivingFreq * self._tAxis[periodMask]),
+                    x = self._tAxis[periodMask]
+                )
+
+                # Finds the -n coefficient.
+                coefficients[functionIndex, n - i] = self.drivingFreq * integrate.simpson(
+                    y = self._solution.y[functionIndex][periodMask] * np.exp(2j * np.pi * n * self.drivingFreq * self._tAxis[periodMask]),
+                    x = self._tAxis[periodMask]
+                )
+
+        return coefficients
