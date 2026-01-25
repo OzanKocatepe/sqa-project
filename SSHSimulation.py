@@ -44,6 +44,23 @@ class SSHSimulation:
         
         # Dictionary of SSH instances.
         self._models = {}
+        self._tAxis = None
+
+    @property
+    def tAxis(self) -> np.ndarray[float]:
+        r"""Returns the tAxis.
+        
+        Returns
+        -------
+        ndarray[float]
+            The points along which the solutions are evaluated in the time domain, in
+            units of $\gamma_-^{-1}$.
+        """
+
+        if self._tAxis is None:
+            raise ValueError("Call Run() first.")
+        else:
+            return self._tAxis
 
     @property
     def freqAxis(self) -> np.ndarray[float]: 
@@ -114,6 +131,8 @@ class SSHSimulation:
             The classical driving term to use for the simulation.
             By default, this is a sinusoidal term.
         """
+
+        self._tAxis = tAxis
 
         for k, model in self._models.items():
             model.Solve(tAxis, initialConditions, drivingTerm)
