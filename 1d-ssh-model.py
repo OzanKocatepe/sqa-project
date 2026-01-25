@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import math
 
 from SSH import SSH
 from SSHSimulation import SSHSimulation
@@ -18,7 +19,13 @@ params = {
 
 ssh = SSH(k = np.pi / 4, **params)
 ssh.Solve(tAxis, initialConditions)
-n = 10
+
+# Calculates maximum allowed n based on nyquist frequency.
+dx = np.mean(np.diff(tAxis / params['decayConstant']))
+maxAllowedN = math.floor(1 / (4 * dx * np.pi * params['drivingFreq']))
+n = maxAllowedN
+print(maxAllowedN)
+
 coefficients = ssh.CalculateFourierCoefficients(n) # (3, 2n + 1)
 
 exponentialTerms = np.zeros((2 * n + 1, tAxis.size), dtype=complex) # (2n + 1, tAxis.size)
