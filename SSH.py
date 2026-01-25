@@ -271,7 +271,7 @@ class SSH:
 
         return self._currentTime, self._currentFreq
     
-    def CalculateFourierCoefficients(self, n: int, steadyStateCutoff: float=15):
+    def CalculateFourierCoefficients(self, n: int, steadyStateCutoff: float=15, numPeriods: int=10) -> np.ndarray[complex]:
         r"""Calculates the first n coefficients in the fourier expansion of the correlation functions.
         
         Parameters
@@ -281,6 +281,15 @@ class SSH:
             the coefficients in the range -n to n.
         steadyStateCutoff : float
             The time, in units of $\gamma_-^{-1}$, after which we assume the system is in its periodic steady-state.
+        numPeriods : int
+            The number of steady-state periods to use to calculate the fourier coefficients.
+
+        Returns
+        -------
+        ndarray[complex]
+            The coefficients of the fourier expansion. This has shape (3, 2n + 1), where the first dimension
+            corresponds to the correlation function, and the second dimension corresponds to the coefficient,
+            ranging from -n to n.
 
         Raises
         ------
@@ -297,26 +306,30 @@ class SSH:
         coefficients = np.zeros((3, 2 * n + 1), dtype=complex)
 
         # Creates a mask over one period in steady state.
-        periodMask = (steadyStateCutoff <= self._tAxis) & (self._tAxis <= steadyStateCutoff + 1 / self.drivingFreq)
+        periodMask = (steadyStateCutoff / self.decayConstant <= self._tAxis) & (self._tAxis <= steadyStateCutoff / self.decayConstant + numPeriods / self.drivingFreq)
 
         # Loops through which function we are looking at.
         for functionIndex in np.arange(3):
-            print(f"Calculating coefficients of function {functionIndex}...\n")
+            print(f"Calculating coefficients of function {functionIndex}...")
             # Loops through the coefficients.
-            for i in tqdm(np.arange(n + 1)):
+            for i in tqdm(np.arange(-n, n + 1)):
                 # NOTE: potential optimisation when the function is entirely real-valued, $c_n$ should be
                 # the conjugate of $c_{-n}$. Would only optimise $\langle \tilde \sigma_z(t) \rangle$.
 
-                # Integrates to find the +n coefficient.
-                coefficients[functionIndex, n + i] = self.drivingFreq * integrate.simpson(
-                    y = self._solution.y[functionIndex][periodMask] * np.exp(-2j * np.pi * n * self.drivingFreq * self._tAxis[periodMask]),
-                    x = self._tAxis[periodMask]
+                # Defines the t and f(t) arrays only within the mask.
+                tWindow = self._tAxis[periodMask]
+                fWindow = self._solution.y[functionIndex][periodMask]
+
+                # Defines useful values.
+                scalingFactor = self.drivingFreq / numPeriods
+                angularFreq = 2 * np.pi * self.drivingFreq
+
+                # Calculates the coefficient for i, and stores it in index i + n.
+                coefficients[functionIndex, i + n] = scalingFactor * np.trapezoid(
+                    y = fWindow * np.exp(-1j * angularFreq * i * tWindow),
+                    x = tWindow
                 )
 
-                # Finds the -n coefficient.
-                coefficients[functionIndex, n - i] = self.drivingFreq * integrate.simpson(
-                    y = self._solution.y[functionIndex][periodMask] * np.exp(2j * np.pi * n * self.drivingFreq * self._tAxis[periodMask]),
-                    x = self._tAxis[periodMask]
-                )
+            print('\n')
 
         return coefficients
