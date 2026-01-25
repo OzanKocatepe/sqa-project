@@ -313,9 +313,6 @@ class SSH:
             print(f"Calculating coefficients of function {functionIndex}...")
             # Loops through the coefficients.
             for i in tqdm(np.arange(-n, n + 1)):
-                # NOTE: potential optimisation when the function is entirely real-valued, $c_n$ should be
-                # the conjugate of $c_{-n}$. Would only optimise $\langle \tilde \sigma_z(t) \rangle$.
-
                 # Defines the t and f(t) arrays only within the mask.
                 tWindow = self._tAxis[periodMask]
                 fWindow = self._solution.y[functionIndex][periodMask]
