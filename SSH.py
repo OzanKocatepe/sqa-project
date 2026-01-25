@@ -311,12 +311,17 @@ class SSH:
         # Loops through which function we are looking at.
         for functionIndex in np.arange(3):
             print(f"Calculating coefficients of function {functionIndex}...")
+
+            # Defines the t and f(t) arrays only within the mask.
+            tWindow = self._tAxis[periodMask]
+            fWindow = self._solution.y[functionIndex][periodMask]
+
+            # Subtracts any mean from the function window.
+            fWindowMean = np.mean(fWindow)
+            fWindow -= fWindowMean
+
             # Loops through the coefficients.
             for i in tqdm(np.arange(-n, n + 1)):
-                # Defines the t and f(t) arrays only within the mask.
-                tWindow = self._tAxis[periodMask]
-                fWindow = self._solution.y[functionIndex][periodMask]
-
                 # Defines useful values.
                 scalingFactor = self.drivingFreq / numPeriods
                 angularFreq = 2 * np.pi * self.drivingFreq
@@ -326,6 +331,9 @@ class SSH:
                     y = fWindow * np.exp(-1j * angularFreq * i * tWindow),
                     x = tWindow
                 )
+
+            # Manually adds back the mean to the constant term in the expansion.
+            coefficients[functionIndex, n] += fWindowMean
 
             print('\n')
 

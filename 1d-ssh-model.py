@@ -26,7 +26,7 @@ maxAllowedN = math.floor(1 / (4 * dx * np.pi * params['drivingFreq']))
 n = maxAllowedN
 print(maxAllowedN)
 
-coefficients = ssh.CalculateFourierCoefficients(n) # (3, 2n + 1)
+coefficients = ssh.CalculateFourierCoefficients(n, steadyStateCutoff=20, numPeriods=10) # (3, 2n + 1)
 
 exponentialTerms = np.zeros((2 * n + 1, tAxis.size), dtype=complex) # (2n + 1, tAxis.size)
 for i in np.arange(-n, n + 1):
