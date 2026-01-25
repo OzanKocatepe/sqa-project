@@ -17,7 +17,7 @@ simulation = SSHSimulation(
 )
 
 simulation.AddMomentum([np.pi / 4, -np.pi / 4])
-simulation.Run(tAxis, initialConditions, steadyStateCutoff=10)
+simulation.Run(tAxis, initialConditions, steadyStateCutoff=15)
 currentOperator, currentOperatorFourier = simulation.CalculateTotalCurrent()
 
 # ======================================================
@@ -89,7 +89,7 @@ plt.tight_layout()
 plt.show()
 
 # Plotting the fourier transform of the current operator.
-plt.plot(simulation.freqAxis / simulation.drivingFreq, np.abs(currentOperatorFourier)**2,
+plt.semilogy(simulation.freqAxis / simulation.drivingFreq, np.abs(currentOperatorFourier)**2,
         color = 'black')
 
 # plt.suptitle(title)
