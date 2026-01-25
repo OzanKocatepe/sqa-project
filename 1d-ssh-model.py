@@ -3,34 +3,20 @@ import scipy.integrate as integrate
 import matplotlib.pyplot as plt
 from typing import Callable, Any
 
-from SSH import SSH
+from SSHSimulation import SSHSimulation
 
 tAxis = np.linspace(0, 30, 10000)
 initialConditions = np.array([-0.5, -0.5, 0], dtype=complex)
 
-operators = []
-fouriers = []
+simulation = SSHSimulation( 
+    t1 = 2,
+    t2 = 1,
+    decayConstant = 0.1,
+    drivingAmplitude = 0.2,
+    drivingFreq = 2 / 3.01
+)
 
-for k in [np.pi / 4, -np.pi / 4]:
-    # Initialises the model with the desired values.
-    ssh = SSH(
-        k = k,
-        t1 = 2,
-        t2 = 1,
-        decayConstant = 0.1,
-        drivingAmplitude = 0.2,
-        drivingFreq = 2 / 3.01
-    )
-
-    # Calculates the numerical solution.
-    numericalSol = ssh.CalculateSingleTimeCorrelations(tAxis, initialConditions, ssh.ClassicalDrivingTerm, debug=True)
-    # Calculates the current operator.
-    currentOperator, currentOperatorFourier = ssh.CalculateCurrentOperator(debug=True)
-    operators.append(currentOperator)
-    fouriers.append(currentOperatorFourier)
-
-currentOperator = operators[0] + operators[1]
-currentOperatorFourier = fouriers[0] + fouriers[1]
+simulation.AddMomentum([np.pi / 4, -np.pi / 4])
 
 # ======================================================
 # ==== PLOTTING EIGENBASIS SINGLE-TIME CORRELATIONS ====
