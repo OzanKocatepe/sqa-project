@@ -41,30 +41,10 @@ class SSH:
         self._solution = None
         self._currentTime = None
         self._currentFreq = None
-        self._freqAxis = None
-
+        self._freqAxis = None 
+ 
     @property
-    def tAxis(self) -> np.ndarray[float]:
-        """Gets the time axis.
-        
-        Returns
-        -------
-        ndarray[float]
-            The points in time that we are evaluating the solutions at, in units of $\gamma^{-1}$.
-            
-        Raises
-        ------
-        ValueError
-            If Solve() has not been called, meaning no time axis has been given to the system.
-        """
-
-        if self._tAxis == None:
-            raise ValueError("Call Solve() first.")
-        else:
-            return self._tAxis * self.decayConstant
-        
-    @property
-    def Solution(self) -> Any:
+    def solution(self) -> Any:
         """Gets the solution for the expectations.
         
         Returns
@@ -78,18 +58,18 @@ class SSH:
         ValueError
             If Solve() has not been called, so no solution has been calculated yet.
         """
-        if self._solution == None:
+        if self._solution is None:
             raise ValueError("Call Solve() first.")
         else:
             return self._solution
         
     @property
-    def currentTime(self):
+    def currentTime(self) -> np.ndarray[complex]:
         """Gets the current operator in the time domain.
         
         Returns
         -------
-        ndarray[float]
+        ndarray[complex]
             The values of the current operator at each time in the given tAxis.
             
         Raises
@@ -98,13 +78,13 @@ class SSH:
             If CalculateCurrent() has not been called, meaning the current operator hasn't been calculated yet.
         """
 
-        if self._currentTime== None:
+        if self._currentTime is None:
             raise ValueError("Call CalculateCurrent() first.")
         else:
             return self._currentTime
 
     @property
-    def currentFreq(self):
+    def currentFreq(self) -> np.ndarray[float]:
         """Gets the current operator in the frequency domain.
         
         Returns
@@ -118,13 +98,13 @@ class SSH:
             If CalculateCurrent() has not been called, meaning the current operator hasn't been calculated yet.
         """
 
-        if self._currentFreq== None:
+        if self._currentFreq is None:
             raise ValueError("Call CalculateCurrent() first.")
         else:
             return self._currentFreq
 
     @property
-    def freqAxis(self):
+    def freqAxis(self) -> np.ndarray[float]:
         """Gets the frequency axis.
         
         Returns
@@ -139,7 +119,7 @@ class SSH:
             If CalculateCurrent() has not been called, meaning the current operator hasn't been calculated yet.
         """
 
-        if self._freqAxis == None:
+        if self._freqAxis is None:
             raise ValueError("Call CalculateCurrent() first.")
         else:
             return self._freqAxis
@@ -216,7 +196,7 @@ class SSH:
             to the ODE.
         """
 
-        if drivingTerm == None:
+        if drivingTerm is None:
             self._drivingTerm = self.SinusoidalDrivingTerm
         else:
             self._drivingTerm = drivingTerm
@@ -236,7 +216,7 @@ class SSH:
         return self._solution
         
     def CalculateCurrent(self, steadyStateCutoff: float=None) -> tuple[np.ndarray[complex], np.ndarray[complex]]:
-        """Calculates the current operator for the given parameters.
+        r"""Calculates the current operator for the given parameters.
         
         Parameters
         ----------
@@ -259,31 +239,30 @@ class SSH:
             This makes it impossible to calculate the current operator.
         """
 
-        if self._solution == None:
+        if self._solution is None:
             raise ValueError("Call Solve() first.")
 
-        # Only considers the system in steady state, if desired.
+        # Defines useful terms.
+        Ek = self.t1 + self.t2 * np.exp(1j * self.k)
+        phiK = np.angle(Ek)
+        drivingSamples = self._drivingTerm(self._tAxis)
+
+        # Calculates the current operator in terms of the previously calculated expectation values.
+        self._currentTime = self.t2 * (
+            -np.sin(self.k - phiK - drivingSamples) * self._solution.y[2]
+            + 1j * np.cos(self.k - phiK - drivingSamples) * (self._solution.y[1] - self._solution.y[0])
+        )
+
+        # Only considers the system in steady state for the Fourier transform, if desired.
         if steadyStateCutoff != None:
             mask = self._tAxis >= steadyStateCutoff / self.decayConstant
         else:
             mask = np.full(self._tAxis.size, True, dtype=bool)
 
         steadyStateAxis = self._tAxis[mask]
-        steadyStateSolution = self._solution.y[:, mask]
-
-        # Defines useful terms.
-        Ek = self.t1 + self.t2 * np.exp(1j * self.k)
-        phiK = np.angle(Ek)
-        drivingSamples = self._drivingTerm(steadyStateAxis)
-
-        # Calculates the current operator in terms of the previously calculated expectation values.
-        self._currentTime = self.t2 * (
-            -np.sin(self.k - phiK - drivingSamples) * steadyStateSolution[2]
-            + 1j * np.cos(self.k - phiK - drivingSamples) * (steadyStateSolution[1] - steadyStateSolution[0])
-        )
 
         # Calculates the Fourier transform of the solution.
-        self._currentFreq = np.fft.fftshift(np.fft.fft(self._currentTime))
+        self._currentFreq = np.fft.fftshift(np.fft.fft(self._currentTime[mask]))
 
         # Calculates the relevant frequency axis.
         sampleSpacing = (np.max(steadyStateAxis) - np.min(steadyStateAxis)) / steadyStateAxis.size
