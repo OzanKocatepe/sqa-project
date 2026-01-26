@@ -2,7 +2,7 @@ import numpy as np
 import scipy.integrate as integrate
 import scipy.special as special
 from typing import Callable, Any
-from tqdm import tqdm
+import math
 
 class SSH:
     """
@@ -272,7 +272,7 @@ class SSH:
 
         return self._currentTime, self._currentFreq
     
-    def CalculateExpectationCoefficients(self, n: int, steadyStateCutoff: float=15, numPeriods: int=10) -> np.ndarray[complex]:
+    def _CalculateExpectationCoefficients(self, n: int, steadyStateCutoff: float=15, numPeriods: int=10) -> np.ndarray[complex]:
         r"""Calculates the first n coefficients in the fourier expansion of the correlation functions.
         
         Parameters
@@ -340,7 +340,7 @@ class SSH:
         
         return coefficients
     
-    def CalculateCurrentCoefficients(self, n: int) -> np.ndarray[complex]:
+    def _CalculateCurrentCoefficients(self, n: int) -> np.ndarray[complex]:
         r"""
         Calculates the fourier coefficients corresponding to the coefficients of the operators in the current operator.
         i.e. the coefficients for $j_-(t), j_+(t), j_z(t)$.
@@ -378,7 +378,58 @@ class SSH:
 
         return coefficients
     
-    def EvaluateFourierExpansion(self, coefficients: np.ndarray[complex], freq: float) -> np.ndarray[complex]:
+    def CalculateCurrentExpectationCoefficients(self, n: int=None, steadyStateCutoff=15, numPeriods=10) -> np.ndarray[complex]:
+        r"""
+        Calculates the coefficients for the fourier expansion of the expectation of the current operator
+        into the laser harmonics. These are calculated from the fourier coefficients of the single-time
+        correlations $\langle \sigma_-(t) \rangle,\, \langle \sigma_+(t) \rangle,\, \langle \sigma_z(t) \rangle$, and the current coefficient functions $j_-(t), j_+(t), j_z(t)$.
+
+        Parameters
+        ----------
+        n : int
+            The number of coefficients to calculate for the expectations and currents. Must be a positive number, as the function calculates
+            the coefficients in the range -n to n. If unspecified, will use the maximum possible n such that
+            the angular frequency is still under the Nyquist frequency.
+        steadyStateCutoff : float
+            The time, in units of $\gamma_-^{-1}$, after which we assume the system is in its periodic steady-state.
+            This is the state which we will use to find the coefficients for the single-time correlations.
+        numPeriods : int
+            The number of steady-state periods to use to calculate the fourier coefficients of the single-time
+            correlations.
+
+        Returns
+        -------
+        ndarray[complex]
+            The coefficients in the fourier expansion of the expectation of the current operator, from -2n to 2n.
+        """
+
+        dx = np.mean(np.diff(self._tAxis))
+        maxN = math.floor(1 / (4 * dx * np.pi * self.drivingFreq))
+
+        if n is None:
+            n = maxN
+        else:
+            n = math.min(n, maxN)
+
+        coefficients = np.zeros((4 * n + 1), dtype=complex)
+        expectationCoeff = self._CalculateExpectationCoefficients(n, steadyStateCutoff, numPeriods)
+        currentCoeff = self._CalculateCurrentCoefficients(n)
+
+        for m in range(-2 * n, 2 * n + 1):
+            if m >= 0:
+                lowerBound = m - n
+                upperBound = n
+            else:
+                lowerBound = -n
+                upperBound = m + n
+
+            for k in range(lowerBound, upperBound + 1):
+                coefficients[m + 2 * n] += expectationCoeff[0, k + n] * currentCoeff[0, (m + n) - (k + n)] + expectationCoeff[1, k + n] * currentCoeff[1, (m + n) - (k + n)] + expectationCoeff[2, k + n] * currentCoeff[2, (m + n) - (k + n)]
+
+        return coefficients
+
+    
+    def EvaluateFourierExpansion(self, coefficients: np.ndarray[complex], freq: float=None) -> np.ndarray[complex]:
         """
         Evaluates the fourier expansion of a function based on its coefficients.
 
@@ -387,7 +438,8 @@ class SSH:
         coefficients : ndarray[complex]
             An array of shape (2 * n + 1,) for some integer n which contains all of the coefficients from -n to n of our function.
         freq : float
-            The frequency that we will be expanding into harmonics of.
+            The frequency that we will be expanding into harmonics of. By default, will using the
+            *angular* driving frequency of this system.
 
         Returns
         -------
@@ -399,6 +451,9 @@ class SSH:
         ValueError
             If the coefficients array has the wrong shape.
         """
+
+        if freq is None:
+            freq = 2 * np.pi * self.drivingFreq
 
         n = (coefficients.shape[0] - 1) // 2
         if 2 * n + 1 != coefficients.shape[0]:
