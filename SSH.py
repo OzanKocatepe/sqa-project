@@ -272,7 +272,7 @@ class SSH:
 
         return self._currentTime, self._currentFreq
     
-    def CalculateFourierCoefficients(self, n: int, steadyStateCutoff: float=15, numPeriods: int=10) -> np.ndarray[complex]:
+    def CalculateExpectationCoefficients(self, n: int, steadyStateCutoff: float=15, numPeriods: int=10) -> np.ndarray[complex]:
         r"""Calculates the first n coefficients in the fourier expansion of the correlation functions.
         
         Parameters
@@ -326,7 +326,7 @@ class SSH:
             angularFreq = 2 * np.pi * self.drivingFreq
 
             # Loops through the coefficients.
-            for i in tqdm(np.arange(-n, n + 1)):
+            for i in np.arange(-n, n + 1):
                 # Calculates the coefficient for i, and stores it in index i + n.
                 coefficients[functionIndex, i + n] = scalingFactor * np.trapezoid(
                     y = fWindow * np.exp(-1j * angularFreq * i * tWindow),
@@ -340,7 +340,7 @@ class SSH:
         
         return coefficients
     
-    def CalculateCurrentFourierCoefficients(self, n: int) -> np.ndarray[complex]:
+    def CalculateCurrentCoefficients(self, n: int) -> np.ndarray[complex]:
         r"""
         Calculates the fourier coefficients corresponding to the coefficients of the operators in the current operator.
         i.e. the coefficients for $j_-(t), j_+(t), j_z(t)$.
@@ -368,10 +368,10 @@ class SSH:
 
         for i in np.arange(-n, n + 1):
             # Coefficient for $j_-(t)$.
-            coefficients[0, i + n] = -0.5j * self.t2 * special.jv(i, self.drivingAmplitude) * ((-1)**i * np.exp(1j * theta) + np.exp(-1j * theta))
+            coefficients[0, i + n] = -0.5j * self.t2 * special.jv(i, self.drivingAmplitude) * (float(-1)**i * np.exp(1j * theta) + np.exp(-1j * theta))
             
             # Coefficient for $j_z(t)$.
-            coefficients[2, i + n] = 0.5j * self.t2 * special.jv(i, self.drivingAmplitude) * ((-1)**i * np.exp(1j * theta) - np.exp(-1j * theta))
+            coefficients[2, i + n] = 0.5j * self.t2 * special.jv(i, self.drivingAmplitude) * (float(-1)**i * np.exp(1j * theta) - np.exp(-1j * theta))
 
         # Using $j_+(t) = -j_-(t)$, we can calculate the remaining coefficients.
         coefficients[1, :] = -coefficients[0, :]
@@ -405,7 +405,7 @@ class SSH:
             raise ValueError("coefficients must be an array of shape (2n + 1,) for some integral n.")
 
         # Generates the set of exponential terms at each time t.
-        expTerms = np.zeros((2 * n + 1, self._tAxis.size))
+        expTerms = np.zeros((2 * n + 1, self._tAxis.size), dtype=complex)
         for t in range(self._tAxis.size):
             expTerms[:, t] = np.exp(1j * freq * np.arange(-n, n + 1) * self._tAxis[t])
 
