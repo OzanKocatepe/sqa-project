@@ -271,7 +271,7 @@ class SSH:
 
         return self._currentTime, self._currentFreq
     
-    def CalculateFourierCoefficients(self, n: int, steadyStateCutoff: float=15, numPeriods: int=10) -> np.ndarray[complex]:
+    def CalculateFourierCoefficients(self, n: int, steadyStateCutoff: float=15, numPeriods: int=10) -> tuple[np.ndarray[complex], np.ndarray[complex]]:
         r"""Calculates the first n coefficients in the fourier expansion of the correlation functions.
         
         Parameters
@@ -290,6 +290,8 @@ class SSH:
             The coefficients of the fourier expansion. This has shape (3, 2n + 1), where the first dimension
             corresponds to the correlation function, and the second dimension corresponds to the coefficient,
             ranging from -n to n.
+        ndarray[complex]
+            The value of each fourier expansions at each time t in tAxis. This has shape (3, tAxis.size).
 
         Raises
         ------
@@ -336,5 +338,16 @@ class SSH:
             coefficients[functionIndex, n] += fWindowMean
 
             print('\n')
+        
+        # Creates an array of all of the exponential terms at all of the times in tAxis.
+        exponentialTerms = np.zeros((2 * n + 1, self._tAxis.size), dtype=complex) # (2n + 1, tAxis.size)
+        for i in np.arange(-n, n + 1):
+            exponentialTerms[i + n, :] = np.exp(2j * np.pi * i * self.drivingFreq * self._tAxis / self.decayConstant)
 
-        return coefficients
+        # Calculates the complete fourier expansions of each function at each time in self._tAxis using the calculated coefficients.
+        fourierExpansions = np.zeros((3, self._tAxis.size), dtype=complex)
+        for functionIndex in range(3):
+            for t in range(self._tAxis.size):
+                fourierExpansions[functionIndex, t] = np.dot(coefficients[functionIndex, :], exponentialTerms[:, t])
+
+        return coefficients, fourierExpansions
