@@ -1,5 +1,6 @@
 import numpy as np
 import scipy.integrate as integrate
+import scipy.special as special
 from typing import Callable, Any
 from tqdm import tqdm
 
@@ -271,7 +272,7 @@ class SSH:
 
         return self._currentTime, self._currentFreq
     
-    def CalculateFourierCoefficients(self, n: int, steadyStateCutoff: float=15, numPeriods: int=10) -> tuple[np.ndarray[complex], np.ndarray[complex]]:
+    def CalculateFourierCoefficients(self, n: int, steadyStateCutoff: float=15, numPeriods: int=10) -> np.ndarray[complex]:
         r"""Calculates the first n coefficients in the fourier expansion of the correlation functions.
         
         Parameters
@@ -290,8 +291,6 @@ class SSH:
             The coefficients of the fourier expansion. This has shape (3, 2n + 1), where the first dimension
             corresponds to the correlation function, and the second dimension corresponds to the coefficient,
             ranging from -n to n.
-        ndarray[complex]
-            The value of each fourier expansions at each time t in tAxis. This has shape (3, tAxis.size).
 
         Raises
         ------
@@ -322,12 +321,12 @@ class SSH:
             fWindowMean = np.mean(fWindow)
             fWindow -= fWindowMean
 
+            # Defines useful values.
+            scalingFactor = self.drivingFreq / numPeriods
+            angularFreq = 2 * np.pi * self.drivingFreq
+
             # Loops through the coefficients.
             for i in tqdm(np.arange(-n, n + 1)):
-                # Defines useful values.
-                scalingFactor = self.drivingFreq / numPeriods
-                angularFreq = 2 * np.pi * self.drivingFreq
-
                 # Calculates the coefficient for i, and stores it in index i + n.
                 coefficients[functionIndex, i + n] = scalingFactor * np.trapezoid(
                     y = fWindow * np.exp(-1j * angularFreq * i * tWindow),
@@ -339,15 +338,80 @@ class SSH:
 
             print('\n')
         
-        # Creates an array of all of the exponential terms at all of the times in tAxis.
-        exponentialTerms = np.zeros((2 * n + 1, self._tAxis.size), dtype=complex) # (2n + 1, tAxis.size)
+        return coefficients
+    
+    def CalculateCurrentFourierCoefficients(self, n: int) -> np.ndarray[complex]:
+        r"""
+        Calculates the fourier coefficients corresponding to the coefficients of the operators in the current operator.
+        i.e. the coefficients for $j_-(t), j_+(t), j_z(t)$.
+        
+        Parameters
+        ----------
+        n : int
+            The number of coefficients to calculate. Must be a positive number, as the function calculates
+            the coefficients in the range -n to n.
+
+        Returns
+        -------
+        ndarray[complex]
+            The coefficients of the fourier expansion. This has shape (3, 2n + 1), where the first dimension
+            corresponds to the coefficient function ($j_-(t), j_+(t), j_z(t)$), and the second dimension corresponds to the subscript of the coefficient,
+            ranging from -n to n.
+        """
+
+        coefficients = np.zeros((3, 2 * n + 1), dtype=complex)
+
+        Ek = self.t1 + self.t2 * np.exp(1j * self.k)
+        phiK = np.angle(Ek)
+        theta = self.k - phiK
+        angularFreq = 2 * np.pi * self.drivingFreq
+
         for i in np.arange(-n, n + 1):
-            exponentialTerms[i + n, :] = np.exp(2j * np.pi * i * self.drivingFreq * self._tAxis / self.decayConstant)
+            # Coefficient for $j_-(t)$.
+            coefficients[0, i + n] = -0.5j * self.t2 * special.jv(i, self.drivingAmplitude) * ((-1)**i * np.exp(1j * theta) + np.exp(-1j * theta))
+            
+            # Coefficient for $j_z(t)$.
+            coefficients[2, i + n] = 0.5j * self.t2 * special.jv(i, self.drivingAmplitude) * ((-1)**i * np.exp(1j * theta) - np.exp(-1j * theta))
 
-        # Calculates the complete fourier expansions of each function at each time in self._tAxis using the calculated coefficients.
-        fourierExpansions = np.zeros((3, self._tAxis.size), dtype=complex)
-        for functionIndex in range(3):
-            for t in range(self._tAxis.size):
-                fourierExpansions[functionIndex, t] = np.dot(coefficients[functionIndex, :], exponentialTerms[:, t])
+        # Using $j_+(t) = -j_-(t)$, we can calculate the remaining coefficients.
+        coefficients[1, :] = -coefficients[0, :]
 
-        return coefficients, fourierExpansions
+        return coefficients
+    
+    def EvaluateFourierExpansion(self, coefficients: np.ndarray[complex], freq: float) -> np.ndarray[complex]:
+        """
+        Evaluates the fourier expansion of a function based on its coefficients.
+
+        Parameters
+        ----------
+        coefficients : ndarray[complex]
+            An array of shape (2 * n + 1,) for some integer n which contains all of the coefficients from -n to n of our function.
+        freq : float
+            The frequency that we will be expanding into harmonics of.
+
+        Returns
+        -------
+        ndarray[complex]
+            An array of shape (tAxis.size,) with the value of the fourier expansion at each time t.
+
+        Raises
+        ------
+        ValueError
+            If the coefficients array has the wrong shape.
+        """
+
+        n = (coefficients.shape[0] - 1) // 2
+        if 2 * n + 1 != coefficients.shape[0]:
+            raise ValueError("coefficients must be an array of shape (2n + 1,) for some integral n.")
+
+        # Generates the set of exponential terms at each time t.
+        expTerms = np.zeros((2 * n + 1, self._tAxis.size))
+        for t in range(self._tAxis.size):
+            expTerms[:, t] = np.exp(1j * freq * np.arange(-n, n + 1) * self._tAxis[t])
+
+        # Evaluates the value of the fourier expansion at each time t.
+        fourierExpansion = np.zeros((self._tAxis.size,), dtype=complex)
+        for t in range(self._tAxis.size):
+            fourierExpansion[t] = np.dot(coefficients, expTerms[:, t])
+
+        return fourierExpansion
