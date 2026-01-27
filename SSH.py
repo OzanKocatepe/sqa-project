@@ -384,21 +384,21 @@ class SSH:
         doubleTimeInitialConditions = np.array([
             # When left-multiplying by $\sigma_-(t)$
             [
-                0,
-                -0.5 * (self._singleTimeFourierExpansion[2](iterable) - 1),
-                self._singleTimeFourierExpansion[0](iterable)
+                np.zeros(self._tAxis.size),
+                -0.5 * (self._singleTimeFourierExpansion[2](self._tAxis) - 1),
+                self._singleTimeFourierExpansion[0](self._tAxis)
             ],
             # When left-multiplying by $\sigma_+(t)$
             [
-                0.5 * (self._singleTimeFourierExpansion[2](iterable) + 1),
-                0,
-                -self._singleTimeFourierExpansion[1](iterable)
+                0.5 * (self._singleTimeFourierExpansion[2](self._tAxis) + 1),
+                np.zeros(self._tAxis.size),
+                -self._singleTimeFourierExpansion[1](self._tAxis)
             ],
             # When left-multiplying by $\sigma_z(t)$
             [
-                -self._singleTimeFourierExpansion[0](iterable),
-                self._singleTimeFourierExpansion[1](iterable),
-                1
+                -self._singleTimeFourierExpansion[0](self._tAxis),
+                self._singleTimeFourierExpansion[1](self._tAxis),
+                np.ones(self._tAxis.size),
             ]], dtype=complex
         )
 
@@ -412,11 +412,11 @@ class SSH:
             # Loops through all 3 operators that we can left-multiply by.
             for i in range(3):
                 # Calculates the new initial conditions and inhomogenous term.
-                params['y0'] = doubleTimeInitialConditions[i, :]
-                params['args'] = (self._drivingTerm, -self.decayConstant * self._singleTimeFourierExpansion[i](t),)
+                params['y0'] = doubleTimeInitialConditions[i, :, tIndex]
+                params['args'] = (self._drivingTerm, -self.decayConstant * self._singleTimeFourierExpansion[i](t)[0],)
 
                 # Solves system.
-                self._doubleTimeSolution[i, :, tIndex, :] = integrate.solve_ivp(**params).yj
+                self._doubleTimeSolution[i, :, tIndex, :] = integrate.solve_ivp(**params).y
         
         if debug:
             print('\n')
@@ -690,15 +690,17 @@ class SSH:
         if freq is None:
             freq = 2 * np.pi * self.drivingFreq
 
-        if newAxis is None:
-            newAxis = self._tauAxis
-
         n = (coefficients.shape[0] - 1) // 2
         if 2 * n + 1 != coefficients.shape[0]:
             raise ValueError("coefficients must be an array of shape (2n + 1,) for some integral n.")
 
         # Generates the set of exponential terms at each time t.
         def F(tArr: np.ndarray[float]) -> np.ndarray[complex]:
+            tArr = np.array(tArr)
+            # Tests if we are working with a scalar.
+            if len(tArr.shape) == 0:
+                tArr = tArr.reshape(1)
+
             expTerms = np.zeros((2 * n + 1, tArr.size), dtype=complex)
             for t in range(tArr.size):
                 expTerms[:, t] = np.exp(1j * freq * np.arange(-n, n + 1) * tArr[t])
