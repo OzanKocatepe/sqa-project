@@ -45,11 +45,11 @@ class SSHSimulation:
         
         # Dictionary of SSH instances.
         self._models = {}
-        self._tAxis = None
+        self._tauAxis = None
 
     @property
-    def tAxis(self) -> np.ndarray[float]:
-        r"""Returns the tAxis.
+    def tauAxis(self) -> np.ndarray[float]:
+        r"""Returns the tauAxis.
         
         Returns
         -------
@@ -58,10 +58,10 @@ class SSHSimulation:
             units of $\gamma_-^{-1}$.
         """
 
-        if self._tAxis is None:
+        if self._tauAxis is None:
             raise ValueError("Call Run() first.")
         else:
-            return self._tAxis
+            return self._tauAxis
 
     @property
     def freqAxis(self) -> np.ndarray[float]: 
@@ -71,7 +71,7 @@ class SSHSimulation:
         -------
         ndarray[float]
             The frequencies that correspond to the amplitudes of the Fourier transform of the current operator
-            found in CalculateCurrent(). Since the same tAxis is used for every model, this should be the same for every model,
+            found in CalculateCurrent(). Since the same tauAxis is used for every model, this should be the same for every model,
             and so we just use the first model.
             
         Raises
@@ -86,7 +86,7 @@ class SSHSimulation:
             try:
                 return list(self._models.values())[0].freqAxis
             except (ValueError):
-                raise ValueError("Call Run() first - there is currently no tAxis given.")
+                raise ValueError("Call Run() first - there is currently no tauAxis given.")
 
     @property
     def momentums(self) -> np.ndarray[float]:
@@ -116,12 +116,12 @@ class SSHSimulation:
         for kPoint in k:
             self._models[kPoint] = SSH(k = kPoint, **self._params)
 
-    def Run(self, tAxis: np.ndarray[float], initialConditions: np.ndarray[complex], steadyStateCutoff: float=25, drivingTerm: Callable[[float], float]=None, debug: bool=False):
+    def Run(self, tauAxis: np.ndarray[float], initialConditions: np.ndarray[complex], steadyStateCutoff: float=25, drivingTerm: Callable[[float], float]=None, debug: bool=False):
         r"""Runs the simulations for all the momentum values.
         
         Parameters
         ----------
-        tAxis : ndarray[float]
+        tauAxis : ndarray[float]
             The points in time (in units of $\gamma_-^{-1}$) that the solutions will be evaluated at.
         initialConditions : ndarray[complex]
             The initial conditions in the eigenbasis of the system.
@@ -135,7 +135,7 @@ class SSHSimulation:
             Whether to output debug progress statements.
         """
 
-        self._tAxis = tAxis
+        self._tauAxis = tauAxis
 
         iterable = self._models.items()
         if debug:
@@ -143,7 +143,7 @@ class SSHSimulation:
             iterable = tqdm(self._models.items())
 
         for k, model in iterable:
-            model.Solve(tAxis, initialConditions, drivingTerm, debug=debug)
+            model.Solve(tauAxis, initialConditions, drivingTerm, debug=debug)
             model.CalculateCurrent(steadyStateCutoff)
 
         if debug:

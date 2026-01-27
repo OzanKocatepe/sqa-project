@@ -50,7 +50,7 @@ class SSHVisualiser:
         for row in np.arange(nrows):
             for col in np.arange(ncols):
                 # Plot numerical solution.
-                ax[row, col].plot(self._sim.tAxis, self._plottingFunctions[col](model.singleTimeSolution[row]),
+                ax[row, col].plot(self._sim.tauAxis, self._plottingFunctions[col](model.singleTimeSolution[row]),
                                 color = "Black")
         
                 # Sets other properties.
@@ -106,20 +106,20 @@ class SSHVisualiser:
 
                 for col in np.arange(ncols):
                     # Plot numerical solution.
-                    # x, y = np.meshgrid(model.steadyTAxis, self._sim._tAxis)
+                    # x, y = np.meshgrid(model.steadyStatePeriodAxis, self._sim._tauAxis)
                     # x, y = x.T, y.T
                     
                     # Plots each system as a line, with each line representing
                     # a different initial condition within a steady-state period.
-                    for tIndex, t in enumerate(model.steadyTAxis):
+                    for tIndex, t in enumerate(model.steadyStatePeriodAxis):
                         z = model.doubleTimeSolution[i, j, tIndex, :]
                         # Subtracts the uncorrelated values if the system desired that.
                         if subtractUncorrelatedValues:
                             # Loops through each time offset tau.
-                            for tau in self._sim.tAxis
-                            z -= model.singleTimeSolution[i, np.where(self._sim.tAxis == t)[0]] * model.singleTimeSolution[j, np.where(self._sim.tAxis == t + )[0]]
+                            for tauIndex, tau in enumerate(self._sim.tauAxis):
+                                z[tauIndex] -= model.singleTimeSolution[i, np.where(self._sim.tauAxis == t)[0][0]] * model.singleTimeSolution[j, np.where(self._sim.tauAxis == t + tau)[0][0]]
 
-                        ax[col].plot(t, self._sim.tAxis, self._plottingFunctions[1:][col](),
+                        ax[col].plot(t, self._sim.tauAxis, self._plottingFunctions[1:][col](z),
                                         color = "Black")
         
                     # Sets other properties.
@@ -152,7 +152,7 @@ class SSHVisualiser:
 
         for row in np.arange(nrows):
             # Plot the numerical solution.
-            ax[row].plot(self._sim.tAxis, self._plottingFunctions[row](current),
+            ax[row].plot(self._sim.tauAxis, self._plottingFunctions[row](current),
                         color = "Black")
     
             ax[row].set_xlabel(self._tLabel)

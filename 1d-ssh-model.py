@@ -22,4 +22,4 @@ sim.AddMomentum(np.pi / 4)
 sim.Run(tAxis, initialConditions, debug=True)
 
 vis = SSHVisualiser(sim)
-vis.PlotDoubleTimeCorrelations(np.pi / 4, [(0, 2)])
+vis.PlotDoubleTimeCorrelations(np.pi / 4)
