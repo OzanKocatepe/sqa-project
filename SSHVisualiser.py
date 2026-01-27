@@ -69,7 +69,7 @@ class SSHVisualiser:
         plt.tight_layout()
         plt.show()
 
-    def PlotDoubleTimeCorrelations(self, k: float, slice: list[tuple[int]]=None, saveFigs: bool=False, subtractUncorrelatedValues: bool=False):
+    def PlotDoubleTimeCorrelations(self, k: float, slice: list[tuple[int]]=None, numTauPoints: int=None, saveFigs: bool=False, subtractUncorrelatedValues: bool=False):
         r"""Plots the double-time correlations.
 
         Parameters
@@ -79,6 +79,8 @@ class SSHVisualiser:
         slice : list[tuple[int]]
             A list of tuples of the form (i, j), which will make the function only
             plot those specific double-time correlations.
+        numTauPoints : int
+            The number of tau points to plot on the 3D figures. If none, will just use the normal tauAxis.
         saveFigs : bool
             Determines whether to save the figure or not.
         subtractUncorrelatedValues : bool
@@ -87,6 +89,13 @@ class SSHVisualiser:
             entirely uncorrelated, and as $\tau$ gets sufficiently large we expect the system to become uncorrelated due to
             interaction with the environment.
         """
+
+        if numTauPoints is None:
+            tauPlottingAxis = self._sim.tauAxisDim
+        else:
+            modulus = self._sim.tauAxisDim.size // numTauPoints
+            mask = np.arange(self._sim.tauAxisDim.size) % modulus
+            tauPlottingAxis = self._sim.tauAxisDim[mask]
 
         model = self._sim._models[k]
 
@@ -128,7 +137,7 @@ class SSHVisualiser:
                             newAxis = t + model.tauAxisSec
                             z -= model._singleTimeFourierExpansion[i](t) * model._singleTimeFourierExpansion[j](newAxis)
 
-                        ax[col].plot(t * self._sim.decayConstant, self._sim.tauAxisDim, self._plottingFunctions[1:][col](z),
+                        ax[col].plot(t * self._sim.decayConstant, tauPlottingAxis, self._plottingFunctions[1:][col](z),
                                         color = "Black")
         
                     # Sets other properties.
