@@ -19,14 +19,17 @@ class SSHVisualiser:
         self._sim = sim
         self._plottingFunctions = [lambda z: np.abs(z), lambda z: z.real, lambda z: z.imag]
         self._tLabel = r"$t \gamma_-$"
+        self._tauLabel = r"$\tau \gamma_-$"
 
-    def PlotSingleTimeCorrelations(self, k: float):
+    def PlotSingleTimeCorrelations(self, k: float, overplotFourier: bool=False):
         r"""Plots the single-time correlations $\langle \tilde \sigma_-(t) \rangle,\, \langle \tilde \sigma_+(t) \rangle,\, \langle \tilde \sigma_z(t) \rangle$ for a fixed momentum.
 
         Parameters
         ----------
         k : float
             The momentum for which we want to plot the correlation functions.
+        overplotFourier : bool
+            Whether to overplot the fourier expansions as well.
         """
 
         model = self._sim._models[k]
@@ -50,8 +53,12 @@ class SSHVisualiser:
         for row in np.arange(nrows):
             for col in np.arange(ncols):
                 # Plot numerical solution.
-                ax[row, col].plot(self._sim.tauAxis, self._plottingFunctions[col](model.singleTimeSolution[row]),
+                ax[row, col].plot(self._sim.tauAxisDim, self._plottingFunctions[col](model.singleTimeSolution[row]),
                                 color = "Black")
+
+                if overplotFourier:
+                    ax[row, col].plot(self._sim.tauAxisDim, self._plottingFunctions[col](model.singleTimeFourierExpansion[row](self._sim.tauAxisSec)),
+                                    color = "blue")
         
                 # Sets other properties.
                 ax[row, col].set_xlabel(self._tLabel)
@@ -108,28 +115,25 @@ class SSHVisualiser:
                 nrows, ncols = 1, 2
                 fig, ax = plt.subplots(nrows, ncols, figsize=(16, 8.8), subplot_kw={"projection": "3d"})
 
-                for col in np.arange(ncols):
-                    # Plot numerical solution.
-                    # x, y = np.meshgrid(model.steadyStateAxis, self._sim._tauAxis)
-                    # x, y = x.T, y.T
-                    
+                for col in np.arange(ncols):                    
                     # Plots each system as a line, with each line representing
                     # a different initial condition within a steady-state period.
-                    for tIndex, t in enumerate(model.steadyStateAxis):
+                    for tIndex, t in enumerate(model.tAxisSec):
                         z = model.doubleTimeSolution[i, j, tIndex, :]
+                        
                         # Subtracts the uncorrelated values if the system desired that.
                         if subtractUncorrelatedValues:
-                            # Calculates the fourier expansion of the pauli operators at every time t + tau.
-                            newAxis = t + model.tauAxis
-                            coeff = model._CalculateExpectationCoefficients()[j]
-                            z -= model.singleTimeSolution[i, tIndex] * model.EvaluateFourierExpansion(coeff, newAxis=newAxis)
+                            # Subtracts the value of the single-time correlation fourier expansions
+                            # at each time on the tau axis.
+                            newAxis = t + model.tauAxisSec
+                            z -= model._singleTimeFourierExpansion[i](t) * model._singleTimeFourierExpansion[j](newAxis)
 
-                        ax[col].plot(t * self._sim.decayConstant, self._sim.tauAxis, self._plottingFunctions[1:][col](z),
+                        ax[col].plot(t * self._sim.decayConstant, self._sim.tauAxisDim, self._plottingFunctions[1:][col](z),
                                         color = "Black")
         
                     # Sets other properties.
                     ax[col].set_xlabel(self._tLabel)
-                    ax[col].set_ylabel(r"$\tau \gamma_-$")
+                    ax[col].set_ylabel(self._tauLabel)
                     ax[col].set_zlabel(zLabels[col])
 
                 title = rf"{correlationName} -- $k = {k / np.pi} \pi,\, t_1 = {self._sim.t1},\, t_2 = {self._sim.t2},\, A_0 = {self._sim.drivingAmplitude},\, \Omega = {self._sim.drivingFreq:.5f},\, \gamma_- = {self._sim.decayConstant}$"
@@ -159,7 +163,7 @@ class SSHVisualiser:
 
         for row in np.arange(nrows):
             # Plot the numerical solution.
-            ax[row].plot(self._sim.tauAxis, self._plottingFunctions[row](current),
+            ax[row].plot(self._sim.tauAxisDim, self._plottingFunctions[row](current),
                         color = "Black")
     
             ax[row].set_xlabel(self._tLabel)

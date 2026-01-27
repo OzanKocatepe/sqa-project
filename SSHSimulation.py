@@ -45,10 +45,25 @@ class SSHSimulation:
         
         # Dictionary of SSH instances.
         self._models = {}
-        self._tauAxis = None
 
     @property
-    def tauAxis(self) -> np.ndarray[float]:
+    def tauAxisSec(self) -> np.ndarray[float]:
+        r"""Returns the tauAxis.
+        
+        Returns
+        -------
+        ndarray[float]
+            The points along which the solutions are evaluated in the time domain, in
+            seconds.
+        """
+
+        if not self._models:
+            raise ValueError("No models given.")
+        else:
+            return list(self._models.values())[0].tauAxisSec
+
+    @property
+    def tauAxisDim(self) -> np.ndarray[float]:
         r"""Returns the tauAxis.
         
         Returns
@@ -58,10 +73,44 @@ class SSHSimulation:
             units of $\gamma_-^{-1}$.
         """
 
-        if self._tauAxis is None:
-            raise ValueError("Call Run() first.")
+        if not self._models:
+            raise ValueError("No models given.")
         else:
-            return self._tauAxis
+            return list(self._models.values())[0].tauAxisDim
+
+    @property
+    def tAxisSec(self) -> np.ndarray[float]:
+        r"""Returns the tAxis.
+        
+        Returns
+        -------
+        ndarray[float]
+            The values of t, in units of seconds, that we use as the initial conditions when calculating
+            the double-time correlations. These should cover a single period
+            in the steady-state.
+        """
+
+        if not self._models:
+            raise ValueError("No models given.")
+        else:
+            return list(self._models.values())[0].tAxisSec
+
+    @property
+    def tAxisDim(self) -> np.ndarray[float]:
+        r"""Returns the tAxis.
+        
+        Returns
+        -------
+        ndarray[float]
+            The values of t, in units of $\gamma_-^{-1}$, that we use as the initial conditions when calculating
+            the double-time correlations. These should cover a single period
+            in the steady-state.
+        """
+
+        if not self._models:
+            raise ValueError("No models given.")
+        else:
+            return list(self._models.values())[0].tAxisDim
 
     @property
     def freqAxis(self) -> np.ndarray[float]: 
@@ -136,8 +185,6 @@ class SSHSimulation:
         debug : bool
             Whether to output debug progress statements.
         """
-
-        self._tauAxis = tauAxis
 
         iterable = self._models.items()
         if debug:

@@ -38,26 +38,31 @@ class SSH:
         self.drivingAmplitude = drivingAmplitude
         self.drivingFreq = drivingFreq
 
-        # Defines the internal values that haven't been calculated yet.
+        # The values of $\tau$, in seconds, that we are going to use.
         self._tauAxis = None
-        self._steadyStateAxis = None
+
+        # The values of $t$, in seconds, within a single steady-state period of the single-time correlations
+        # that we will use as initial conditions for our double-time correlations.
+        self._tAxis = None
+
         self._drivingTerm = None
         self._singleTimeSolution = None
+        self._singleTimeFourierExpansion = None
         self._doubleTimeSolution = None
         self._currentTime = None
         self._currentFreq = None
-        self._freqAxis = None 
+        self._freqAxis = None
 
     @property
-    def steadyStateAxis(self) -> np.ndarray[float]:
+    def tAxisSec(self) -> np.ndarray[float]:
         r"""
-        Gets the values of time that we take to be initial conditions
+        Gets the values of t that we take to be initial conditions
         of the double-time correlation functions.
 
         Returns
         -------
         ndarray[float]
-            The values of t, in units of $\gamma_-^{-1}$ that we use as the initial conditions when calculating
+            The values of t, in units of seconds, that we use as the initial conditions when calculating
             the double-time correlations. These should represent a single period
             in the steady-state.
 
@@ -67,10 +72,34 @@ class SSH:
             If Solve() has not been called, so no steadyStateCutoff has been given yet.
         """
 
-        if self._steadyStateAxis is None:
+        if self._tAxis is None:
             raise ValueError("Call Solve() first.")
         else:
-            return self._steadyStateAxis
+            return self._tAxis
+
+    @property
+    def tAxisDim(self) -> np.ndarray[float]:
+        r"""
+        Gets the values of t that we take to be initial conditions
+        of the double-time correlation functions.
+
+        Returns
+        -------
+        ndarray[float]
+            The values of t, in units of $\gamma_-^{-1}$, that we use as the initial conditions when calculating
+            the double-time correlations. These should represent a single period
+            in the steady-state.
+
+        Raises
+        ------
+        ValueError
+            If Solve() has not been called, so no steadyStateCutoff has been given yet.
+        """
+
+        if self._tAxis is None:
+            raise ValueError("Call Solve() first.")
+        else:
+            return self._tAxis * self.decayConstant
  
     @property
     def singleTimeSolution(self) -> np.ndarray[complex]:
@@ -153,13 +182,13 @@ class SSH:
             return self._currentFreq
         
     @property
-    def tauAxis(self) -> np.ndarray[float]:
+    def tauAxisSec(self) -> np.ndarray[float]:
         """Gets the tau axis.
         
         Returns
         -------
         ndarray[float]
-            The values of tau that we plot the correlations for.
+            The values of tau, in seconds, that we plot the correlations for.
             
         Raises
         ------
@@ -171,6 +200,26 @@ class SSH:
             raise ValueError("Call Solve() first.")
         else:
             return self._tauAxis
+        
+    @property
+    def tauAxisDim(self) -> np.ndarray[float]:
+        r"""Gets the tau axis.
+        
+        Returns
+        -------
+        ndarray[float]
+            The values of tau, in units of $\gamma_-^{-1}$, that we plot the correlations for.
+            
+        Raises
+        ------
+        ValueError
+            If Solve() has not been called, so no tau axis has been given yet.
+        """
+
+        if self._tauAxis is None:
+            raise ValueError("Call Solve() first.")
+        else:
+            return self._tauAxis * self.decayConstant
 
     @property
     def freqAxis(self) -> np.ndarray[float]:
@@ -193,7 +242,7 @@ class SSH:
         else:
             return self._freqAxis
 
-    def SinusoidalDrivingTerm(self, t: np.typing.ArrayLike) ->  np.typing.ArrayLike:
+    def _SinusoidalDrivingTerm(self, t: np.typing.ArrayLike) ->  np.typing.ArrayLike:
         """A classical, sinusoidal driving term for the system.
         
         Parameters
@@ -209,7 +258,7 @@ class SSH:
 
         return self.drivingAmplitude * np.sin(2 * np.pi * self.drivingFreq * t)
 
-    def ClassicallyDrivenSSHEquations(self, t: float, c: np.ndarray[float], A: Callable[[np.typing.ArrayLike], np.typing.ArrayLike], inhomPart: float) -> np.ndarray[float]:
+    def _ClassicallyDrivenSSHEquations(self, t: float, c: np.ndarray[float], A: Callable[[np.typing.ArrayLike], np.typing.ArrayLike], inhomPart: float) -> np.ndarray[float]:
         r"""
         The ODE (equations of motion) for the single-time expectations of $\sigma_-(t)$, $\sigma_+(t)$, and $\sigma_z(t)$. 
 
@@ -278,7 +327,7 @@ class SSH:
             An array of shape (3, tAxis.size) which contains the single-time correlation functions. The index of the first dimension
             corresponds to the correlation function, with 0 = $\langle \sigma_-(t) \rangle$, 1 = $\langle \sigma_+(t) \rangle$, and 2 = $ \langle \sigma_z(t) \rangle$.
         ndarray[complex]
-            An array of shape (3, 3, steadyStateIndices.size, tAxis.size) which contains the double-time correlation functions.
+            An array of shape (3, 3, numT, tAxis.size) which contains the double-time correlation functions.
             The first and second dimensions correspond to the left and right operators in the correlation function respectively,
             following the index convention for the single-time correlatinos. The left operator is evaluated at time $t$, whereas the right operator is evaluated at time $t' = t + \tau$.
             The third dimension corresponds to different values of time within a steady-state period that we take to be the initial
@@ -286,19 +335,21 @@ class SSH:
         """
 
         if drivingTerm is None:
-            self._drivingTerm = self.SinusoidalDrivingTerm
+            self._drivingTerm = self._SinusoidalDrivingTerm
         else:
             self._drivingTerm = drivingTerm
 
-        # Internally stores the tauAxis in seconds. Whenever the tauAxis is inputted or outputted,
+        # Ensures initial conditions are a numpy array.
+        initialConditions = np.array(initialConditions, dtype=complex)
+
+        # Internally stores the tauAxis in seconds. Whenever the tauAxis is inputted,
         # it will be given in units of $\gamma_-^{-1}$, but internally we always use absolute seconds.
         self._tauAxis = tauAxis / self.decayConstant
  
         # Stores the function parameters, since they are mostly the same for the single- and double-time
         # correlations.
-        initialConditions = np.array(initialConditions, dtype=complex)
         params = {
-            'fun' : self.ClassicallyDrivenSSHEquations,
+            'fun' : self._ClassicallyDrivenSSHEquations,
             't_span' : np.array([np.min(self._tauAxis), np.max(self._tauAxis)]),
             'y0' : initialConditions,
             't_eval' : self._tauAxis,
@@ -306,68 +357,66 @@ class SSH:
             'atol' : 1e-12,
             'args' : (self._drivingTerm, -self.decayConstant,)
         }
+
+        # Solves the single time solutions.
         self._singleTimeSolution = integrate.solve_ivp(**params).y
 
-        # Calculates the indices of the first period of the steady-state, based on the given steadyStateCutoff.
+        # Calculates the single-time fourier expansions.
+        singleTimeCoeff = self._CalculateExpectationCoefficients()
+        self._singleTimeFourierExpansion = []
+        for i in range(3):
+            self._singleTimeFourierExpansion.append(self._EvaluateFourierExpansion(singleTimeCoeff[i]))
+
+        # Calculates the points within the steady state period that we want to use. The steady state axis
+        # covers one period in the steady state, and is in seconds.
         startPoint = steadyStateCutoff / self.decayConstant
         endPoint = steadyStateCutoff / self.decayConstant + 1 / self.drivingFreq
-        
-        # Stores the tau axis values that we are considering our initial conditions for t,
-        # in units of $\gamma_-^{-1}$.
-        self._steadyStateAxis = np.linspace(startPoint, endPoint, numT)
+        self._tAxis = np.linspace(startPoint, endPoint, numT)
 
         # Defines the double time solutions. The first dimension corresponds to the left-hand operator,
         # the second corresponds to the right hand operator, the third dimension corresponds to
         # the different times within a steady-state period that we consider our initial conditions at, and
         # the fourth dimension corresponds to the value of our time offset $\tau$.
-        self._doubleTimeSolution = np.zeros((3, 3, self._steadyStateAxis.size, self._tauAxis.size), dtype=complex)
+        self._doubleTimeSolution = np.zeros((3, 3, self._tAxis.size, self._tauAxis.size), dtype=complex)
 
-        # Loops through each time in the steady-state period that we want to consider.
-        iterable = range(self._steadyStateAxis.size)
+        # Calculates the double-time initial conditions based on the single-time correlations for
+        # each time within the steady-state period that we want to calculate.
+        doubleTimeInitialConditions = np.array([
+            # When left-multiplying by $\sigma_-(t)$
+            [
+                0,
+                -0.5 * (self._singleTimeFourierExpansion[2](iterable) - 1),
+                self._singleTimeFourierExpansion[0](iterable)
+            ],
+            # When left-multiplying by $\sigma_+(t)$
+            [
+                0.5 * (self._singleTimeFourierExpansion[2](iterable) + 1),
+                0,
+                -self._singleTimeFourierExpansion[1](iterable)
+            ],
+            # When left-multiplying by $\sigma_z(t)$
+            [
+                -self._singleTimeFourierExpansion[0](iterable),
+                self._singleTimeFourierExpansion[1](iterable),
+                1
+            ]], dtype=complex
+        )
+
+        iterable = enumerate(self._tAxis)
         if debug:
             print(f"Calculating double-time correlations for k = {self.k / np.pi:.2f}pi...")
             iterable = tqdm(iterable)
 
-        # Calculates the fourier expansions of the operators so that we can calculate initial conditions at
-        # arbitrarily precise t, rather than only points where the original function was defined.
-        coeff = self._CalculateExpectationCoefficients(steadyStateCutoff=steadyStateCutoff)
-        operatorExpansions = np.zeros((3, self._steadyStateAxis.size), dtype=complex)
-        for functionIndex in range(3):
-            operatorExpansions[functionIndex] = self.EvaluateFourierExpansion(coeff[functionIndex], newAxis=self._steadyStateAxis)
-
-        for tIndex in iterable:
-            # Calculates the double-time initial conditions based on the single-time correlations.
-            doubleTimeInitialConditions = np.array([
-                # When left-multiplying by $\sigma_-(t)$
-                [
-                    0,
-                    -0.5 * (operatorExpansions[2, tIndex] - 1),
-                    operatorExpansions[0, tIndex]
-                ],
-                # When left-multiplying by $\sigma_+(t)$
-                [
-                    0.5 * (operatorExpansions[2, tIndex] + 1),
-                    0,
-                    -operatorExpansions[1, tIndex]
-                ],
-                # When left-multiplying by $\sigma_z(t)$
-                [
-                    -operatorExpansions[0, tIndex],
-                    operatorExpansions[1, tIndex],
-                    1
-                ]], dtype=complex
-            )
-
+        # Loops through each initial condition time t.
+        for tIndex, t in iterable:
             # Loops through all 3 operators that we can left-multiply by.
-            # Each loops calculates the 3 double-time correlations corresponding to that
-            # left operator.
             for i in range(3):
-                # Calculates the new initial conditionsa and inhomogenous term.
+                # Calculates the new initial conditions and inhomogenous term.
                 params['y0'] = doubleTimeInitialConditions[i, :]
-                params['args'] = (self._drivingTerm, -self.decayConstant * self._singleTimeSolution[i, tIndex],)
+                params['args'] = (self._drivingTerm, -self.decayConstant * self._singleTimeFourierExpansion[i](t),)
 
                 # Solves system.
-                self._doubleTimeSolution[i, :, tIndex, :] = integrate.solve_ivp(**params).y
+                self._doubleTimeSolution[i, :, tIndex, :] = integrate.solve_ivp(**params).yj
         
         if debug:
             print('\n')
@@ -406,14 +455,10 @@ class SSH:
         phiK = np.angle(Ek)
         drivingSamples = self._drivingTerm(self._tauAxis)
 
-        # Defines a mask to only include single time solution values within the tau axis,
-        # and ignore the extra values defined only for convenience with the double-time correlations.
-        tauMask = np.arange(self._tauAxis.size)
-
         # Calculates the current operator in terms of the previously calculated expectation values.
         self._currentTime = self.t2 * (
-            -np.sin(self.k - phiK - drivingSamples) * self._singleTimeSolution[2][tauMask]
-            + 1j * np.cos(self.k - phiK - drivingSamples) * (self._singleTimeSolution[1][tauMask] - self._singleTimeSolution[0][tauMask])
+            -np.sin(self.k - phiK - drivingSamples) * self._singleTimeSolution[2]
+            + 1j * np.cos(self.k - phiK - drivingSamples) * (self._singleTimeSolution[1] - self._singleTimeSolution[0])
         )
 
         # Only considers the system in steady state for the Fourier transform, if desired.
@@ -422,18 +467,19 @@ class SSH:
         else:
             mask = np.full(self._tauAxis.size, True, dtype=bool)
 
-        steadyStateAxis = self._tauAxis[mask]
+        # The full axis which we have declared to be in a steady state.
+        fullSteadyStateAxis = self._tauAxis[mask]
 
         # Calculates the Fourier transform of the solution.
         self._currentFreq = np.fft.fftshift(np.fft.fft(self._currentTime[mask]))
 
         # Calculates the relevant frequency axis.
-        sampleSpacing = (np.max(steadyStateAxis) - np.min(steadyStateAxis)) / steadyStateAxis.size
-        self._freqAxis = np.fft.fftshift(np.fft.fftfreq(steadyStateAxis.size, sampleSpacing))
+        sampleSpacing = (np.max(fullSteadyStateAxis) - np.min(fullSteadyStateAxis)) / fullSteadyStateAxis.size
+        self._freqAxis = np.fft.fftshift(np.fft.fftfreq(fullSteadyStateAxis.size, sampleSpacing))
 
         return self._currentTime, self._currentFreq
     
-    def _CalculateExpectationCoefficients(self, n: int=None, steadyStateCutoff: float=15, numPeriods: int=10) -> np.ndarray[complex]:
+    def _CalculateExpectationCoefficients(self, n: int=None, steadyStateCutoff: float=25, numPeriods: int=10) -> np.ndarray[complex]:
         r"""Calculates the first n coefficients in the fourier expansion of the correlation functions.
         
         Parameters
@@ -618,7 +664,7 @@ class SSH:
         return coefficients
 
     
-    def EvaluateFourierExpansion(self, coefficients: np.ndarray[complex], freq: float=None, newAxis: np.ndarray[float]=None) -> np.ndarray[complex]:
+    def _EvaluateFourierExpansion(self, coefficients: np.ndarray[complex], freq: float=None) -> Callable[[np.ndarray[float]], np.ndarray[complex]]:
         """
         Evaluates the fourier expansion of a function based on its coefficients.
 
@@ -629,13 +675,11 @@ class SSH:
         freq : float
             The frequency that we will be expanding into harmonics of. By default, will using the
             *angular* driving frequency of this system.
-        newAxis : float
-            If desired, a newly specified tau axis to evaluate the fourier expansion on, rather than the default tau axis.
 
         Returns
         -------
-        ndarray[complex]
-            An array of shape (tauAxis.size,) with the value of the fourier expansion at each time offset tau.
+        Callable[[ndarray[float]], ndarray[complex]]
+            A function that will input a numpy array of times, and output the value of the Fourier expansion at those times.
 
         Raises
         ------
@@ -654,13 +698,16 @@ class SSH:
             raise ValueError("coefficients must be an array of shape (2n + 1,) for some integral n.")
 
         # Generates the set of exponential terms at each time t.
-        expTerms = np.zeros((2 * n + 1, newAxis.size), dtype=complex)
-        for t in range(newAxis.size):
-            expTerms[:, t] = np.exp(1j * freq * np.arange(-n, n + 1) * newAxis[t])
+        def F(tArr: np.ndarray[float]) -> np.ndarray[complex]:
+            expTerms = np.zeros((2 * n + 1, tArr.size), dtype=complex)
+            for t in range(tArr.size):
+                expTerms[:, t] = np.exp(1j * freq * np.arange(-n, n + 1) * tArr[t])
 
-        # Evaluates the value of the fourier expansion at each time tau.
-        fourierExpansion = np.zeros((newAxis.size,), dtype=complex)
-        for t in range(newAxis.size):
-            fourierExpansion[t] = np.dot(coefficients, expTerms[:, t])
-
-        return fourierExpansion
+            # Evaluates the value of the fourier expansion at each time tau.
+            fourierExpansion = np.zeros((tArr.size,), dtype=complex)
+            for t in range(tArr.size):
+                fourierExpansion[t] = np.dot(coefficients, expTerms[:, t])
+            
+            return fourierExpansion
+        
+        return F

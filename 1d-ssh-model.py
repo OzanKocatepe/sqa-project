@@ -6,7 +6,7 @@ from SSH import SSH
 from SSHSimulation import SSHSimulation
 from SSHVisualiser import SSHVisualiser
 
-tauAxis = np.linspace(0, 300, 2000)
+tauAxis = np.linspace(0, 30, 2000)
 numT = 5
 initialConditions = np.array([-0.5, -0.5, 0], dtype=complex)
 
