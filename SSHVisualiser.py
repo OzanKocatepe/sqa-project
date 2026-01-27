@@ -50,7 +50,7 @@ class SSHVisualiser:
         for row in np.arange(nrows):
             for col in np.arange(ncols):
                 # Plot numerical solution.
-                ax[row, col].plot(self._sim.tAxis, self._plottingFunctions[col](model.solution.y[row]),
+                ax[row, col].plot(self._sim.tAxis, self._plottingFunctions[col](model.singleTimeSolution[row]),
                                 color = "Black")
         
                 # Sets other properties.
@@ -61,6 +61,76 @@ class SSHVisualiser:
         plt.suptitle(title)
         plt.tight_layout()
         plt.show()
+
+    def PlotDoubleTimeCorrelations(self, k: float, slice: list[tuple[int]]=None, subtractUncorrelatedValues: bool=False):
+        r"""Plots the double-time correlations.
+
+        Parameters
+        ----------
+        k : float
+            The momentum for which we want to plot the correlation functions.
+        slice : list[tuple[int]]
+            A list of tuples of the form (i, j), which will make the function only
+            plot those specific double-time correlations.
+        subtractUncorrelatedValues : bool
+            Whether, for the double-time correlation $\langle \sigma_i(t), \sigma_j(t + \tau) \rangle$, to subtract the value of
+            $\langle \sigma_i (t) \rangle \langle \sigma_j(t + \tau) \rangle$. This would be the value of the double-time correlation if the two operators were
+            entirely uncorrelated, and as $\tau$ gets sufficiently large we expect the system to become uncorrelated due to
+            interaction with the environment.
+        """
+
+        model = self._sim._models[k]
+
+        operatorLabels = [r"\tilde \sigma_-",
+                          r"\tilde \sigma_+",
+                          r"\tilde \sigma_z"]
+
+        # Loops over all nine double-time correlation functions.
+        if slice is None:
+            i, j = np.meshgrid(range(3), range(3))
+            iterable = tuple(zip(i.flatten(), j.flatten()))
+        else:
+            iterable = slice
+
+        for i, j in iterable:
+                # Creates the y-labels for each pair of operators.
+                correlationName = rf"$\langle {operatorLabels[i]}(t) {operatorLabels[j]}(t + \tau) \rangle$"
+                zLabels = [
+                    f"Real Part of {correlationName}",
+                    f"Imaginary Part of {correlationName}"
+                ] 
+
+                # Creates the 2 3D subplots.
+                nrows, ncols = 1, 2
+                fig, ax = plt.subplots(nrows, ncols, figsize=(16, 8.8), subplot_kw={"projection": "3d"})
+
+                for col in np.arange(ncols):
+                    # Plot numerical solution.
+                    # x, y = np.meshgrid(model.steadyTAxis, self._sim._tAxis)
+                    # x, y = x.T, y.T
+                    
+                    # Plots each system as a line, with each line representing
+                    # a different initial condition within a steady-state period.
+                    for tIndex, t in enumerate(model.steadyTAxis):
+                        z = model.doubleTimeSolution[i, j, tIndex, :]
+                        # Subtracts the uncorrelated values if the system desired that.
+                        if subtractUncorrelatedValues:
+                            # Loops through each time offset tau.
+                            for tau in self._sim.tAxis
+                            z -= model.singleTimeSolution[i, np.where(self._sim.tAxis == t)[0]] * model.singleTimeSolution[j, np.where(self._sim.tAxis == t + )[0]]
+
+                        ax[col].plot(t, self._sim.tAxis, self._plottingFunctions[1:][col](),
+                                        color = "Black")
+        
+                    # Sets other properties.
+                    ax[col].set_xlabel(self._tLabel)
+                    ax[col].set_ylabel(r"$\tau \gamma_-$")
+                    ax[col].set_zlabel(zLabels[col])
+
+                title = rf"{correlationName} -- $k = {k / np.pi} \pi,\, t_1 = {self._sim.t1},\, t_2 = {self._sim.t2},\, A_0 = {self._sim.drivingAmplitude},\, \Omega = {self._sim.drivingFreq:.5f},\, \gamma_- = {self._sim.decayConstant}$"
+                plt.suptitle(title)
+                plt.tight_layout()
+                plt.show()
         
     def PlotTotalCurrent(self):
         """Plots the total current operator in the time and frequency domains."""

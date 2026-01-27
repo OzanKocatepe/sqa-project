@@ -116,7 +116,7 @@ class SSHSimulation:
         for kPoint in k:
             self._models[kPoint] = SSH(k = kPoint, **self._params)
 
-    def Run(self, tAxis: np.ndarray[float], initialConditions: np.ndarray[complex], steadyStateCutoff: float=None, drivingTerm: Callable[[float], float]=None, debug: bool=False):
+    def Run(self, tAxis: np.ndarray[float], initialConditions: np.ndarray[complex], steadyStateCutoff: float=25, drivingTerm: Callable[[float], float]=None, debug: bool=False):
         r"""Runs the simulations for all the momentum values.
         
         Parameters
@@ -143,7 +143,7 @@ class SSHSimulation:
             iterable = tqdm(self._models.items())
 
         for k, model in iterable:
-            model.Solve(tAxis, initialConditions, drivingTerm)
+            model.Solve(tAxis, initialConditions, drivingTerm, debug=debug)
             model.CalculateCurrent(steadyStateCutoff)
 
         if debug:

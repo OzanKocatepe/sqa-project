@@ -1,8 +1,9 @@
 import numpy as np
 import scipy.integrate as integrate
 import scipy.special as special
-from typing import Callable, Any
+from typing import Callable
 import math
+from tqdm import tqdm
 
 class SSH:
     """
@@ -39,31 +40,77 @@ class SSH:
 
         # Defines the internal values that haven't been calculated yet.
         self._tAxis = None
+        self._steadyTAxis = None
         self._drivingTerm = None
-        self._solution = None
+        self._singleTimeSolution = None
+        self._doubleTimeSolution = None
         self._currentTime = None
         self._currentFreq = None
         self._freqAxis = None 
+
+    @property
+    def steadyTAxis(self) -> np.ndarray[float]:
+        r"""
+        Gets the values of time that we take to be initial conditions
+        of the double-time correlation functions.
+
+        Returns
+        -------
+        ndarray[float]
+            The values of t, in units of $\gamma_-^{-1}$ that we use as the initial conditions when calculating
+            the double-time correlations. These should represent a single period
+            in the steady-state.
+
+        Raises
+        ------
+        ValueError
+            If Solve() has not been called, so no steadyStateCutoff has been given yet.
+        """
+
+        if self._steadyTAxis is None:
+            raise ValueError("Call Solve() first.")
+        else:
+            return self._steadyTAxis
  
     @property
-    def solution(self) -> Any:
-        """Gets the solution for the expectations.
+    def singleTimeSolution(self) -> np.ndarray[complex]:
+        """Gets the solution for the single-time correlation functions.
         
         Returns
         -------
-        Any
-            The object returned by scipy.integrate.solve_ivp which contains the solutions
-            to the ODE.
+        ndarray[complex]
+            An array of shape (3, tAxis.size) which contains the single-time correlation functions.
             
         Raises
         ------
         ValueError
             If Solve() has not been called, so no solution has been calculated yet.
         """
-        if self._solution is None:
+
+        if self._singleTimeSolution is None:
             raise ValueError("Call Solve() first.")
         else:
-            return self._solution
+            return self._singleTimeSolution
+
+    @property
+    def doubleTimeSolution(self) -> np.ndarray[complex]:
+        """Gets the solution for the double-time correlation functions.
+        
+        Returns
+        -------
+        ndarray[complex]
+            An array of shape (3, 3, steadyStateIndices.size, tAxis.size) which contains the
+            double-time correlation functions.
+            
+        Raises
+        ------
+        ValueError
+            If Solve() has not been called, so no solution has been calculated yet.
+        """
+        if self._doubleTimeSolution is None:
+            raise ValueError("Call Solve() first.")
+        else:
+            return self._doubleTimeSolution
         
     @property
     def currentTime(self) -> np.ndarray[complex]:
@@ -142,7 +189,7 @@ class SSH:
 
         return self.drivingAmplitude * np.sin(2 * np.pi * self.drivingFreq * t)
 
-    def ClassicallyDrivenSSHEquations(self, t: float, c: np.ndarray[float], A: Callable[[np.typing.ArrayLike], np.typing.ArrayLike]) -> np.ndarray[float]:
+    def ClassicallyDrivenSSHEquations(self, t: float, c: np.ndarray[float], A: Callable[[np.typing.ArrayLike], np.typing.ArrayLike], inhomPart: float) -> np.ndarray[float]:
         r"""
         The ODE (equations of motion) for the single-time expectations of $\sigma_-(t)$, $\sigma_+(t)$, and $\sigma_z(t)$. 
 
@@ -154,6 +201,10 @@ class SSH:
             The 3-component single-time correlation array.
         A : Callable[[np.typing.ArrayLike], np.typing.ArrayLike]
             The classical driving term. Should be a vectorisable function of t.
+        inhomPart : float
+            The inhomogenous part of the system, which changes depending on the
+            order of the correlation function. The correct inhomogenous parts are determined
+            outside of this function.
 
         Returns:
         --------
@@ -173,29 +224,41 @@ class SSH:
                       [2j * vPm                                            , 2j * vPm                                           ,  -self.decayConstant  ]], dtype=complex)
     
         # Inhomogenous part.
-        d = np.array([0, 0, -self.decayConstant], dtype=complex)
+        d = np.array([0, 0, inhomPart], dtype=complex)
     
         return B @ c + d
 
-    def Solve(self, tAxis: np.ndarray[float], initialConditions: np.ndarray[complex], drivingTerm: Callable[[float], float]=None) -> Any:
+    def Solve(self, tAxis: np.ndarray[float], initialConditions: np.ndarray[complex], drivingTerm: Callable[[float], float]=None, steadyStateCutoff: float=25, debug: bool=False) -> tuple[np.ndarray[complex], np.ndarray[complex]]:
         r"""
-        Solves the system of ODEs for the expectations of our two-level system operators $(\langle \sigma_-(t) \rangle,\, \langle \sigma_+(t) \rangle,\, \langle \sigma_z(t) \rangle)$.
+        Solves the system of ODEs for the expectations of our two-level system operators $(\langle \sigma_-(t) \rangle,\, \langle \sigma_+(t) \rangle,\, \langle \sigma_z(t) \rangle)$, and the double-time correlation functions $\langle \sigma_i (t) \sigma_j (t + \tau) \rangle$.
             
         Parameters
         ----------
         tAxis : ndarray[float]
-            The points in time (in units of $\gamma_-^{-1}$) that the final solution should be evaluated at.
+            The points in time (in units of $\gamma_-^{-1}$) that the final solutions should be evaluated at.
         initialConditions : ndarray[complex]
-            The initial conditions of the expectations.
+            The initial conditions of the single-time correlation functions. This is used to calculate
+            the initial conditions of the double-time correlations.
         drivingTerm : Callable[[float], float]
             The classical driving term that will be used in the modelling of the system.
             By default, it is a sinusoidal driving term.
+        steadyStateCutoff : float
+            The time, in units of $\gamma_-^{-1}$, after which we consider the system in steady-state. This is used
+            to calculate the initial conditions for the double-time correlations.
+        debug : bool
+            Whether to print out debug progress statements.
 
         Returns
         -------
-        Any
-            The object returned by scipy.integrate.solve_ivp which contains the solutions
-            to the ODE.
+        ndarray[complex]
+            An array of shape (3, tAxis.size) which contains the single-time correlation functions. The index of the first dimension
+            corresponds to the correlation function, with 0 = $\langle \sigma_-(t) \rangle$, 1 = $\langle \sigma_+(t) \rangle$, and 2 = $ \langle \sigma_z(t) \rangle$.
+        ndarray[complex]
+            An array of shape (3, 3, steadyStateIndices.size, tAxis.size) which contains the double-time correlation functions.
+            The first and second dimensions correspond to the left and right operators in the correlation function respectively,
+            following the index convention for the single-time correlatinos. The left operator is evaluated at time $t$, whereas the right operator is evaluated at time $t' = t + \tau$.
+            The third dimension corresponds to different values of time within a steady-state period that we take to be the initial
+            conditions, and the fourth dimension corresponds to the values of the function at different points of $\tau$ on the tAxis.
         """
 
         if drivingTerm is None:
@@ -206,16 +269,81 @@ class SSH:
         # Internally stores the tAxis in seconds. Whenever the tAxis is inputted or outputted,
         # it will be given in units of $\gamma_-^{-1}$, but internally we always use absolute seconds.
         self._tAxis = tAxis / self.decayConstant
-  
-        self._solution = integrate.solve_ivp(fun = self.ClassicallyDrivenSSHEquations,
-                                             t_span = np.array([np.min(self._tAxis), np.max(self._tAxis)]),
-                                             y0 = initialConditions,
-                                             t_eval = self._tAxis,
-                                             rtol = 1e-10,
-                                             atol = 1e-12,
-                                             args = (self._drivingTerm,))
         
-        return self._solution
+        # Stores the function parameters, since they are mostly the same for the single- and double-time
+        # correlations.
+        initialConditions = np.array(initialConditions, dtype=complex)
+        params = {
+            'fun' : self.ClassicallyDrivenSSHEquations,
+            't_span' : np.array([np.min(self._tAxis), np.max(self._tAxis)]),
+            'y0' : initialConditions,
+            't_eval' : self._tAxis,
+            'rtol' : 1e-10,
+            'atol' : 1e-12,
+            'args' : (self._drivingTerm, -self.decayConstant,)
+        }
+        self._singleTimeSolution = integrate.solve_ivp(**params).y
+
+        # Calculates the indices of the first period of the steady-state, based on the given steadyStateCutoff.
+        steadyStateIndices = np.where(
+            (steadyStateCutoff / self.decayConstant <= self._tAxis)
+            & (self._tAxis <= steadyStateCutoff / self.decayConstant + 1 / self.drivingFreq)
+        )[0]
+        
+        # Stores the axis values that we are considering our initial conditions,
+        # in units of $\gamma_-^{-1}$.
+        self._steadyTAxis = self._tAxis[steadyStateIndices] * self.decayConstant
+
+        # Defines the double time solutions. The first dimension corresponds to the left-hand operator,
+        # the second corresponds to the right hand operator, the third dimension corresponds to
+        # the different times within a steady-state period that we consider our initial conditions at, and
+        # the fourth dimension corresponds to the value of our time offset $\tau$.
+        self._doubleTimeSolution = np.zeros((3, 3, steadyStateIndices.size, self._tAxis.size), dtype=complex)
+
+        # Loops through each time in the steady-state period that we want to consider.
+        iterable = steadyStateIndices
+        if debug:
+            print(f"Calculating double-time correlations for k = {self.k / np.pi:.2f}pi...")
+            iterable = tqdm(steadyStateIndices)
+
+        for steadyT in iterable:
+            # Calculates the double-time initial conditions based on the single-time correlations.
+            doubleTimeInitialConditions = np.array([
+                # When left-multiplying by $\sigma_-(t)$
+                [
+                    0,
+                    -0.5 * (self._singleTimeSolution[2, steadyT] - 1),
+                    self._singleTimeSolution[0, steadyT]
+                ],
+                # When left-multiplying by $\sigma_+(t)$
+                [
+                    0.5 * (self._singleTimeSolution[2, steadyT] + 1),
+                    0,
+                    -self._singleTimeSolution[1, steadyT]
+                ],
+                # When left-multiplying by $\sigma_z(t)$
+                [
+                    -self._singleTimeSolution[0, steadyT],
+                    self._singleTimeSolution[1, steadyT],
+                    1
+                ]]
+            )
+
+            # Loops through all 3 operators that we can left-multiply by.
+            # Each loops calculates the 3 double-time correlations corresponding to that
+            # left operator.
+            for i in range(3):
+                params['y0'] = doubleTimeInitialConditions[i, :]
+                # Calculates the new inhomogenous term.
+                params['args'] = (self._drivingTerm, -self.decayConstant * self._singleTimeSolution[i, steadyT],)
+
+                # Solves system.
+                self._doubleTimeSolution[i, :, steadyStateIndices - steadyStateIndices[0], :] = integrate.solve_ivp(**params).y
+        
+        if debug:
+            print('\n')
+        
+        return self._singleTimeSolution, self._doubleTimeSolution
         
     def CalculateCurrent(self, steadyStateCutoff: float=None) -> tuple[np.ndarray[complex], np.ndarray[complex]]:
         r"""Calculates the current operator for the given parameters.
@@ -241,7 +369,7 @@ class SSH:
             This makes it impossible to calculate the current operator.
         """
 
-        if self._solution is None:
+        if self._singleTimeSolution is None:
             raise ValueError("Call Solve() first.")
 
         # Defines useful terms.
@@ -251,8 +379,8 @@ class SSH:
 
         # Calculates the current operator in terms of the previously calculated expectation values.
         self._currentTime = self.t2 * (
-            -np.sin(self.k - phiK - drivingSamples) * self._solution.y[2]
-            + 1j * np.cos(self.k - phiK - drivingSamples) * (self._solution.y[1] - self._solution.y[0])
+            -np.sin(self.k - phiK - drivingSamples) * self._singleTimeSolution[2]
+            + 1j * np.cos(self.k - phiK - drivingSamples) * (self._singleTimeSolution[1] - self._singleTimeSolution[0])
         )
 
         # Only considers the system in steady state for the Fourier transform, if desired.
@@ -298,7 +426,7 @@ class SSH:
             If the correlations have not been calculated.
         """
 
-        if self._solution is None:
+        if self._singleTimeSolution is None:
             raise ValueError("Run Solve() first.")
 
         # Creates an array of shape (3, 2n + 1) such that the first dimension corresponds to which correlation function
@@ -313,7 +441,7 @@ class SSH:
         for functionIndex in np.arange(3):
             # Defines the t and f(t) arrays only within the mask.
             tWindow = self._tAxis[periodMask]
-            fWindow = self._solution.y[functionIndex][periodMask]
+            fWindow = self._singleTimeSolution[functionIndex][periodMask]
 
             # Subtracts any mean from the function window.
             fWindowMean = np.mean(fWindow)

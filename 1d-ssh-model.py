@@ -6,7 +6,7 @@ from SSH import SSH
 from SSHSimulation import SSHSimulation
 from SSHVisualiser import SSHVisualiser
 
-tAxis = np.linspace(0, 30, 10000)
+tAxis = np.linspace(0, 30, 1000)
 initialConditions = np.array([-0.5, -0.5, 0], dtype=complex)
 
 params = {
@@ -17,8 +17,9 @@ params = {
     'drivingFreq' : 2 / 3.01
 }
 
-ssh = SSH(np.pi / 4, **params)
-ssh.Solve(tAxis, initialConditions)
-coeff = ssh.CalculateCurrentExpectationCoefficients()
-n_val = (coeff.size - 1) // 2
-print([np.abs(coeff[n].conjugate() - coeff[-(n + 1)]) < 1e-10 for n in range(n_val)])
+sim = SSHSimulation(**params)
+sim.AddMomentum(np.pi / 4)
+sim.Run(tAxis, initialConditions, debug=True)
+
+vis = SSHVisualiser(sim)
+vis.PlotDoubleTimeCorrelations(np.pi / 4, [(0, 2)])
