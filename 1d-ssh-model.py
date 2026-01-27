@@ -17,9 +17,8 @@ params = {
     'drivingFreq' : 2 / 3.01
 }
 
-sim = SSHSimulation(**params)
-sim.AddMomentum(np.linspace(-np.pi, np.pi, 50))
-sim.Run(tAxis, initialConditions, steadyStateCutoff=20, debug=True)
-
-vis = SSHVisualiser(sim)
-vis.PlotTotalCurrent()
+ssh = SSH(np.pi / 4, **params)
+ssh.Solve(tAxis, initialConditions)
+coeff = ssh.CalculateCurrentExpectationCoefficients()
+n_val = (coeff.size - 1) // 2
+print([np.abs(coeff[n].conjugate() - coeff[-(n + 1)]) < 1e-10 for n in range(n_val)])
