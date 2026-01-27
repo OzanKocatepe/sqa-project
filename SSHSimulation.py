@@ -116,7 +116,7 @@ class SSHSimulation:
         for kPoint in k:
             self._models[kPoint] = SSH(k = kPoint, **self._params)
 
-    def Run(self, tauAxis: np.ndarray[float], initialConditions: np.ndarray[complex], steadyStateCutoff: float=25, drivingTerm: Callable[[float], float]=None, debug: bool=False):
+    def Run(self, tauAxis: np.ndarray[float], initialConditions: np.ndarray[complex], numT: int=5, steadyStateCutoff: float=25, drivingTerm: Callable[[float], float]=None, debug: bool=False):
         r"""Runs the simulations for all the momentum values.
         
         Parameters
@@ -125,6 +125,8 @@ class SSHSimulation:
             The points in time (in units of $\gamma_-^{-1}$) that the solutions will be evaluated at.
         initialConditions : ndarray[complex]
             The initial conditions in the eigenbasis of the system.
+        numT : int
+            The number of t values within a steady state period to use.
         steadyStateCutoff : float
             The time (in units of $\gamma_-^{-1}$) which we consider the system to be in steady-state.
             i.e. we only consider the Fourier transform of the system after this point.
@@ -143,7 +145,7 @@ class SSHSimulation:
             iterable = tqdm(self._models.items())
 
         for k, model in iterable:
-            model.Solve(tauAxis, initialConditions, drivingTerm, debug=debug)
+            model.Solve(tauAxis, initialConditions, numT, drivingTerm, debug=debug)
             model.CalculateCurrent(steadyStateCutoff)
 
         if debug:

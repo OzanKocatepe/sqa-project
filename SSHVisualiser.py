@@ -62,7 +62,7 @@ class SSHVisualiser:
         plt.tight_layout()
         plt.show()
 
-    def PlotDoubleTimeCorrelations(self, k: float, slice: list[tuple[int]]=None, subtractUncorrelatedValues: bool=False):
+    def PlotDoubleTimeCorrelations(self, k: float, slice: list[tuple[int]]=None, saveFigs: bool=False, subtractUncorrelatedValues: bool=False):
         r"""Plots the double-time correlations.
 
         Parameters
@@ -72,6 +72,8 @@ class SSHVisualiser:
         slice : list[tuple[int]]
             A list of tuples of the form (i, j), which will make the function only
             plot those specific double-time correlations.
+        saveFigs : bool
+            Determines whether to save the figure or not.
         subtractUncorrelatedValues : bool
             Whether, for the double-time correlation $\langle \sigma_i(t), \sigma_j(t + \tau) \rangle$, to subtract the value of
             $\langle \sigma_i (t) \rangle \langle \sigma_j(t + \tau) \rangle$. This would be the value of the double-time correlation if the two operators were
@@ -80,6 +82,8 @@ class SSHVisualiser:
         """
 
         model = self._sim._models[k]
+
+        subscripts = ['-', '+', 'z']
 
         operatorLabels = [r"\tilde \sigma_-",
                           r"\tilde \sigma_+",
@@ -106,20 +110,21 @@ class SSHVisualiser:
 
                 for col in np.arange(ncols):
                     # Plot numerical solution.
-                    # x, y = np.meshgrid(model.steadyStatePeriodAxis, self._sim._tauAxis)
+                    # x, y = np.meshgrid(model.steadyStateAxis, self._sim._tauAxis)
                     # x, y = x.T, y.T
                     
                     # Plots each system as a line, with each line representing
                     # a different initial condition within a steady-state period.
-                    for tIndex, t in enumerate(model.steadyStatePeriodAxis):
+                    for tIndex, t in enumerate(model.steadyStateAxis):
                         z = model.doubleTimeSolution[i, j, tIndex, :]
                         # Subtracts the uncorrelated values if the system desired that.
                         if subtractUncorrelatedValues:
-                            # Loops through each time offset tau.
-                            for tauIndex, tau in enumerate(self._sim.tauAxis):
-                                z[tauIndex] -= model.singleTimeSolution[i, np.where(self._sim.tauAxis == t)[0][0]] * model.singleTimeSolution[j, np.where(self._sim.tauAxis == t + tau)[0][0]]
+                            # Calculates the fourier expansion of the pauli operators at every time t + tau.
+                            newAxis = t + model.tauAxis
+                            coeff = model._CalculateExpectationCoefficients()[j]
+                            z -= model.singleTimeSolution[i, tIndex] * model.EvaluateFourierExpansion(coeff, newAxis=newAxis)
 
-                        ax[col].plot(t, self._sim.tauAxis, self._plottingFunctions[1:][col](z),
+                        ax[col].plot(t * self._sim.decayConstant, self._sim.tauAxis, self._plottingFunctions[1:][col](z),
                                         color = "Black")
         
                     # Sets other properties.
@@ -130,6 +135,8 @@ class SSHVisualiser:
                 title = rf"{correlationName} -- $k = {k / np.pi} \pi,\, t_1 = {self._sim.t1},\, t_2 = {self._sim.t2},\, A_0 = {self._sim.drivingAmplitude},\, \Omega = {self._sim.drivingFreq:.5f},\, \gamma_- = {self._sim.decayConstant}$"
                 plt.suptitle(title)
                 plt.tight_layout()
+                if saveFigs:
+                    plt.savefig(f"plots/ssh {subscripts[i]}, {subscripts[j]}, subtract={subtractUncorrelatedValues}.png", dpi=300)
                 plt.show()
         
     def PlotTotalCurrent(self):
