@@ -311,8 +311,6 @@ class SSH:
 
         # Loops through which function we are looking at.
         for functionIndex in np.arange(3):
-            print(f"Calculating coefficients of function {functionIndex}...")
-
             # Defines the t and f(t) arrays only within the mask.
             tWindow = self._tAxis[periodMask]
             fWindow = self._solution.y[functionIndex][periodMask]
