@@ -415,16 +415,38 @@ class SSH:
         expectationCoeff = self._CalculateExpectationCoefficients(n, steadyStateCutoff, numPeriods)
         currentCoeff = self._CalculateCurrentCoefficients(n)
 
-        for m in range(-2 * n, 2 * n + 1):
-            if m >= 0:
-                lowerBound = m - n
-                upperBound = n
-            else:
-                lowerBound = -n
-                upperBound = m + n
+        r"""
+        The following code is slightly convoluted, so a better explanation is given here. We have two fourier expansions.
+        
+        $\sum_{n = -N}^N a_n e^{in \omega t}, \quad \sum_{m = -N}^N b_m e^{im \omega t}$
 
-            for k in range(lowerBound, upperBound + 1):
-                coefficients[m + 2 * n] += expectationCoeff[0, k + n] * currentCoeff[0, (m + n) - (k + n)] + expectationCoeff[1, k + n] * currentCoeff[1, (m + n) - (k + n)] + expectationCoeff[2, k + n] * currentCoeff[2, (m + n) - (k + n)]
+        We want to multiply these together. Clearly, this is just
+
+        $\sum_{n = -N}^N \sum_{m = -N}^N a_n b_m e^{i(n + m) \omega t}$
+
+        However, we want this as a single sum in the basis of $e^{in\omega t}$ so that we can express the entire thing as a
+        fourier expansion. To do this, we will consider that the only possible values of $n + m$ are $[-2N, 2N] \subseteq \mathbb{Z}$.
+        We also know that for any fixed $c := n + m$, the two coefficients that form a coefficient of $e^{ic\omega t}$ are $a_c b_{c - n}$ for every possible value of $n$ that we can achieve. Hence, the final form of the system is
+
+        $\sum_{n = -2N}^{2N} \left( \sum_{m} a_m b_{n - m} \right) e^{in \omega t}$
+
+        where we sum over all the possible values of $m$ that allow both coefficients to exist. So, for each fixed $n$, we will sum over all the $m$ such that $m \in [-N, N]$ and $n - m \in [-N, N]$. Hence, in code, we can loop over all the values of $m \in [-N, N]$ and manually check if $n - m \in [-N, N]$ for the current values of $m$ and $n$, and only add that term to the
+        current $n$th coefficient of the final fourier expansion if we return true.
+
+        The code below results in a current fourier expansion in terms of the laser harmonics that matches the current for a fixed $k$
+        exactly. We can also just sum the coefficients over multiple $k$ to find the total current over multiple $k$.
+        """
+
+        # Loops over all possible integer harmonics of the laser frequency that can be produced
+        # by multiplying the two fourier transforms together, from -2n to 2n.
+        for frequencySum in range(-2 * n, 2 * n + 1):
+            # Loops through every possible coefficient index, from -n to n, of the first coefficient term.
+            for firstIndex in range(-n, n + 1):
+                # Checks if the required second coefficient index required to make the two indices sum to frequencySum exists.
+                # Only adds it if it does.
+                if np.abs(frequencySum - firstIndex) <= n:
+                    for functionIndex in range(3):
+                        coefficients[frequencySum + 2 * n] += currentCoeff[functionIndex, firstIndex + n] * expectationCoeff[functionIndex, frequencySum - firstIndex + n]
 
         return coefficients
 
