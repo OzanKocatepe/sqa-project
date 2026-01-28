@@ -90,12 +90,12 @@ class SSHVisualiser:
             interaction with the environment.
         """
 
+        tauMask = None
         if numTauPoints is None:
-            tauPlottingAxis = self._sim.tauAxisDim
+            tauMask = np.ones((self._sim.tauAxisDim.size,), dtype=bool)
         else:
             modulus = self._sim.tauAxisDim.size // numTauPoints
-            mask = np.arange(self._sim.tauAxisDim.size) % modulus
-            tauPlottingAxis = self._sim.tauAxisDim[mask]
+            tauMask = np.arange(self._sim.tauAxisDim.size) % modulus == 0
 
         model = self._sim._models[k]
 
@@ -137,7 +137,7 @@ class SSHVisualiser:
                             newAxis = t + model.tauAxisSec
                             z -= model._singleTimeFourierExpansion[i](t) * model._singleTimeFourierExpansion[j](newAxis)
 
-                        ax[col].plot(t * self._sim.decayConstant, tauPlottingAxis, self._plottingFunctions[1:][col](z),
+                        ax[col].plot(t * self._sim.decayConstant, self._sim.tauAxisDim[tauMask], self._plottingFunctions[1:][col](z)[tauMask],
                                         color = "Black")
         
                     # Sets other properties.

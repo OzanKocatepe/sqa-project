@@ -6,7 +6,7 @@ from SSH import SSH
 from SSHSimulation import SSHSimulation
 from SSHVisualiser import SSHVisualiser
 
-tauAxis = np.linspace(0, 30, 2000)
+tauAxis = np.linspace(0, 300, 20000)
 numT = 5
 initialConditions = np.array([-0.5, -0.5, 0], dtype=complex)
 
@@ -23,4 +23,4 @@ sim.AddMomentum(np.pi / 4)
 sim.Run(tauAxis, initialConditions, numT, debug=True)
 
 vis = SSHVisualiser(sim)
-vis.PlotDoubleTimeCorrelations(np.pi / 4, saveFigs=True, subtractUncorrelatedValues=True)
+vis.PlotDoubleTimeCorrelations(np.pi / 4, saveFigs=True, subtractUncorrelatedValues=True, numTauPoints=100)
