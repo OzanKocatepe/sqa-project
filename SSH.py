@@ -507,6 +507,7 @@ class SSH:
 
         dx = np.mean(np.diff(self._tauAxis))
         maxN = math.floor(1 / (4 * dx * np.pi * self.drivingFreq))
+        print(f"MaxN: {maxN}")
 
         if n is None:
             n = maxN

@@ -57,7 +57,7 @@ class SSHVisualiser:
                                 color = "Black")
 
                 if overplotFourier:
-                    ax[row, col].plot(self._sim.tauAxisDim, self._plottingFunctions[col](model.singleTimeFourierExpansion[row](self._sim.tauAxisSec)),
+                    ax[row, col].plot(self._sim.tauAxisDim, self._plottingFunctions[col](model._singleTimeFourierExpansion[row](self._sim.tauAxisSec)),
                                     color = "blue")
         
                 # Sets other properties.

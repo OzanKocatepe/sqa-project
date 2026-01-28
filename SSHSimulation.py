@@ -189,7 +189,7 @@ class SSHSimulation:
         iterable = self._models.items()
         if debug:
             print("Solving systems for each momentum...")
-            iterable = tqdm(self._models.items())
+            # iterable = tqdm(self._models.items())
 
         for k, model in iterable:
             model.Solve(tauAxis, initialConditions, numT, drivingTerm, debug=debug)
