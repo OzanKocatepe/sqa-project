@@ -4,7 +4,7 @@ import math
 
 from SSHModel import *
 
-tauAxis = np.linspace(0, 300, 200000)
+tauAxis = np.linspace(0, 30, 200000)
 numT = 1
 initialConditions = np.array([-0.5, -0.5, 0], dtype=complex)
 

@@ -2,6 +2,8 @@ import numpy as np
 import scipy.integrate as integrate
 from typing import Callable
 from tqdm import tqdm
+import copy
+import time
 
 from SSHModel import CorrelationData, CurrentData, SSHParameters, Fourier
 
@@ -24,9 +26,11 @@ class SSH:
         """
 
         self.k = k
-        self.__params = params
+        self.__params = copy.deepcopy(params)
         self.__correlationData: CorrelationData = None
         self.__currentData: CurrentData = None
+
+        self.__params.CalculateUsefulTerms(k)
 
     def __SinusoidalDrivingTerm(self, t: float | np.ndarray[float]) ->  float | np.ndarray[float]:
         """A classical, sinusoidal driving term for the system.
@@ -42,9 +46,9 @@ class SSH:
             The value of the driving term at each time t.
         """
 
-        return self.drivingAmplitude * np.sin(2 * np.pi * self.drivingFreq * t)
+        return self.__params.drivingAmplitude * np.sin(2 * np.pi * self.__params.drivingFreq * t)
 
-    def __ClassicallyDrivenSSHEquations(self, t: float, c: np.ndarray[float], inhomPart: float, A: Callable[[np.typing.ArrayLike], np.typing.ArrayLike]=None) -> np.ndarray[float]:
+    def __ClassicallyDrivenSSHEquations(self, t: float, c: np.ndarray[float], inhomPart: float, pbar=None, state=None) -> np.ndarray[float]:
         r"""
         The ODE (equations of motion) for the single-time expectations of $\sigma_-(t)$, $\sigma_+(t)$, and $\sigma_z(t)$. 
 
@@ -58,9 +62,6 @@ class SSH:
             The inhomogenous part of the system, which changes depending on the
             order of the correlation function. The correct inhomogenous parts are determined
             outside of this function.
-        A : Callable[[np.typing.ArrayLike], np.typing.ArrayLike]
-            The classical driving term. Should be a vectorisable function of t.
-            By default, is a sinusoidal function.
 
         Returns:
         --------
@@ -68,17 +69,31 @@ class SSH:
             The value of dc/dt at some time t.
         """
 
-        if A is None:
-            A = self.__SinusoidalDrivingTerm
+        # PROGRESS BAR CODE TAKEN FROM https://stackoverflow.com/questions/59047892/how-to-monitor-the-process-of-scipy-odeint
+        if pbar is not None and state is not None:
+            # state is a list containing last updated time t:
+            # state = [last_t, dt]
+            # I used a list because its values can be carried between function
+            # calls throughout the ODE integration
+            last_t, dt = state
+    
+            # let's subdivide t_span into 1000 parts
+            # call update(n) here where n = (t - last_t) / dt
+            n = int((t - last_t)/dt)
+            pbar.update(n)
+    
+            # we need this to take into account that n is a rounded number.
+            state[0] = last_t + dt * n
 
         # Defines the useful parameters.
-        vZ = 2 * self.t2 * np.sin(self.k - self.__params.phiK - 0.5 * A(t)) * np.sin(0.5 * A(t))
-        vPm = 2j * self.t2 * np.cos(self.k - self.__params.phiK - 0.5 * A(t)) * np.sin(0.5 * A(t))
+        A = self.__SinusoidalDrivingTerm
+        vZ = 2 * self.__params.t2 * np.sin(self.k - self.__params.phiK - 0.5 * A(t)) * np.sin(0.5 * A(t))
+        vPm = 2j * self.__params.t2 * np.cos(self.k - self.__params.phiK - 0.5 * A(t)) * np.sin(0.5 * A(t))
 
         # Defines the coefficient matrix.
-        B = np.array([[-2j * (np.abs(self.__params.Ek) + vZ) - 0.5 * self.decayConstant  , 0                                                  ,  -1j * vPm            ],
-                      [0                                                   , 2j * (np.abs(self.__params.Ek) + vZ) - 0.5 * self.decayConstant  ,  -1j * vPm            ],
-                      [2j * vPm                                            , 2j * vPm                                           ,  -self.decayConstant  ]], dtype=complex)
+        B = np.array([[-2j * (np.abs(self.__params.Ek) + vZ) - 0.5 * self.__params.decayConstant  , 0                                                  ,  -1j * vPm            ],
+                      [0                                                   , 2j * (np.abs(self.__params.Ek) + vZ) - 0.5 * self.__params.decayConstant  ,  -1j * vPm            ],
+                      [2j * vPm                                            , 2j * vPm                                           ,  -self.__params.decayConstant  ]], dtype=complex)
     
         # Inhomogenous part.
         d = np.array([0, 0, inhomPart], dtype=complex)
@@ -117,6 +132,10 @@ class SSH:
             tauAxisDim = tauAxis,
             tauAxisSec = tauAxis / self.__params.decayConstant
         )
+        self.__currentData = CurrentData(
+            tauAxisDim = tauAxis,
+            tauAxisSec = tauAxis / self.__params.decayConstant
+        )
 
         # Stores the function parameters, since they are mostly the same for the single- and double-time
         # correlations.
@@ -128,9 +147,12 @@ class SSH:
             'atol' : 1e-12,
         }
 
-        self.__correlationData.singleTime = self.__CalculateSingleTimeCorrelations(initialConditions, odeParams)
+        if debug:
+            print("Solving single-time correlations...")
+        self.__correlationData.singleTime = self.__CalculateSingleTimeCorrelations(initialConditions, odeParams, debug)
 
         # Calculates the single-time fourier expansions.
+        self.__correlationData.singleTimeFourier = []
         numPeriods = 10
         dimPeriod = self.__params.decayConstant / self.__params.drivingFreq
         steadyStateMask = (steadyStateCutoff <= self.__correlationData.tauAxisDim) & (self.__correlationData.tauAxisDim <= steadyStateCutoff + dimPeriod)
@@ -142,11 +164,11 @@ class SSH:
                         numPeriods = numPeriods)
             )
 
-        self.__correlationData.doubleTime = self.__CalculateDoubleTimeCorrelations(steadyStateCutoff, numT, odeParams)
+        self.__correlationData.doubleTime = self.__CalculateDoubleTimeCorrelations(steadyStateCutoff, numT, odeParams, debug)
   
         return self.__correlationData
     
-    def __CalculateSingleTimeCorrelations(self, initialConditions: np.ndarray[complex], odeParams: dict) -> np.ndarray[complex]:
+    def __CalculateSingleTimeCorrelations(self, initialConditions: np.ndarray[complex], odeParams: dict, debug: bool=False) -> np.ndarray[complex]:
         r"""
         Calculates the single-time correlation functions.
 
@@ -156,6 +178,8 @@ class SSH:
             The initial conditions of the single-time correlation functions.
         odeParams: dict
             A dictionary containing the relevant parameters for the function which solves the ODE.
+        debug : bool
+            Whether to output debug progress messages.
 
         Returns
         -------
@@ -165,9 +189,16 @@ class SSH:
         """
  
         # Solves the single time solutions.
+        inhomPart = -self.__params.decayConstant
+        args = (inhomPart,)
+        if debug:
+            T0, T1 = odeParams['t_span']
+            pbar = tqdm(total=1000, unit="it")
+            args = (inhomPart, pbar, [T0, (T1 - T0)/1000],)
+
         return integrate.solve_ivp(
             y0 = initialConditions,
-            args = (-self.__params.decayConstant,),
+            args = args,
             **odeParams
         ).y
     
@@ -190,8 +221,8 @@ class SSH:
 
         # Calculates the points within the steady state period that we want to use. The steady state axis
         # covers one period in the steady state, and is in seconds.
-        startPoint = steadyStateCutoff / self.decayConstant
-        endPoint = steadyStateCutoff / self.decayConstant + 1 / self.drivingFreq
+        startPoint = steadyStateCutoff / self.__params.decayConstant
+        endPoint = steadyStateCutoff / self.__params.decayConstant + 1 / self.__params.drivingFreq
         self.__correlationData.tAxisSec = np.linspace(startPoint, endPoint, numT)
         self.__correlationData.tAxisDim = self.__correlationData.tAxisSec * self.__params.decayConstant
 
@@ -199,52 +230,55 @@ class SSH:
         # the second corresponds to the right hand operator, the third dimension corresponds to
         # the different times within a steady-state period that we consider our initial conditions at, and
         # the fourth dimension corresponds to the value of our time offset $\tau$.
-        self._doubleTimeSolution = np.zeros((3, 3, self._tAxis.size, self._tauAxis.size), dtype=complex)
+        self._doubleTimeSolution = np.zeros((3, 3, self.__correlationData.tAxisSec.size, self.__correlationData.tauAxisSec.size), dtype=complex)
 
         # Calculates the double-time initial conditions based on the single-time correlations for
         # each time within the steady-state period that we want to calculate.
         doubleTimeInitialConditions = np.array([
             # When left-multiplying by $\sigma_-(t)$
             [
-                np.zeros(self.__params.tAxisSec.size),
-                -0.5 * (self.__correlationData.singleTimeFourier[2].Evaluate(self.__params.tAxisSec) - 1),
-                self.__correlationData.singleTimeFourier[0].Evaluate(self.__params.tAxisSec)
+                np.zeros(self.__correlationData.tAxisSec.size),
+                -0.5 * (self.__correlationData.singleTimeFourier[2].Evaluate(self.__correlationData.tAxisSec) - 1),
+                self.__correlationData.singleTimeFourier[0].Evaluate(self.__correlationData.tAxisSec)
             ],
             # When left-multiplying by $\sigma_+(t)$
             [
-                0.5 * (self.__correlationData.singleTimeFourier[2].Evaluate(self.__params.tAxisSec) + 1),
-                np.zeros(self.__params.tAxisSec.size),
-                -self.__correlationData.singleTimeFourier[1].Evaluate(self.__params.tAxisSec)
+                0.5 * (self.__correlationData.singleTimeFourier[2].Evaluate(self.__correlationData.tAxisSec) + 1),
+                np.zeros(self.__correlationData.tAxisSec.size),
+                -self.__correlationData.singleTimeFourier[1].Evaluate(self.__correlationData.tAxisSec)
             ],
             # When left-multiplying by $\sigma_z(t)$
             [
-                -self.__correlationData.singleTimeFourier[0].Evaluate(self.__params.tAxisSec),
-                self.__correlationData.singleTimeFourier[1].Evaluate(self.__params.tAxisSec),
-                np.ones(self.__params.tAxisSec.size),
+                -self.__correlationData.singleTimeFourier[0].Evaluate(self.__correlationData.tAxisSec),
+                self.__correlationData.singleTimeFourier[1].Evaluate(self.__correlationData.tAxisSec),
+                np.ones(self.__correlationData.tAxisSec.size),
             ]], dtype=complex
         )
 
-        iterable = enumerate(self._tAxis)
         if debug:
             print(f"Calculating double-time correlations for k = {self.k / np.pi:.2f}pi...")
-            iterable = tqdm(iterable)
 
         # Loops through each initial condition time t.
-        for tIndex, t in iterable:
+        for tIndex, t in enumerate(self.__correlationData.tAxisSec):
             # Loops through all 3 operators that we can left-multiply by.
             for i in range(3):
                 # Calculates the new initial conditions and inhomogenous term.
-                newInitialCondition = -self.__params.decayConstant * self.__correlationData.__singleTimeFourier[i].Evaluate(t)[0]
+                newInhomPart = -self.__params.decayConstant * self.__correlationData.singleTimeFourier[i].Evaluate(t)[0]
                 # Solves system.
+                args = (newInhomPart,)
+                if debug:
+                    T0, T1 = odeParams['t_span']
+                    pbar = tqdm(total=1000, unit="it")
+                    labels = ['-', '+', 'z']
+                    print(f"Solving sigma_{labels[i]} c_0...")
+                    args = (newInhomPart, pbar, [T0, (T1 - T0)/1000],)
+
                 self._doubleTimeSolution[i, :, tIndex, :] = integrate.solve_ivp(
                     y0 = doubleTimeInitialConditions[i, :, tIndex],
-                    args = (newInitialCondition,),
+                    args = args,
                     **odeParams
                 ).y
-        
-        if debug:
-            print('\n')
-        
+         
     def CalculateCurrent(self, steadyStateCutoff: float=None) -> tuple[np.ndarray[complex], np.ndarray[complex]]:
         r"""Calculates the current operator for the given parameters.
         
@@ -269,31 +303,26 @@ class SSH:
             This makes it impossible to calculate the current operator.
         """
 
-        if self._singleTimeSolution is None:
-            raise ValueError("Call Solve() first.")
-        
-        self.__currentData = CurrentData()
-
         # Defines useful terms.
-        drivingSamples = self.__SinusoidalDrivingTerm(self.__params.tauAxisSec)
+        drivingSamples = self.__SinusoidalDrivingTerm(self.__correlationData.tauAxisSec)
 
         # Calculates the current operator in terms of the previously calculated expectation values.
-        self.__currentData.timeDomainData = self.t2 * (
-            -np.sin(self.k - self.__params.phiK - drivingSamples) * self._singleTimeSolution[2]
-            + 1j * np.cos(self.k - self.__params.phiK - drivingSamples) * (self._singleTimeSolution[1] - self._singleTimeSolution[0])
+        self.__currentData.timeDomainData = self.__params.t2 * (
+            -np.sin(self.k - self.__params.phiK - drivingSamples) * self.__correlationData.singleTime[2]
+            + 1j * np.cos(self.k - self.__params.phiK - drivingSamples) * (self.__correlationData.singleTime[1] - self.__correlationData.singleTime[0])
         )
 
         # Only considers the system in steady state for the Fourier transform, if desired.
         if steadyStateCutoff != None:
-            mask = self.__params.tauAxisSec >= steadyStateCutoff / self.decayConstant
+            mask = self.__correlationData.tauAxisSec >= steadyStateCutoff / self.__params.decayConstant
         else:
-            mask = np.full(self.__params.tauAxisSec.size, True, dtype=bool)
+            mask = np.full(self.__correlationData.tauAxisSec.size, True, dtype=bool)
 
         # The full axis which we have declared to be in a steady state.
-        fullSteadyStateAxis = self.__params.tauAxisSec[mask]
+        fullSteadyStateAxis = self.__correlationData.tauAxisSec[mask]
 
         # Calculates the Fourier transform of the solution.
-        self.__currentData.freqDomainData = np.fft.fftshift(np.fft.fft(self._currentTime[mask]))
+        self.__currentData.freqDomainData = np.fft.fftshift(np.fft.fft(self.__currentData.timeDomainData[mask]))
 
         # Calculates the relevant frequency axis.
         sampleSpacing = (np.max(fullSteadyStateAxis) - np.min(fullSteadyStateAxis)) / fullSteadyStateAxis.size
@@ -302,4 +331,18 @@ class SSH:
         # Calculates the fourier expansions of the current data.
         self.__currentData.CalculateFourier(self.k, self.__params, self.__correlationData)
 
-        return self.__currentData 
+        return self.__currentData
+    
+    @property
+    def correlationData(self) -> CorrelationData:
+        if self.__correlationData is None:
+            raise ValueError("Run Solve() first.")
+        else:
+            return self.__correlationData
+
+    @property
+    def currentData(self) -> CurrentData:
+        if self.__currentData is None:
+            raise ValueError("Run CalculateCurrent() first.")
+        else:
+            return self.__currentData

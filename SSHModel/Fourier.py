@@ -127,9 +127,9 @@ class Fourier:
         # Makes sure we can apply vectorised operations.
         tPoints: np.ndarray[float] = np.atleast_1d(tPoints)
 
-        # Calculates terms $-in\omega, \dots, in\omega$.
-        expTerms: np.ndarray[complex] = 1j * np.arange(-self.__n, self.__n + 1) * self.__baseFreq
-        """
+        # Calculates terms $-in\omega, \dots, in\omega = -2i\pi nf, \dots, 2i\pi nf$..
+        expTerms: np.ndarray[complex] = 2j * np.pi * np.arange(-self.__n, self.__n + 1) * self.__baseFreq
+        r"""
         Takes the outer product with $t_0, \dots, t_m$ so that we get an array of shape
         (tPoints.size, 2n + 1), where the first dimension corresponds to the time, and the second
         corresponds to the exponent.
@@ -140,7 +140,7 @@ class Fourier:
 
         # Takes the dot product of each row (each row has constant time, contains frequency exponentials)
         # with the coefficients. Results in an array of shape (tPoints.size,) with the value of the expansion at each time.
-        return np.dot(self.__coeffs, expTerms)
+        return np.dot(expTerms, self.__coeffs)
     
     @property
     def n(self):

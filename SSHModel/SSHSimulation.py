@@ -1,8 +1,7 @@
 import numpy as np
 from .SSH import SSH
 from .SSHParameters import SSHParameters
-from typing import Callable
-from tqdm import tqdm
+from .CurrentData import CurrentData
 
 class SSHSimulation:
     """
@@ -20,7 +19,7 @@ class SSHSimulation:
             An instance of SSHParameters that contains the model parameters.
         """
 
-        self.__params = params
+        self.params = params
         
         # Dictionary of SSH instances.
         self.__models = {}
@@ -38,7 +37,7 @@ class SSHSimulation:
         k = np.atleast_1d(k)
 
         for kPoint in k:
-            self.__models[kPoint] = SSH(kPoint, self.__params)
+            self.__models[kPoint] = SSH(kPoint, self.params)
 
     def Run(self, tauAxis: np.ndarray[float], initialConditions: np.ndarray[complex], numT: int=5, steadyStateCutoff: float=25, debug: bool=False):
         r"""Runs the simulations for all the momentum values.
@@ -59,16 +58,16 @@ class SSHSimulation:
         """
 
         iterable = self.__models.items()
-        if debug:
-            print("Solving systems for each momentum...")
-            # iterable = tqdm(self.__models.items())
 
         for k, model in iterable:
+            if debug:
+                print(f"Solving for momentum {k / np.pi:.2f}pi...")
+
             model.Solve(tauAxis, initialConditions, numT, debug=debug)
             model.CalculateCurrent(steadyStateCutoff)
 
-        if debug:
-            print('\n')
+            if debug:
+                print('\n')
 
     def CalculateTotalCurrent(self) -> tuple[np.ndarray[complex], np.ndarray[complex]]:
         """Calculates the total current in the time and frequency domains.
@@ -81,10 +80,16 @@ class SSHSimulation:
             The fourier transform of the total current operator in the frequency domain.
         """
 
-        current = np.array([model.currentTime for model in self.__models.values()])
-        fourier = np.array([model.currentFreq for model in self.__models.values()])
-        
-        return np.sum(current, axis=0), np.sum(fourier, axis=0)
+        current = np.array([model.currentData.timeDomainData for model in self.__models.values()])
+        fourier = np.array([model.currentData.freqDomainData for model in self.__models.values()])
+
+        current, fourier = np.sum(current, axis=0), np.sum(fourier, axis=0)
+
+        return CurrentData(
+            timeDomainData = current,
+            freqDomainData = fourier,
+            tauAxis = 
+        )
 
     @property
     def momentums(self) -> np.ndarray[float]:
@@ -97,3 +102,19 @@ class SSHSimulation:
         """
 
         return np.array( list( self.__models.keys() ) )
+    
+    @property
+    def models(self) -> dict[float, SSH]:
+        """Returns the models currently in the simulation.
+        
+        Returns
+        -------
+        dict[float, SSH]
+            A dictionary of SSH models, where the key is the momentum of the model.
+        """
+
+        return self.__models
+    
+    @property
+    def tauAxisDim(self) -> np.ndarray[complex]:
+        return list( self.__models.values() )[0].correlationData.tauAxisDim

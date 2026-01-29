@@ -32,7 +32,7 @@ class SSHVisualiser:
             Whether to overplot the fourier expansions as well.
         """
 
-        model = self._sim._models[k]
+        model = self._sim.models[k]
 
         expectationLabels = [r"$\langle \tilde \sigma_-(t) \rangle$",
                              r"$\langle \tilde \sigma_+(t) \rangle$",
@@ -53,18 +53,18 @@ class SSHVisualiser:
         for row in np.arange(nrows):
             for col in np.arange(ncols):
                 # Plot numerical solution.
-                ax[row, col].plot(self._sim.tauAxisDim, self._plottingFunctions[col](model.singleTimeSolution[row]),
+                ax[row, col].plot(model.correlationData.tauAxisDim, self._plottingFunctions[col](model.correlationData.singleTime[row]),
                                 color = "Black")
 
                 if overplotFourier:
-                    ax[row, col].plot(self._sim.tauAxisDim, self._plottingFunctions[col](model._singleTimeFourierExpansion[row](self._sim.tauAxisSec)),
+                    ax[row, col].plot(model.correlationData.tauAxisDim, self._plottingFunctions[col](model.correlationData.singleTimeFourier[row].Evaluate(model.correlationData.tauAxisSec)),
                                     color = "blue")
         
                 # Sets other properties.
                 ax[row, col].set_xlabel(self._tLabel)
                 ax[row, col].set_ylabel(yLabels[row][col])
 
-        title = rf"$k = {k / np.pi} \pi,\, t_1 = {self._sim.t1},\, t_2 = {self._sim.t2},\, A_0 = {self._sim.drivingAmplitude},\, \Omega = {self._sim.drivingFreq:.5f},\, \gamma_- = {self._sim.decayConstant}$"
+        title = rf"$k = {k / np.pi} \pi,\, t_1 = {self._sim.params.t1},\, t_2 = {self._sim.params.t2},\, A_0 = {self._sim.params.drivingAmplitude},\, \Omega = {self._sim.params.drivingFreq:.5f},\, \gamma_- = {self._sim.params.decayConstant}$"
         plt.suptitle(title)
         plt.tight_layout()
         plt.show()
@@ -90,14 +90,14 @@ class SSHVisualiser:
             interaction with the environment.
         """
 
+        correlationData = self._sim.models[k].correlationData
+
         tauMask = None
         if numTauPoints is None:
-            tauMask = np.ones((self._sim.tauAxisDim.size,), dtype=bool)
+            tauMask = np.ones((correlationData.tauAxisDim.size,), dtype=bool)
         else:
             modulus = self._sim.tauAxisDim.size // numTauPoints
-            tauMask = np.arange(self._sim.tauAxisDim.size) % modulus == 0
-
-        model = self._sim._models[k]
+            tauMask = np.arange(correlationData.tauAxisDim.size) % modulus == 0
 
         subscripts = ['-', '+', 'z']
 
@@ -109,6 +109,7 @@ class SSHVisualiser:
         if slice is None:
             i, j = np.meshgrid(range(3), range(3))
             iterable = tuple(zip(i.flatten(), j.flatten()))
+        # Or, allow us to choose a subset to plot.
         else:
             iterable = slice
 
@@ -127,17 +128,17 @@ class SSHVisualiser:
                 for col in np.arange(ncols):                    
                     # Plots each system as a line, with each line representing
                     # a different initial condition within a steady-state period.
-                    for tIndex, t in enumerate(model.tAxisSec):
-                        z = model.doubleTimeSolution[i, j, tIndex, :]
+                    for tIndex, t in enumerate(correlationData.tAxisSec):
+                        z = correlationData.doubleTimeSolution[i, j, tIndex, :]
                         
                         # Subtracts the uncorrelated values if the system desired that.
                         if subtractUncorrelatedValues:
                             # Subtracts the value of the single-time correlation fourier expansions
                             # at each time on the tau axis.
-                            newAxis = t + model.tauAxisSec
-                            z -= model._singleTimeFourierExpansion[i](t) * model._singleTimeFourierExpansion[j](newAxis)
+                            newAxis = t + correlationData.tauAxisSec
+                            z -= correlationData.singleTimeFourier[i].Evaluate(t) * correlationData.singleTimeFourier[j].Evaluate(newAxis)
 
-                        ax[col].plot(t * self._sim.decayConstant, self._sim.tauAxisDim[tauMask], self._plottingFunctions[1:][col](z)[tauMask],
+                        ax[col].plot(t * self._sim.params.decayConstant, correlationData.tauAxisDim[tauMask], self._plottingFunctions[1:][col](z)[tauMask],
                                         color = "Black")
         
                     # Sets other properties.
@@ -145,7 +146,7 @@ class SSHVisualiser:
                     ax[col].set_ylabel(self._tauLabel)
                     ax[col].set_zlabel(zLabels[col])
 
-                title = rf"{correlationName} -- $k = {k / np.pi} \pi,\, t_1 = {self._sim.t1},\, t_2 = {self._sim.t2},\, A_0 = {self._sim.drivingAmplitude},\, \Omega = {self._sim.drivingFreq:.5f},\, \gamma_- = {self._sim.decayConstant}$"
+                title = rf"{correlationName} -- $k = {k / np.pi} \pi,\, t_1 = {self._sim.params.t1},\, t_2 = {self._sim.params.t2},\, A_0 = {self._sim.params.drivingAmplitude},\, \Omega = {self._sim.params.drivingFreq:.5f},\, \gamma_- = {self._sim.params.decayConstant}$"
                 plt.suptitle(title)
                 plt.tight_layout()
                 if saveFigs:
@@ -157,8 +158,8 @@ class SSHVisualiser:
 
         current, fourier = self._sim.CalculateTotalCurrent()
 
-        kValues = (np.array( list( self._sim._models.keys() ) ) / np.pi).tolist()
-        title = rf"$k = {kValues} \pi,\, t_1 = {self._sim.t1},\, t_2 = {self._sim.t2},\, A_0 = {self._sim.drivingAmplitude},\, \Omega = {self._sim.drivingFreq:.5f},\, \gamma_- = {self._sim.decayConstant}$"
+        kValues = self._sim.momentums
+        title = rf"$k = {kValues} \pi,\, t_1 = {self._sim.params.t1},\, t_2 = {self._sim.params.t2},\, A_0 = {self._sim.params.drivingAmplitude},\, \Omega = {self._sim.params.drivingFreq:.5f},\, \gamma_- = {self._sim.params.decayConstant}$"
 
         currentLabel = r"$\langle\tilde j_k \rangle$"
         yLabels = [
@@ -172,7 +173,7 @@ class SSHVisualiser:
 
         for row in np.arange(nrows):
             # Plot the numerical solution.
-            ax[row].plot(self._sim.tauAxisDim, self._plottingFunctions[row](current),
+            ax[row].plot(.tauAxisDim, self._plottingFunctions[row](current),
                         color = "Black")
     
             ax[row].set_xlabel(self._tLabel)

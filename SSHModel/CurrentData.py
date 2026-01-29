@@ -12,6 +12,7 @@ class CurrentData:
     freqDomainData: np.ndarray[complex] = None
     fourierExpansion: Fourier = None
     coefficientFourierExpansion: list[Fourier] = None
+    timeAxis: np.ndarray[float] = None
     freqAxis: np.ndarray[float] = None
 
     def CalculateFourier(self, k: float, params: SSHParameters, correlationData: CorrelationData) -> None:
@@ -53,8 +54,11 @@ class CurrentData:
         n = correlationData.singleTimeFourier[0].n
 
         coefficients = np.zeros((4 * n + 1), dtype=complex)
-        expectationCoeff = correlationData.singleTimeFourier[:].coeffs
-        currentCoeff = self.coefficientFourierExpansion[:].coeffs
+        expectationCoeff = np.zeros((3, 2 * n + 1), dtype=complex)
+        currentCoeff = np.zeros((3, 2 * n + 1), dtype=complex)
+        for i in range(3):
+            expectationCoeff[i] = correlationData.singleTimeFourier[i].coeffs
+            currentCoeff[i] = self.coefficientFourierExpansion[i].coeffs
 
         r"""
         The following code is slightly convoluted, so a better explanation is given here. We have two fourier expansions.
