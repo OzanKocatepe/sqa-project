@@ -11,4 +11,4 @@ class CorrelationData:
     tauAxisDim: np.ndarray[float] = None
     tAxisSec: np.ndarray[float] = None
     tAxisDim: np.ndarray[float] = None
-    singleTimeFourier: list[Fourier] = field(default_factory = list)
+    singleTimeFourier: list[Fourier] = None

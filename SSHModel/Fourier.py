@@ -75,7 +75,7 @@ class Fourier:
         This is used when the coefficients are not directly given.
         """
 
-        self.__n = self.__DetermineMaxN()
+        self.__n = self.DetermineMaxN(self.__samplesX, self.__baseFreq)
         self.__coeffs = np.zeros((2 * self.__n + 1), dtype=complex)
 
         # Calculates the mean manually to add to the zero frequency coefficient later.
@@ -91,15 +91,23 @@ class Fourier:
 
         # Manually adds the mean back to the zero frequency coefficient.
         self.__coeffs[self.__n] += functionMean
-    
-    def __DetermineMaxN(self) -> None:
+
+    @staticmethod
+    def DetermineMaxN(xAxis: np.ndarray[float], baseFreq: float) -> None:
         """
         Determines the maximum harmonic of the base frequency allowed based on the
         Nyquist frequency of the sampling.
+
+        Parameters
+        ----------
+        xAxis : ndarray[float]
+            The points at which we sampled the function.
+        baseFreq : float
+            The frequency which we will use to form the Fourier basis.
         """
 
-        dx = np.mean(np.diff(self.__samplesX))
-        return math.floor(1 / (2 * dx * self.__baseFreq))
+        dx = np.mean(np.diff(xAxis))
+        return math.floor(1 / (4 * dx * np.pi * baseFreq))
 
     def Evaluate(self, tPoints: float | np.ndarray[float]) -> float | np.ndarray[float]:
         """
