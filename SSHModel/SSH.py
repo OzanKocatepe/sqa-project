@@ -23,6 +23,7 @@ class SSH:
             The parameters of the SSH model.
         """
 
+        self.k = k
         self.__params = params
         self.__correlationData: CorrelationData = None
         self.__currentData: CurrentData = None
@@ -71,14 +72,12 @@ class SSH:
             A = self.__SinusoidalDrivingTerm
 
         # Defines the useful parameters.
-        Ek = self.t1 + self.t2 * np.exp(1j * self.k)
-        phiK = np.angle(Ek)
-        vZ = 2 * self.t2 * np.sin(self.k - phiK - 0.5 * A(t)) * np.sin(0.5 * A(t))
-        vPm = 2j * self.t2 * np.cos(self.k - phiK - 0.5 * A(t)) * np.sin(0.5 * A(t))
+        vZ = 2 * self.t2 * np.sin(self.k - self.__params.phiK - 0.5 * A(t)) * np.sin(0.5 * A(t))
+        vPm = 2j * self.t2 * np.cos(self.k - self.__params.phiK - 0.5 * A(t)) * np.sin(0.5 * A(t))
 
         # Defines the coefficient matrix.
-        B = np.array([[-2j * (np.abs(Ek) + vZ) - 0.5 * self.decayConstant  , 0                                                  ,  -1j * vPm            ],
-                      [0                                                   , 2j * (np.abs(Ek) + vZ) - 0.5 * self.decayConstant  ,  -1j * vPm            ],
+        B = np.array([[-2j * (np.abs(self.__params.Ek) + vZ) - 0.5 * self.decayConstant  , 0                                                  ,  -1j * vPm            ],
+                      [0                                                   , 2j * (np.abs(self.__params.Ek) + vZ) - 0.5 * self.decayConstant  ,  -1j * vPm            ],
                       [2j * vPm                                            , 2j * vPm                                           ,  -self.decayConstant  ]], dtype=complex)
     
         # Inhomogenous part.
@@ -168,7 +167,7 @@ class SSH:
         # Solves the single time solutions.
         return integrate.solve_ivp(
             y0 = initialConditions,
-            args = -self.__params.decayConstant,
+            args = (-self.__params.decayConstant,),
             **odeParams
         ).y
     
@@ -276,14 +275,12 @@ class SSH:
         self.__currentData = CurrentData()
 
         # Defines useful terms.
-        Ek = self.t1 + self.t2 * np.exp(1j * self.k)
-        phiK = np.angle(Ek)
         drivingSamples = self.__SinusoidalDrivingTerm(self.__params.tauAxisSec)
 
         # Calculates the current operator in terms of the previously calculated expectation values.
         self.__currentData.timeDomainData = self.t2 * (
-            -np.sin(self.k - phiK - drivingSamples) * self._singleTimeSolution[2]
-            + 1j * np.cos(self.k - phiK - drivingSamples) * (self._singleTimeSolution[1] - self._singleTimeSolution[0])
+            -np.sin(self.k - self.__params.phiK - drivingSamples) * self._singleTimeSolution[2]
+            + 1j * np.cos(self.k - self.__params.phiK - drivingSamples) * (self._singleTimeSolution[1] - self._singleTimeSolution[0])
         )
 
         # Only considers the system in steady state for the Fourier transform, if desired.

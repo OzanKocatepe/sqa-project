@@ -111,10 +111,8 @@ class CurrentData:
 
         n = Fourier.DetermineMaxN(tauAxisSec, params.drivingFreq)
         coefficients = np.zeros((3, 2 * n + 1), dtype=complex)
-
-        Ek = params.t1 + params.t2 * np.exp(1j * k)
-        phiK = np.angle(Ek)
-        theta = k - phiK
+ 
+        theta = k - params.phiK
 
         for i in np.arange(-n, n + 1):
             # Coefficient for $j_-(t)$.

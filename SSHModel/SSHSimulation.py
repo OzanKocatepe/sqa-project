@@ -20,10 +20,10 @@ class SSHSimulation:
             An instance of SSHParameters that contains the model parameters.
         """
 
-        self.params = params
+        self.__params = params
         
         # Dictionary of SSH instances.
-        self._models = {}
+        self.__models = {}
 
     def AddMomentum(self, k: list[float] | np.ndarray[float]) -> None:
         r"""Adds one or more momentum points to the simulation.
@@ -35,10 +35,10 @@ class SSHSimulation:
         """
 
         # Ensures our array is at least one dimensional.
-        np.atleast_1d(k)
+        k = np.atleast_1d(k)
 
         for kPoint in k:
-            self._models[kPoint] = SSH(k = kPoint, **self._params)
+            self.__models[kPoint] = SSH(kPoint, self.__params)
 
     def Run(self, tauAxis: np.ndarray[float], initialConditions: np.ndarray[complex], numT: int=5, steadyStateCutoff: float=25, debug: bool=False):
         r"""Runs the simulations for all the momentum values.
@@ -58,10 +58,10 @@ class SSHSimulation:
             Whether to output debug progress statements.
         """
 
-        iterable = self._models.items()
+        iterable = self.__models.items()
         if debug:
             print("Solving systems for each momentum...")
-            # iterable = tqdm(self._models.items())
+            # iterable = tqdm(self.__models.items())
 
         for k, model in iterable:
             model.Solve(tauAxis, initialConditions, numT, debug=debug)
@@ -81,8 +81,8 @@ class SSHSimulation:
             The fourier transform of the total current operator in the frequency domain.
         """
 
-        current = np.array([model.currentTime for model in self._models.values()])
-        fourier = np.array([model.currentFreq for model in self._models.values()])
+        current = np.array([model.currentTime for model in self.__models.values()])
+        fourier = np.array([model.currentFreq for model in self.__models.values()])
         
         return np.sum(current, axis=0), np.sum(fourier, axis=0)
 
@@ -96,4 +96,4 @@ class SSHSimulation:
             The momentum values of the models currently stored within the simulation.
         """
 
-        return np.array( list( self._models.keys() ) )
+        return np.array( list( self.__models.keys() ) )
