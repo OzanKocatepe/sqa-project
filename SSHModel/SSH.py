@@ -91,9 +91,22 @@ class SSH:
         vPm = 2j * self.__params.t2 * np.cos(self.k - self.__params.phiK - 0.5 * A(t)) * np.sin(0.5 * A(t))
 
         # Defines the coefficient matrix.
-        B = np.array([[-2j * (np.abs(self.__params.Ek) + vZ) - 0.5 * self.__params.decayConstant  , 0                                                  ,  -1j * vPm            ],
-                      [0                                                   , 2j * (np.abs(self.__params.Ek) + vZ) - 0.5 * self.__params.decayConstant  ,  -1j * vPm            ],
-                      [2j * vPm                                            , 2j * vPm                                           ,  -self.__params.decayConstant  ]], dtype=complex)
+        B = np.array([
+            [
+                -2j * (np.abs(self.__params.Ek) + vZ) - 0.5 * self.__params.decayConstant,
+                0,
+                -1j * vPm
+            ],
+            [
+                0,
+                2j * (np.abs(self.__params.Ek) + vZ) - 0.5 * self.__params.decayConstant,
+                -1j * vPm
+            ],
+            [
+                2j * vPm,
+                2j * vPm,
+                -self.__params.decayConstant
+            ]], dtype=complex)
     
         # Inhomogenous part.
         d = np.array([0, 0, inhomPart], dtype=complex)
@@ -259,21 +272,21 @@ class SSH:
             print(f"Calculating double-time correlations for k = {self.k / np.pi:.2f}pi...")
 
         # Loops through each initial condition time t.
-        for tIndex, t in enumerate(self.__correlationData.tAxisSec):
+        outerIterable = enumerate(self.__correlationData.tAxisSec)
+        if debug:
+            outerIterable = tqdm(outerIterable)
+
+        for tIndex, t in outerIterable:
             # Loops through all 3 operators that we can left-multiply by.
-            for i in range(3):
+            innerIterable = range(3)
+            if debug:
+                innerIterable = tqdm(innerIterable, leave=False)
+
+            for i in innerIterable:
                 # Calculates the new initial conditions and inhomogenous term.
                 newInhomPart = -self.__params.decayConstant * self.__correlationData.singleTimeFourier[i].Evaluate(t)[0]
                 # Solves system.
                 args = (newInhomPart,)
-                if debug:
-                    labels = ['-', '+', 'z']
-                    print(f"Solving sigma_{labels[i]} c_0...")
-                    pbar = tqdm(total=1000, unit="it")
-
-                    T0, T1 = odeParams['t_span']
-                    args = (newInhomPart, pbar, [T0, (T1 - T0)/1000],)
-
                 self.correlationData.doubleTime[i, :, tIndex, :] = integrate.solve_ivp(
                     y0 = doubleTimeInitialConditions[i, :, tIndex],
                     args = args,

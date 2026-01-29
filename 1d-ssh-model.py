@@ -12,14 +12,15 @@ params = SSHParameters(
     t1 = 2,
     t2 = 1,
     decayConstant = 0.1,
-    drivingAmplitude = 0.2,
+    drivingAmplitude = 0, # 0.2
     drivingFreq = 2 / 3.01
 )
 
+k = 0
 sim = SSHSimulation(params)
-sim.AddMomentum(np.pi / 4)
+sim.AddMomentum(k)
 sim.Run(tauAxis, initialConditions, numT, debug=True)
 
 vis = SSHVisualiser(sim)
-# vis.PlotSingleTimeCorrelations(np.pi / 4, overplotFourier=True)
-vis.PlotDoubleTimeCorrelations(np.pi / 4, saveFigs=True, subtractUncorrelatedValues=True, numTauPoints=100)
+# vis.PlotSingleTimeCorrelations(k, overplotFourier=True)
+vis.PlotDoubleTimeCorrelations(k, saveFigs=True, subtractUncorrelatedValues=True, numTauPoints=None)
