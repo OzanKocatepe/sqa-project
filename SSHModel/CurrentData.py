@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 import numpy as np
-from Fourier import Fourier
-from SSHParameters import SSHParameters
-from CorrelationData import CorrelationData
+from .Fourier import Fourier
+from .SSHParameters import SSHParameters
+from .CorrelationData import CorrelationData
 import scipy.special as special
 
 @dataclass

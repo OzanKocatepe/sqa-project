@@ -1,6 +1,6 @@
 import numpy as np
-from SSH import SSH
-from SSHModel import SSHParameters
+from .SSH import SSH
+from .SSHParameters import SSHParameters
 from typing import Callable
 from tqdm import tqdm
 

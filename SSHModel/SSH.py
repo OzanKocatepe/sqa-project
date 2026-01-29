@@ -1,8 +1,6 @@
 import numpy as np
 import scipy.integrate as integrate
-import scipy.special as special
 from typing import Callable
-import math
 from tqdm import tqdm
 
 from SSHModel import CorrelationData, CurrentData, SSHParameters, Fourier

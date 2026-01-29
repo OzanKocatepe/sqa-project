@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from SSHSimulation import SSHSimulation
+from .SSHSimulation import SSHSimulation
 
 class SSHVisualiser:
     """Manages the plotting logic for the information stored in SSHSimulation."""

@@ -1,6 +1,6 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 import numpy as np
-from Fourier import Fourier
+from .Fourier import Fourier
 
 @dataclass
 class CorrelationData:
