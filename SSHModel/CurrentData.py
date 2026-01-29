@@ -12,8 +12,40 @@ class CurrentData:
     freqDomainData: np.ndarray[complex] = None
     fourierExpansion: Fourier = None
     coefficientFourierExpansion: list[Fourier] = None
-    timeAxis: np.ndarray[float] = None
+    tauAxisDim: np.ndarray[float] = None
+    tauAxisSec: np.ndarray[float] = None
     freqAxis: np.ndarray[float] = None
+
+    def __add__(self, other: CurrentData) -> CurrentData:
+        """
+        Adds another CurrentData instance to itself to create a new CurrentData instance.
+        Assumes that the axes for both instances are the same.
+
+        Parameters
+        ----------
+        other : CurrentData
+            The other CurrentData object to add to this one.
+
+        Returns
+        -------
+        CurrentData
+            The new current data instance, with the same axes as each currentData instance, but
+            the sum of their time and frequency data.
+        """
+
+        coefficientExpansions = []
+        for i in range(3):
+            coefficientExpansions[i] = self.coefficientFourierExpansion[i] + other.coefficientFourierExpansion[i]
+
+        return CurrentData(
+            timeDomainData = self.timeDomainData + other.timeDomainData,
+            freqDomainData = self.freqDomainData + other.freqDomainData,
+            fourierExpansion = self.fourierExpansion + other.fourierExpansion,
+            coefficientFourierExpansion = coefficientExpansions,
+            tauAxisDim = self.tauAxisDim,
+            tauAxisSec = self.tauAxisSec,
+            freqAxis = self.freqAxis
+        )
 
     def CalculateFourier(self, k: float, params: SSHParameters, correlationData: CorrelationData) -> None:
         """

@@ -69,27 +69,17 @@ class SSHSimulation:
             if debug:
                 print('\n')
 
-    def CalculateTotalCurrent(self) -> tuple[np.ndarray[complex], np.ndarray[complex]]:
+    def CalculateTotalCurrent(self) -> CurrentData:
         """Calculates the total current in the time and frequency domains.
         
         Returns
         -------
-        np.ndarray[complex]
-            The total current operator in the time domain.
-        np.ndarray[complex]
-            The fourier transform of the total current operator in the frequency domain.
+        CurrentData
+            The CurrentData object containing the data for the sum of the currents at each momentum.
         """
 
-        current = np.array([model.currentData.timeDomainData for model in self.__models.values()])
-        fourier = np.array([model.currentData.freqDomainData for model in self.__models.values()])
-
-        current, fourier = np.sum(current, axis=0), np.sum(fourier, axis=0)
-
-        return CurrentData(
-            timeDomainData = current,
-            freqDomainData = fourier,
-            tauAxis = 
-        )
+        totalCurrentData = np.array([model.currentData.timeDomainData for model in self.__models.values()])
+        return np.sum(totalCurrentData)
 
     @property
     def momentums(self) -> np.ndarray[float]:

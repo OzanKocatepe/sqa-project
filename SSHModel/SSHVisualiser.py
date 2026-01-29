@@ -32,7 +32,7 @@ class SSHVisualiser:
             Whether to overplot the fourier expansions as well.
         """
 
-        model = self._sim.models[k]
+        correlationData = self._sim.models[k].correlationData
 
         expectationLabels = [r"$\langle \tilde \sigma_-(t) \rangle$",
                              r"$\langle \tilde \sigma_+(t) \rangle$",
@@ -53,11 +53,11 @@ class SSHVisualiser:
         for row in np.arange(nrows):
             for col in np.arange(ncols):
                 # Plot numerical solution.
-                ax[row, col].plot(model.correlationData.tauAxisDim, self._plottingFunctions[col](model.correlationData.singleTime[row]),
+                ax[row, col].plot(correlationData.tauAxisDim, self._plottingFunctions[col](correlationData.singleTime[row]),
                                 color = "Black")
 
                 if overplotFourier:
-                    ax[row, col].plot(model.correlationData.tauAxisDim, self._plottingFunctions[col](model.correlationData.singleTimeFourier[row].Evaluate(model.correlationData.tauAxisSec)),
+                    ax[row, col].plot(correlationData.tauAxisDim, self._plottingFunctions[col](correlationData.singleTimeFourier[row].Evaluate(correlationData.tauAxisSec)),
                                     color = "blue")
         
                 # Sets other properties.
@@ -129,7 +129,7 @@ class SSHVisualiser:
                     # Plots each system as a line, with each line representing
                     # a different initial condition within a steady-state period.
                     for tIndex, t in enumerate(correlationData.tAxisSec):
-                        z = correlationData.doubleTimeSolution[i, j, tIndex, :]
+                        z = correlationData.doubleTime[i, j, tIndex, :]
                         
                         # Subtracts the uncorrelated values if the system desired that.
                         if subtractUncorrelatedValues:
@@ -156,7 +156,7 @@ class SSHVisualiser:
     def PlotTotalCurrent(self):
         """Plots the total current operator in the time and frequency domains."""
 
-        current, fourier = self._sim.CalculateTotalCurrent()
+        currentData = self._sim.CalculateTotalCurrent()
 
         kValues = self._sim.momentums
         title = rf"$k = {kValues} \pi,\, t_1 = {self._sim.params.t1},\, t_2 = {self._sim.params.t2},\, A_0 = {self._sim.params.drivingAmplitude},\, \Omega = {self._sim.params.drivingFreq:.5f},\, \gamma_- = {self._sim.params.decayConstant}$"
@@ -173,7 +173,7 @@ class SSHVisualiser:
 
         for row in np.arange(nrows):
             # Plot the numerical solution.
-            ax[row].plot(.tauAxisDim, self._plottingFunctions[row](current),
+            ax[row].plot(currentData.tauAxisDim, self._plottingFunctions[row](currentData.timeDomainData),
                         color = "Black")
     
             ax[row].set_xlabel(self._tLabel)
@@ -186,7 +186,7 @@ class SSHVisualiser:
         plt.figure(figsize=(16, 8.8))
 
         # Plotting the fourier transform of the current operator.
-        plt.semilogy(self._sim.freqAxis / self._sim.drivingFreq, np.abs(fourier)**2,
+        plt.semilogy(currentData.freqAxis / self._sim.params.drivingFreq, np.abs(currentData.freqDomainData)**2,
                 color = 'black')
 
         plt.suptitle(title)

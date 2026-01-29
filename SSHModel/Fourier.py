@@ -25,7 +25,7 @@ class Fourier:
             and 'samples' is given, otherwise will be ignored.
         numPeriods: int
             The number of periods that 'samplesX' contains. Must be an integer number of periods, and must be
-            given if 'coeffs' is None.
+            given if 'coeffs' is None, and otherwise is ignored.
 
         Raises
         ------
@@ -50,6 +50,36 @@ class Fourier:
         else:
             # Calculates the number of coefficients from the coefficients array.
             self.__n = (self.__coeffs.size - 1) // 2
+
+    def __add_(self, other: Fourier) -> Fourier:
+        """
+        Defines how to add fourier expansions together, assuming that the
+        base frequencies are the same.
+
+        Parameters
+        ----------
+        other : Fourier
+            Another Fourier object with the same baseFreq value.
+
+        Returns
+        -------
+        Fourier
+            A Fourier object where each coefficient is the sum of the coefficients of
+            the summed components.
+
+        Raises
+        ------
+        ValueError
+            If the base frequencies don't match.
+        """
+
+        if np.abs(self.baseFreq - other.baseFreq) > 1e-3:
+            raise ValueError("Operands must have the same base frequency.")
+
+        return Fourier(
+            baseFreq = self.baseFreq,
+            coeffs = self.coeffs + other.coeffs
+        )
 
     def __getitem__(self, n: int):
         """
