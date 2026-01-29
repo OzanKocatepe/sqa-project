@@ -21,5 +21,5 @@ sim.AddMomentum(np.pi / 4)
 sim.Run(tauAxis, initialConditions, numT, debug=True)
 
 vis = SSHVisualiser(sim)
-vis.PlotSingleTimeCorrelations(np.pi / 4, overplotFourier=True)
-# vis.PlotDoubleTimeCorrelations(np.pi / 4, saveFigs=True, subtractUncorrelatedValues=True, numTauPoints=100)
+# vis.PlotSingleTimeCorrelations(np.pi / 4, overplotFourier=True)
+vis.PlotDoubleTimeCorrelations(np.pi / 4, saveFigs=True, subtractUncorrelatedValues=True, numTauPoints=100)

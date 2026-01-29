@@ -164,7 +164,7 @@ class SSH:
                         numPeriods = numPeriods)
             )
 
-        self.__correlationData.doubleTime = self.__CalculateDoubleTimeCorrelations(steadyStateCutoff, numT, odeParams, debug)
+        self.__CalculateDoubleTimeCorrelations(steadyStateCutoff, numT, odeParams, debug)
   
         return self.__correlationData
     
@@ -202,9 +202,9 @@ class SSH:
             **odeParams
         ).y
     
-    def __CalculateDoubleTimeCorrelations(self, steadyStateCutoff: int, numT: int, odeParams: dict, debug: bool=False) -> np.ndarray[complex]:
+    def __CalculateDoubleTimeCorrelations(self, steadyStateCutoff: int, numT: int, odeParams: dict, debug: bool=False) -> None:
         r"""
-        Calculates the double-time correlation functions.
+        Calculates the double-time correlation functions and saves them to CorrelationData without returning them.
 
         Parameters
         ----------
@@ -230,7 +230,7 @@ class SSH:
         # the second corresponds to the right hand operator, the third dimension corresponds to
         # the different times within a steady-state period that we consider our initial conditions at, and
         # the fourth dimension corresponds to the value of our time offset $\tau$.
-        self._doubleTimeSolution = np.zeros((3, 3, self.__correlationData.tAxisSec.size, self.__correlationData.tauAxisSec.size), dtype=complex)
+        self.correlationData.doubleTime = np.zeros((3, 3, self.__correlationData.tAxisSec.size, self.__correlationData.tauAxisSec.size), dtype=complex)
 
         # Calculates the double-time initial conditions based on the single-time correlations for
         # each time within the steady-state period that we want to calculate.
@@ -267,13 +267,14 @@ class SSH:
                 # Solves system.
                 args = (newInhomPart,)
                 if debug:
-                    T0, T1 = odeParams['t_span']
-                    pbar = tqdm(total=1000, unit="it")
                     labels = ['-', '+', 'z']
                     print(f"Solving sigma_{labels[i]} c_0...")
+                    pbar = tqdm(total=1000, unit="it")
+
+                    T0, T1 = odeParams['t_span']
                     args = (newInhomPart, pbar, [T0, (T1 - T0)/1000],)
 
-                self._doubleTimeSolution[i, :, tIndex, :] = integrate.solve_ivp(
+                self.correlationData.doubleTime[i, :, tIndex, :] = integrate.solve_ivp(
                     y0 = doubleTimeInitialConditions[i, :, tIndex],
                     args = args,
                     **odeParams
