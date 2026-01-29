@@ -182,4 +182,4 @@ class Fourier:
     
     @property
     def baseFreq(self):
-        return self.__baseFreqs
+        return self.__baseFreq

@@ -136,9 +136,9 @@ class SSHVisualiser:
                             # Subtracts the value of the single-time correlation fourier expansions
                             # at each time on the tau axis.
                             newAxis = t + correlationData.tauAxisSec
-                            z -= correlationData.singleTimeFourier[i].Evaluate(t) * correlationData.singleTimeFourier[j].Evaluate(newAxis)
+                            z -= correlationData.singleTimeFourier[i].Evaluate(t)[0] * correlationData.singleTimeFourier[j].Evaluate(newAxis)
 
-                        ax[col].plot(t * self._sim.params.decayConstant, correlationData.tauAxisDim[tauMask], self._plottingFunctions[1:][col](z)[tauMask],
+                        ax[col].plot(correlationData.tAxisDim[tIndex], correlationData.tauAxisDim[tauMask], self._plottingFunctions[1:][col](z)[tauMask],
                                         color = "Black")
         
                     # Sets other properties.

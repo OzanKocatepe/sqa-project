@@ -4,8 +4,7 @@ import math
 
 from SSHModel import *
 
-tauAxis = np.linspace(0, 30, 200000)
-numT = 1
+tauAxis = np.linspace(0, 300, 200000)
 initialConditions = np.array([-0.5, -0.5, 0], dtype=complex)
 
 params = SSHParameters(
@@ -17,6 +16,7 @@ params = SSHParameters(
 )
 
 k = 0
+numT = 5
 sim = SSHSimulation(params)
 sim.AddMomentum(k)
 sim.Run(tauAxis, initialConditions, numT, debug=True)

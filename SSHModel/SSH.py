@@ -48,7 +48,7 @@ class SSH:
 
         return self.__params.drivingAmplitude * np.sin(2 * np.pi * self.__params.drivingFreq * t)
 
-    def __ClassicallyDrivenSSHEquations(self, t: float, c: np.ndarray[float], inhomPart: float, pbar=None, state=None) -> np.ndarray[float]:
+    def __ClassicallyDrivenSSHEquations(self, t: float, c: np.ndarray[complex], inhomPart: float, pbar=None, state=None) -> np.ndarray[float]:
         r"""
         The ODE (equations of motion) for the single-time expectations of $\sigma_-(t)$, $\sigma_+(t)$, and $\sigma_z(t)$. 
 
@@ -243,7 +243,7 @@ class SSH:
         # the second corresponds to the right hand operator, the third dimension corresponds to
         # the different times within a steady-state period that we consider our initial conditions at, and
         # the fourth dimension corresponds to the value of our time offset $\tau$.
-        self.correlationData.doubleTime = np.zeros((3, 3, self.__correlationData.tAxisSec.size, self.__correlationData.tauAxisSec.size), dtype=complex)
+        self.__correlationData.doubleTime = np.zeros((3, 3, self.__correlationData.tAxisSec.size, self.__correlationData.tauAxisSec.size), dtype=complex)
 
         # Calculates the double-time initial conditions based on the single-time correlations for
         # each time within the steady-state period that we want to calculate.
@@ -287,7 +287,7 @@ class SSH:
                 newInhomPart = -self.__params.decayConstant * self.__correlationData.singleTimeFourier[i].Evaluate(t)[0]
                 # Solves system.
                 args = (newInhomPart,)
-                self.correlationData.doubleTime[i, :, tIndex, :] = integrate.solve_ivp(
+                self.__correlationData.doubleTime[i, :, tIndex, :] = integrate.solve_ivp(
                     y0 = doubleTimeInitialConditions[i, :, tIndex],
                     args = args,
                     **odeParams
