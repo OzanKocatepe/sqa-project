@@ -271,35 +271,37 @@ class SSH:
 
         if self._singleTimeSolution is None:
             raise ValueError("Call Solve() first.")
+        
+        self.__currentData = CurrentData()
 
         # Defines useful terms.
         Ek = self.t1 + self.t2 * np.exp(1j * self.k)
         phiK = np.angle(Ek)
-        drivingSamples = self._drivingTerm(self._tauAxis)
+        drivingSamples = self.__SinusoidalDrivingTerm(self.__params.tauAxisSec)
 
         # Calculates the current operator in terms of the previously calculated expectation values.
-        self._currentTime = self.t2 * (
+        self.__currentData.timeDomainData = self.t2 * (
             -np.sin(self.k - phiK - drivingSamples) * self._singleTimeSolution[2]
             + 1j * np.cos(self.k - phiK - drivingSamples) * (self._singleTimeSolution[1] - self._singleTimeSolution[0])
         )
 
         # Only considers the system in steady state for the Fourier transform, if desired.
         if steadyStateCutoff != None:
-            mask = self._tauAxis >= steadyStateCutoff / self.decayConstant
+            mask = self.__params.tauAxisSec >= steadyStateCutoff / self.decayConstant
         else:
-            mask = np.full(self._tauAxis.size, True, dtype=bool)
+            mask = np.full(self.__params.tauAxisSec.size, True, dtype=bool)
 
         # The full axis which we have declared to be in a steady state.
-        fullSteadyStateAxis = self._tauAxis[mask]
+        fullSteadyStateAxis = self.__params.tauAxisSec[mask]
 
         # Calculates the Fourier transform of the solution.
-        self._currentFreq = np.fft.fftshift(np.fft.fft(self._currentTime[mask]))
+        self.__currentData.freqDomainData = np.fft.fftshift(np.fft.fft(self._currentTime[mask]))
 
         # Calculates the relevant frequency axis.
         sampleSpacing = (np.max(fullSteadyStateAxis) - np.min(fullSteadyStateAxis)) / fullSteadyStateAxis.size
-        self._freqAxis = np.fft.fftshift(np.fft.fftfreq(fullSteadyStateAxis.size, sampleSpacing))
+        self.__currentData.freqAxis = np.fft.fftshift(np.fft.fftfreq(fullSteadyStateAxis.size, sampleSpacing))
 
-        return self._currentTime, self._currentFreq
+        return self.__currentData
      
     def _CalculateCurrentCoefficients(self, n: int=None) -> np.ndarray[complex]:
         r"""
