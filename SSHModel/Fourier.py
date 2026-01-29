@@ -166,7 +166,7 @@ class Fourier:
         """
         expTerms = np.outer(tPoints, expTerms)
         # Makes the terms actually exponential.
-        expTerms = np.exp(expTerms)
+        expTerms = np.exp(expTerms, dtype=complex)
 
         # Takes the dot product of each row (each row has constant time, contains frequency exponentials)
         # with the coefficients. Results in an array of shape (tPoints.size,) with the value of the expansion at each time.

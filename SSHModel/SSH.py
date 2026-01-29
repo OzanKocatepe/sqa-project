@@ -155,7 +155,7 @@ class SSH:
         self.__correlationData.singleTimeFourier = []
         numPeriods = 10
         dimPeriod = self.__params.decayConstant / self.__params.drivingFreq
-        steadyStateMask = (steadyStateCutoff <= self.__correlationData.tauAxisDim) & (self.__correlationData.tauAxisDim <= steadyStateCutoff + dimPeriod)
+        steadyStateMask = (steadyStateCutoff <= self.__correlationData.tauAxisDim) & (self.__correlationData.tauAxisDim <= steadyStateCutoff + numPeriods * dimPeriod)
         for i in range(3):
             self.__correlationData.singleTimeFourier.append(
                 Fourier(self.__params.drivingFreq,
