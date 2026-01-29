@@ -1,5 +1,6 @@
 import numpy as np
 from SSH import SSH
+from SSHModel import SSHParameters
 from typing import Callable
 from tqdm import tqdm
 
@@ -9,147 +10,22 @@ class SSHSimulation:
     All interactions with the SSH class should ideally occur through this class.
     """
 
-    def __init__(self, t1: float, t2: float, decayConstant: float, drivingAmplitude: float, drivingFreq: float):
+    def __init__(self, params: SSHParameters):
         """
         Constructs an instance of SSHSimulation, setting the physical parameters of our system.
 
         Parameters
         ----------
-        t1 : float
-            The intracell(?) hopping amplitude.
-        t2 : float
-            The intercell(?) hopping amplitude.
-        decayConstant: float
-            The decay constant, in units of Hz.
-        drivingAmplitude : float
-            The amplitude of the classical driving term.
-        drivingFreq : float
-            The frequency of the driving term, in Hz.
+        params : SSHParameters
+            An instance of SSHParameters that contains the model parameters.
         """
 
-        # Stored in public variables so that they can be accessed again.
-        self.t1 = t1
-        self.t2 = t2
-        self.decayConstant = decayConstant
-        self.drivingAmplitude = drivingAmplitude
-        self.drivingFreq = drivingFreq
-
-        # Sets the parameters of the system.
-        self._params = {
-            't1' : t1,
-            't2' : t2,
-            'decayConstant' : decayConstant,
-            'drivingAmplitude' : drivingAmplitude,
-            'drivingFreq' : drivingFreq
-        }
+        self.params = params
         
         # Dictionary of SSH instances.
         self._models = {}
 
-    @property
-    def tauAxisSec(self) -> np.ndarray[float]:
-        r"""Returns the tauAxis.
-        
-        Returns
-        -------
-        ndarray[float]
-            The points along which the solutions are evaluated in the time domain, in
-            seconds.
-        """
-
-        if not self._models:
-            raise ValueError("No models given.")
-        else:
-            return list(self._models.values())[0].tauAxisSec
-
-    @property
-    def tauAxisDim(self) -> np.ndarray[float]:
-        r"""Returns the tauAxis.
-        
-        Returns
-        -------
-        ndarray[float]
-            The points along which the solutions are evaluated in the time domain, in
-            units of $\gamma_-^{-1}$.
-        """
-
-        if not self._models:
-            raise ValueError("No models given.")
-        else:
-            return list(self._models.values())[0].tauAxisDim
-
-    @property
-    def tAxisSec(self) -> np.ndarray[float]:
-        r"""Returns the tAxis.
-        
-        Returns
-        -------
-        ndarray[float]
-            The values of t, in units of seconds, that we use as the initial conditions when calculating
-            the double-time correlations. These should cover a single period
-            in the steady-state.
-        """
-
-        if not self._models:
-            raise ValueError("No models given.")
-        else:
-            return list(self._models.values())[0].tAxisSec
-
-    @property
-    def tAxisDim(self) -> np.ndarray[float]:
-        r"""Returns the tAxis.
-        
-        Returns
-        -------
-        ndarray[float]
-            The values of t, in units of $\gamma_-^{-1}$, that we use as the initial conditions when calculating
-            the double-time correlations. These should cover a single period
-            in the steady-state.
-        """
-
-        if not self._models:
-            raise ValueError("No models given.")
-        else:
-            return list(self._models.values())[0].tAxisDim
-
-    @property
-    def freqAxis(self) -> np.ndarray[float]: 
-        """Gets the frequency axis.
-        
-        Returns
-        -------
-        ndarray[float]
-            The frequencies that correspond to the amplitudes of the Fourier transform of the current operator
-            found in CalculateCurrent(). Since the same tauAxis is used for every model, this should be the same for every model,
-            and so we just use the first model.
-            
-        Raises
-        ------
-        ValueError
-            If Run() hasn't been called, or if no models have been added.
-        """
-
-        if not self._models:
-            raise ValueError("No models have been added, so the frequency axis cannot be calculated.")
-        else:
-            try:
-                return list(self._models.values())[0].freqAxis
-            except (ValueError):
-                raise ValueError("Call Run() first - there is currently no tauAxis given.")
-
-    @property
-    def momentums(self) -> np.ndarray[float]:
-        """Returns the momentums currently within the simulation.
-        
-        Returns
-        -------
-        ndarray[float]
-            The momentum values of the models currently stored within the simulation.
-        """
-
-        return np.array( list( self._models.keys() ) )
-
-    def AddMomentum(self, k: np.ndarray[float]):
+    def AddMomentum(self, k: list[float] | np.ndarray[float]) -> None:
         r"""Adds one or more momentum points to the simulation.
         
         Parameters
@@ -158,9 +34,8 @@ class SSHSimulation:
             The momentum points to simulate. Each point should be within the Brillouin Zone $[-\pi, \pi]$.
         """
 
-        # Dealing with the one momentum case.
-        if np.array(k).size == 1:
-            k = [k]
+        # Ensures our array is at least one dimensional.
+        np.atleast_1d(k)
 
         for kPoint in k:
             self._models[kPoint] = SSH(k = kPoint, **self._params)
@@ -213,3 +88,15 @@ class SSHSimulation:
         fourier = np.array([model.currentFreq for model in self._models.values()])
         
         return np.sum(current, axis=0), np.sum(fourier, axis=0)
+
+    @property
+    def momentums(self) -> np.ndarray[float]:
+        """Returns the momentums currently within the simulation.
+        
+        Returns
+        -------
+        ndarray[float]
+            The momentum values of the models currently stored within the simulation.
+        """
+
+        return np.array( list( self._models.keys() ) )

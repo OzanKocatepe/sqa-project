@@ -12,7 +12,7 @@ class Fourier:
         ----------
         baseFreq : float
             The base frequency with respect to which we will expand out the function. The basis
-            of the function will consist of exponentials $e^{i n \omega}$ where $\omega$ is the base frequency.
+            of the function will consist of exponentials $e^{i n \omega}$ where $\omega = 2\pi f$, with $f$ being the base frequency.
         coeffs : ndarray[complex]
             The coefficients of a fourier expansion. Must be an array of the shape
             (2n + 1,) for some integer n, containing the coefficients with index -n to n.

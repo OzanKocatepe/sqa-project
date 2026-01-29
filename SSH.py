@@ -5,13 +5,15 @@ from typing import Callable
 import math
 from tqdm import tqdm
 
+from SSHModel import CorrelationData, CurrentData, SSHParameters, Fourier
+
 class SSH:
     """
     Contains the core physics and calculations for the 1-dimensional SSH model.
     Since we consider a fixed momentum, this system simplifies to essentially a two-level system.
     """
 
-    def __init__(self, k: float, t1: float, t2: float, decayConstant: float, drivingAmplitude: float, drivingFreq: float):
+    def __init__(self, k: float, params: SSHParameters):
         """
         Constructs an instance of the SSH model.
 
@@ -19,246 +21,30 @@ class SSH:
         ----------
         k : float
             The momentum.
-        t1 : float
-            The intracell(?) hopping amplitude.
-        t2 : float
-            The intercell(?) hopping amplitude.
-        decayConstant: float
-            The decay constant, in units of Hz.
-        drivingAmplitude : float
-            The amplitude of the classical driving term.
-        drivingFreq : float
-            The frequency of the driving term, in Hz.
+        params: SSHParameters
         """
 
-        self.k = k
-        self.t1 = t1
-        self.t2 = t2
-        self.decayConstant = decayConstant
-        self.drivingAmplitude = drivingAmplitude
-        self.drivingFreq = drivingFreq
+        self.__params = params
+        self.__correlationData: CorrelationData = None
+        self.__currentData: CurrentData = None
 
-        # The values of $\tau$, in seconds, that we are going to use.
-        self._tauAxis = None
-
-        # The values of $t$, in seconds, within a single steady-state period of the single-time correlations
-        # that we will use as initial conditions for our double-time correlations.
-        self._tAxis = None
-
-        self._drivingTerm = None
-        self._singleTimeSolution = None
-        self._singleTimeFourierExpansion = None
-        self._doubleTimeSolution = None
-        self._currentTime = None
-        self._currentFreq = None
-        self._freqAxis = None
-
-    @property
-    def tAxisSec(self) -> np.ndarray[float]:
-        r"""
-        Gets the values of t that we take to be initial conditions
-        of the double-time correlation functions.
-
-        Returns
-        -------
-        ndarray[float]
-            The values of t, in units of seconds, that we use as the initial conditions when calculating
-            the double-time correlations. These should represent a single period
-            in the steady-state.
-
-        Raises
-        ------
-        ValueError
-            If Solve() has not been called, so no steadyStateCutoff has been given yet.
-        """
-
-        if self._tAxis is None:
-            raise ValueError("Call Solve() first.")
-        else:
-            return self._tAxis
-
-    @property
-    def tAxisDim(self) -> np.ndarray[float]:
-        r"""
-        Gets the values of t that we take to be initial conditions
-        of the double-time correlation functions.
-
-        Returns
-        -------
-        ndarray[float]
-            The values of t, in units of $\gamma_-^{-1}$, that we use as the initial conditions when calculating
-            the double-time correlations. These should represent a single period
-            in the steady-state.
-
-        Raises
-        ------
-        ValueError
-            If Solve() has not been called, so no steadyStateCutoff has been given yet.
-        """
-
-        if self._tAxis is None:
-            raise ValueError("Call Solve() first.")
-        else:
-            return self._tAxis * self.decayConstant
- 
-    @property
-    def singleTimeSolution(self) -> np.ndarray[complex]:
-        """Gets the solution for the single-time correlation functions.
-        
-        Returns
-        -------
-        ndarray[complex]
-            An array of shape (3, tAxis.size) which contains the single-time correlation functions.
-            
-        Raises
-        ------
-        ValueError
-            If Solve() has not been called, so no solution has been calculated yet.
-        """
-
-        if self._singleTimeSolution is None:
-            raise ValueError("Call Solve() first.")
-        else:
-            return self._singleTimeSolution
-
-    @property
-    def doubleTimeSolution(self) -> np.ndarray[complex]:
-        """Gets the solution for the double-time correlation functions.
-        
-        Returns
-        -------
-        ndarray[complex]
-            An array of shape (3, 3, steadyStateIndices.size, tAxis.size) which contains the
-            double-time correlation functions.
-            
-        Raises
-        ------
-        ValueError
-            If Solve() has not been called, so no solution has been calculated yet.
-        """
-        if self._doubleTimeSolution is None:
-            raise ValueError("Call Solve() first.")
-        else:
-            return self._doubleTimeSolution
-        
-    @property
-    def currentTime(self) -> np.ndarray[complex]:
-        """Gets the current operator in the time domain.
-        
-        Returns
-        -------
-        ndarray[complex]
-            The values of the current operator at each time in the given tAxis.
-            
-        Raises
-        ------
-        ValueError
-            If CalculateCurrent() has not been called, meaning the current operator hasn't been calculated yet.
-        """
-
-        if self._currentTime is None:
-            raise ValueError("Call CalculateCurrent() first.")
-        else:
-            return self._currentTime
-
-    @property
-    def currentFreq(self) -> np.ndarray[float]:
-        """Gets the current operator in the frequency domain.
-        
-        Returns
-        -------
-        ndarray[float]
-            The amplitudes of the fourier transform of the current operator at each frequency in the freqAxis.
-            
-        Raises
-        ------
-        ValueError
-            If CalculateCurrent() has not been called, meaning the current operator hasn't been calculated yet.
-        """
-
-        if self._currentFreq is None:
-            raise ValueError("Call CalculateCurrent() first.")
-        else:
-            return self._currentFreq
-        
-    @property
-    def tauAxisSec(self) -> np.ndarray[float]:
-        """Gets the tau axis.
-        
-        Returns
-        -------
-        ndarray[float]
-            The values of tau, in seconds, that we plot the correlations for.
-            
-        Raises
-        ------
-        ValueError
-            If Solve() has not been called, so no tau axis has been given yet.
-        """
-
-        if self._tauAxis is None:
-            raise ValueError("Call Solve() first.")
-        else:
-            return self._tauAxis
-        
-    @property
-    def tauAxisDim(self) -> np.ndarray[float]:
-        r"""Gets the tau axis.
-        
-        Returns
-        -------
-        ndarray[float]
-            The values of tau, in units of $\gamma_-^{-1}$, that we plot the correlations for.
-            
-        Raises
-        ------
-        ValueError
-            If Solve() has not been called, so no tau axis has been given yet.
-        """
-
-        if self._tauAxis is None:
-            raise ValueError("Call Solve() first.")
-        else:
-            return self._tauAxis * self.decayConstant
-
-    @property
-    def freqAxis(self) -> np.ndarray[float]:
-        """Gets the frequency axis.
-        
-        Returns
-        -------
-        ndarray[float]
-            The frequencies that correspond to the amplitudes of the Fourier transform of the current operator
-            found in CalculateCurrent().
-            
-        Raises
-        ------
-        ValueError
-            If CalculateCurrent() has not been called, meaning the current operator hasn't been calculated yet.
-        """
-
-        if self._freqAxis is None:
-            raise ValueError("Call CalculateCurrent() first.")
-        else:
-            return self._freqAxis
-
-    def _SinusoidalDrivingTerm(self, t: np.typing.ArrayLike) ->  np.typing.ArrayLike:
+    def __SinusoidalDrivingTerm(self, t: float | np.ndarray[float]) ->  float | np.ndarray[float]:
         """A classical, sinusoidal driving term for the system.
         
         Parameters
         ----------
-        t : ArrayLike
+        t : float | ndarray[float]
             The points in time (in seconds) to evaluate the driving term at.
             
         Returns
         -------
-        ArrayLike
+        float | ndarray[float]
             The value of the driving term at each time t.
         """
 
         return self.drivingAmplitude * np.sin(2 * np.pi * self.drivingFreq * t)
 
-    def _ClassicallyDrivenSSHEquations(self, t: float, c: np.ndarray[float], A: Callable[[np.typing.ArrayLike], np.typing.ArrayLike], inhomPart: float) -> np.ndarray[float]:
+    def __ClassicallyDrivenSSHEquations(self, t: float, c: np.ndarray[float], inhomPart: float, A: Callable[[np.typing.ArrayLike], np.typing.ArrayLike]=None) -> np.ndarray[float]:
         r"""
         The ODE (equations of motion) for the single-time expectations of $\sigma_-(t)$, $\sigma_+(t)$, and $\sigma_z(t)$. 
 
@@ -268,18 +54,22 @@ class SSH:
             The time t, in seconds.
         c : ndarray[float]
             The 3-component single-time correlation array.
-        A : Callable[[np.typing.ArrayLike], np.typing.ArrayLike]
-            The classical driving term. Should be a vectorisable function of t.
         inhomPart : float
             The inhomogenous part of the system, which changes depending on the
             order of the correlation function. The correct inhomogenous parts are determined
             outside of this function.
+        A : Callable[[np.typing.ArrayLike], np.typing.ArrayLike]
+            The classical driving term. Should be a vectorisable function of t.
+            By default, is a sinusoidal function.
 
         Returns:
         --------
         ndarray[float] 
             The value of dc/dt at some time t.
         """
+
+        if A is None:
+            A = self.__SinusoidalDrivingTerm
 
         # Defines the useful parameters.
         Ek = self.t1 + self.t2 * np.exp(1j * self.k)
@@ -297,24 +87,19 @@ class SSH:
     
         return B @ c + d
 
-    def Solve(self, tauAxis: np.ndarray[float], initialConditions: np.ndarray[complex], numT: int, drivingTerm: Callable[[float], float]=None, steadyStateCutoff: float=25, debug: bool=False) -> tuple[np.ndarray[complex], np.ndarray[complex]]:
+    def Solve(self, tauAxis: np.ndarray[float], initialConditions: np.ndarray[complex], numT: int, steadyStateCutoff: float=25, debug: bool=False) -> CorrelationData:
         r"""
         Solves the system of ODEs for the expectations of our two-level system operators $(\langle \sigma_-(t) \rangle,\, \langle \sigma_+(t) \rangle,\, \langle \sigma_z(t) \rangle)$, and the double-time correlation functions $\langle \sigma_i (t) \sigma_j (t + \tau) \rangle$.
             
         Parameters
         ----------
         tauAxis : ndarray[float]
-            The offsets from the initial time $t$ that the functions should be calculated on. The double-time correlations must
-            be defined up to the steady state cutoff + one period + the entire tau axis, so we need to calculate them for
-            more points than just the tau axis.
-        initialConditions : ndarray[complex]
+            The offsets from the initial time $t$ that the functions should be calculated on, in units of $\gamma_-^{-1}$.
+       initialConditions : ndarray[complex]
             The initial conditions of the single-time correlation functions. This is used to calculate
             the initial conditions of the double-time correlations.
         numT : int
             The number of points within a steady-state period to use for the double-time correlation initial conditions.
-        drivingTerm : Callable[[float], float]
-            The classical driving term that will be used in the modelling of the system.
-            By default, it is a sinusoidal driving term.
         steadyStateCutoff : float
             The time, in units of $\gamma_-^{-1}$, after which we consider the system in steady-state. This is used
             to calculate the initial conditions for the double-time correlations.
@@ -323,49 +108,34 @@ class SSH:
 
         Returns
         -------
-        ndarray[complex]
-            An array of shape (3, tAxis.size) which contains the single-time correlation functions. The index of the first dimension
-            corresponds to the correlation function, with 0 = $\langle \sigma_-(t) \rangle$, 1 = $\langle \sigma_+(t) \rangle$, and 2 = $ \langle \sigma_z(t) \rangle$.
-        ndarray[complex]
-            An array of shape (3, 3, numT, tAxis.size) which contains the double-time correlation functions.
-            The first and second dimensions correspond to the left and right operators in the correlation function respectively,
-            following the index convention for the single-time correlatinos. The left operator is evaluated at time $t$, whereas the right operator is evaluated at time $t' = t + \tau$.
-            The third dimension corresponds to different values of time within a steady-state period that we take to be the initial
-            conditions, and the fourth dimension corresponds to the values of the function at different points of $\tau$ on the tAxis.
+        CorrelationData
+            A CorrelationData instance that contains all of the relevant information about the correlations.
         """
 
-        if drivingTerm is None:
-            self._drivingTerm = self._SinusoidalDrivingTerm
-        else:
-            self._drivingTerm = drivingTerm
+        self.__correlationData = CorrelationData(
+            tauAxisDim = tauAxis,
+            tauAxisSec = tauAxis / self.__params.decayConstant
+        )
 
-        # Ensures initial conditions are a numpy array.
-        initialConditions = np.array(initialConditions, dtype=complex)
-
-        # Internally stores the tauAxis in seconds. Whenever the tauAxis is inputted,
-        # it will be given in units of $\gamma_-^{-1}$, but internally we always use absolute seconds.
-        self._tauAxis = tauAxis / self.decayConstant
- 
         # Stores the function parameters, since they are mostly the same for the single- and double-time
         # correlations.
-        params = {
-            'fun' : self._ClassicallyDrivenSSHEquations,
-            't_span' : np.array([np.min(self._tauAxis), np.max(self._tauAxis)]),
-            'y0' : initialConditions,
-            't_eval' : self._tauAxis,
+        odeParams = {
+            'fun' : self.__ClassicallyDrivenSSHEquations,
+            't_span' : np.array([np.min(self.__correlationData.tauAxisSec), np.max(self.__correlationData.tauAxisSec)]),
+            't_eval' : self.__correlationData.tauAxisSec,
             'rtol' : 1e-10,
             'atol' : 1e-12,
-            'args' : (self._drivingTerm, -self.decayConstant,)
         }
 
-        # Solves the single time solutions.
-        self._singleTimeSolution = integrate.solve_ivp(**params).y
+        self.__correlationData.singleTime = self.__CalculateSingleTimeCorrelations(initialConditions, odeParams)
 
         # Calculates the single-time fourier expansions.
-        singleTimeCoeff = self._CalculateExpectationCoefficients()
-        self._singleTimeFourierExpansion = []
         for i in range(3):
-            self._singleTimeFourierExpansion.append(self._EvaluateFourierExpansion(singleTimeCoeff[i]))
+            self.__correlationData.singleTimeFourier.append(
+                Fourier(self.__params.drivingFreq,
+                        samples = self.__correlationData.singleTime[i],
+                        samplesX = self.__correlationData.tauAxisSec)
+            )
 
         # Calculates the points within the steady state period that we want to use. The steady state axis
         # covers one period in the steady state, and is in seconds.
@@ -422,6 +192,34 @@ class SSH:
             print('\n')
         
         return self._singleTimeSolution, self._doubleTimeSolution
+    
+    def __CalculateSingleTimeCorrelations(self, initialConditions: np.ndarray[complex], odeParams: dict) -> np.ndarray[complex]:
+        r"""
+        Calculates the single-time correlation functions.
+
+        Parameters
+        ----------
+        initialConditions : ndarray[complex]
+            The initial conditions of the single-time correlation functions.
+        odeParams: dict
+            A dictionary containing the relevant parameters for the function which solves the ODE.
+
+        Returns
+        -------
+        ndarray[complex]
+            An array of shape (3, tauAxis.size) which contains the value of the correlation functions at each time.
+            The indices correspond to 0 = $\langle \sigma_-(t) \rangle$, 1 = $\langle \sigma_+(t) \rangle$, 2 = $\langle \sigma_z(t) \rangle$.
+        """
+
+        # Ensures initial conditions are a numpy array.
+        initialConditions = np.array(initialConditions, dtype=complex)
+ 
+        # Solves the single time solutions.
+        return integrate.solve_ivp(
+            y0 = initialConditions,
+            args = -self.__params.decayConstant,
+            **odeParams
+        ).y
         
     def CalculateCurrent(self, steadyStateCutoff: float=None) -> tuple[np.ndarray[complex], np.ndarray[complex]]:
         r"""Calculates the current operator for the given parameters.
@@ -663,8 +461,7 @@ class SSH:
                         coefficients[frequencySum + 2 * n] += currentCoeff[functionIndex, firstIndex + n] * expectationCoeff[functionIndex, frequencySum - firstIndex + n]
 
         return coefficients
-
-    
+ 
     def _EvaluateFourierExpansion(self, coefficients: np.ndarray[complex], freq: float=None) -> Callable[[np.ndarray[float]], np.ndarray[complex]]:
         """
         Evaluates the fourier expansion of a function based on its coefficients.
