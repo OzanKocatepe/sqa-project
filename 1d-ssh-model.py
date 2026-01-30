@@ -23,4 +23,4 @@ sim.Run(tauAxis, initialConditions, numT, debug=True)
 
 vis = SSHVisualiser(sim)
 vis.PlotSingleTimeCorrelations(k, overplotFourier=True)
-vis.PlotDoubleTimeCorrelations(k, saveFigs=True, subtractUncorrelatedValues=False, numTauPoints=None)
+vis.PlotDoubleTimeCorrelations(k, saveFigs=False, subtractUncorrelatedValues=False, numTauPoints=None)

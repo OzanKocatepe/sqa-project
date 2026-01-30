@@ -247,26 +247,46 @@ class SSH:
 
         # Calculates the double-time initial conditions based on the single-time correlations for
         # each time within the steady-state period that we want to calculate.
+        # doubleTimeInitialConditions = np.array([
+        #     # When left-multiplying by $\sigma_-(t)$
+        #     [
+        #         np.zeros(self.__correlationData.tAxisSec.size, dtype=complex),
+        #         -0.5 * (self.__correlationData.singleTimeFourier[2].Evaluate(self.__correlationData.tAxisSec) - 1),
+        #         self.__correlationData.singleTimeFourier[0].Evaluate(self.__correlationData.tAxisSec)
+        #     ],
+        #     # When left-multiplying by $\sigma_+(t)$
+        #     [
+        #         0.5 * (self.__correlationData.singleTimeFourier[2].Evaluate(self.__correlationData.tAxisSec) + 1),
+        #         np.zeros(self.__correlationData.tAxisSec.size, dtype=complex),
+        #         -self.__correlationData.singleTimeFourier[1].Evaluate(self.__correlationData.tAxisSec)
+        #     ],
+        #     # When left-multiplying by $\sigma_z(t)$
+        #     [
+        #         -self.__correlationData.singleTimeFourier[0].Evaluate(self.__correlationData.tAxisSec),
+        #         self.__correlationData.singleTimeFourier[1].Evaluate(self.__correlationData.tAxisSec),
+        #         np.ones(self.__correlationData.tAxisSec.size, dtype=complex),
+        #     ]], dtype=complex
+        # )
+
         doubleTimeInitialConditions = np.array([
-            # When left-multiplying by $\sigma_-(t)$
             [
                 np.zeros(self.__correlationData.tAxisSec.size, dtype=complex),
-                -0.5 * (self.__correlationData.singleTimeFourier[2].Evaluate(self.__correlationData.tAxisSec) - 1),
-                self.__correlationData.singleTimeFourier[0].Evaluate(self.__correlationData.tAxisSec)
-            ],
-            # When left-multiplying by $\sigma_+(t)$
-            [
-                0.5 * (self.__correlationData.singleTimeFourier[2].Evaluate(self.__correlationData.tAxisSec) + 1),
-                np.zeros(self.__correlationData.tAxisSec.size, dtype=complex),
-                -self.__correlationData.singleTimeFourier[1].Evaluate(self.__correlationData.tAxisSec)
-            ],
-            # When left-multiplying by $\sigma_z(t)$
-            [
-                -self.__correlationData.singleTimeFourier[0].Evaluate(self.__correlationData.tAxisSec),
-                self.__correlationData.singleTimeFourier[1].Evaluate(self.__correlationData.tAxisSec),
                 np.ones(self.__correlationData.tAxisSec.size, dtype=complex),
-            ]], dtype=complex
-        )
+                np.zeros(self.__correlationData.tAxisSec.size, dtype=complex)
+            ],
+            [
+                np.zeros(self.__correlationData.tAxisSec.size, dtype=complex),
+                np.zeros(self.__correlationData.tAxisSec.size, dtype=complex),
+                np.zeros(self.__correlationData.tAxisSec.size, dtype=complex)
+            ],
+            [
+                np.zeros(self.__correlationData.tAxisSec.size, dtype=complex),
+                np.zeros(self.__correlationData.tAxisSec.size, dtype=complex),
+                np.ones(self.__correlationData.tAxisSec.size, dtype=complex)
+            ]
+        ])
+
+        print(doubleTimeInitialConditions)
 
         if debug:
             print(f"Calculating double-time correlations for k = {self.k / np.pi:.2f}pi...")
