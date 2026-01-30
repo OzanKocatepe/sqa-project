@@ -51,7 +51,7 @@ class Fourier:
             # Calculates the number of coefficients from the coefficients array.
             self.__n = (self.__coeffs.size - 1) // 2
 
-    def __add_(self, other: Fourier) -> Fourier:
+    def __add__(self, other: Fourier) -> Fourier:
         """
         Defines how to add fourier expansions together, assuming that the
         base frequencies are the same.

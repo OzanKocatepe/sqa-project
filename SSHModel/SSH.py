@@ -154,8 +154,6 @@ class SSH:
         # correlations.
         odeParams = {
             'fun' : self.__ClassicallyDrivenSSHEquations,
-            't_span' : np.array([np.min(self.__correlationData.tauAxisSec), np.max(self.__correlationData.tauAxisSec)]),
-            't_eval' : self.__correlationData.tauAxisSec,
             'rtol' : 1e-10,
             'atol' : 1e-12,
         }
@@ -205,11 +203,13 @@ class SSH:
         inhomPart = -self.__params.decayConstant
         args = (inhomPart,)
         if debug:
-            T0, T1 = odeParams['t_span']
+            T1 = np.max(self.__correlationData.tauAxisSec)
             pbar = tqdm(total=1000, unit="it")
-            args = (inhomPart, pbar, [T0, (T1 - T0)/1000],)
+            args = (inhomPart, pbar, [0, (T1)/1000],)
 
         return integrate.solve_ivp(
+            t_span = np.array([0, np.max(self.__correlationData.tauAxisSec)]),
+            t_eval = self.__correlationData.tauAxisSec,
             y0 = initialConditions,
             args = args,
             **odeParams
@@ -250,21 +250,21 @@ class SSH:
         doubleTimeInitialConditions = np.array([
             # When left-multiplying by $\sigma_-(t)$
             [
-                np.zeros(self.__correlationData.tAxisSec.size),
+                np.zeros(self.__correlationData.tAxisSec.size, dtype=complex),
                 -0.5 * (self.__correlationData.singleTimeFourier[2].Evaluate(self.__correlationData.tAxisSec) - 1),
                 self.__correlationData.singleTimeFourier[0].Evaluate(self.__correlationData.tAxisSec)
             ],
             # When left-multiplying by $\sigma_+(t)$
             [
                 0.5 * (self.__correlationData.singleTimeFourier[2].Evaluate(self.__correlationData.tAxisSec) + 1),
-                np.zeros(self.__correlationData.tAxisSec.size),
+                np.zeros(self.__correlationData.tAxisSec.size, dtype=complex),
                 -self.__correlationData.singleTimeFourier[1].Evaluate(self.__correlationData.tAxisSec)
             ],
             # When left-multiplying by $\sigma_z(t)$
             [
                 -self.__correlationData.singleTimeFourier[0].Evaluate(self.__correlationData.tAxisSec),
                 self.__correlationData.singleTimeFourier[1].Evaluate(self.__correlationData.tAxisSec),
-                np.ones(self.__correlationData.tAxisSec.size),
+                np.ones(self.__correlationData.tAxisSec.size, dtype=complex),
             ]], dtype=complex
         )
 
@@ -279,8 +279,8 @@ class SSH:
         for tIndex, t in outerIterable:
             # Loops through all 3 operators that we can left-multiply by.
             innerIterable = range(3)
-            if debug:
-                innerIterable = tqdm(innerIterable, leave=False)
+            # if debug:
+            #     innerIterable = tqdm(innerIterable, leave=False)
 
             for i in innerIterable:
                 # Calculates the new initial conditions and inhomogenous term.
@@ -288,6 +288,8 @@ class SSH:
                 # Solves system.
                 args = (newInhomPart,)
                 self.__correlationData.doubleTime[i, :, tIndex, :] = integrate.solve_ivp(
+                    t_span = t + np.array([0, np.max(self.__correlationData.tauAxisSec)]),
+                    t_eval = t + self.__correlationData.tauAxisSec,
                     y0 = doubleTimeInitialConditions[i, :, tIndex],
                     args = args,
                     **odeParams
