@@ -11,7 +11,7 @@ params = SSHParameters(
     t1 = 2,
     t2 = 1,
     decayConstant = 0.1,
-    drivingAmplitude = 0, # 0.2
+    drivingAmplitude = 0.2, # 0.2
     drivingFreq = 2 / 3.01
 )
 
