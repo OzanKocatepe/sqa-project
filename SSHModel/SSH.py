@@ -269,10 +269,6 @@ class SSH:
             ]], dtype=complex
         )
 
-        print(f"Initial Conditions: {doubleTimeInitialConditions[1, 0]}")
-        print(f"Sigma_z steady state: {self.__correlationData.singleTimeFourier[2].Evaluate(self.__correlationData.tAxisSec)}")
-        print(f"Decay Constant: {self.__params.decayConstant}")
-
         if debug:
             print(f"Calculating double-time correlations for k = {self.k / np.pi:.2f}pi...")
 
