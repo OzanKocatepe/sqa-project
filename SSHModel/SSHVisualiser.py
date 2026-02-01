@@ -69,7 +69,7 @@ class SSHVisualiser:
         plt.tight_layout()
         plt.show()
 
-    def PlotDoubleTimeCorrelations(self, k: float, slice: list[tuple[int]]=None, numTauPoints: int=None, saveFigs: bool=False, subtractUncorrelatedValues: bool=False, zLim: tuple[float]=None) -> None:
+    def PlotDoubleTimeCorrelations(self, k: float, slice: list[tuple[int]]=None, numTauPoints: int=None, saveFigs: bool=False, subtractUncorrelatedValues: bool=False, vLim: tuple[float]=(None, None)) -> None:
         r"""Plots the double-time correlations.
 
         Parameters
@@ -88,8 +88,8 @@ class SSHVisualiser:
             $\langle \sigma_i (t) \rangle \langle \sigma_j(t + \tau) \rangle$. This would be the value of the double-time correlation if the two operators were
             entirely uncorrelated, and as $\tau$ gets sufficiently large we expect the system to become uncorrelated due to
             interaction with the environment.
-        zLim : tuple[float]
-            The limits of the zAxis to use when plotting.
+        vLim : tuple[float]
+            The limits of the colorbar to use when plotting.
         """
 
         correlationData = self._sim.models[k].correlationData
@@ -125,31 +125,33 @@ class SSHVisualiser:
 
                 # Creates the 2 3D subplots.
                 nrows, ncols = 1, 2
-                fig, ax = plt.subplots(nrows, ncols, figsize=(16, 8.8), subplot_kw={"projection": "3d"})
+                fig, ax = plt.subplots(nrows, ncols, figsize=(16, 8.8))
 
                 for col in np.arange(ncols):                    
                     # Plots each system as a line, with each line representing
                     # a different initial condition within a steady-state period.
+                    z = np.zeros((correlationData.tAxisSec.size, correlationData.tauAxisSec.size), dtype=complex)
                     for tIndex, t in enumerate(correlationData.tAxisSec):
-                        z = correlationData.doubleTime[i, j, tIndex, :]
+                        z[tIndex, :] = correlationData.doubleTime[i, j, tIndex, :]
                         
                         # Subtracts the uncorrelated values if the system desired that.
                         if subtractUncorrelatedValues:
                             # Subtracts the value of the single-time correlation fourier expansions
                             # at each time on the tau axis.
                             newAxis = t + correlationData.tauAxisSec
-                            z -= correlationData.singleTimeFourier[i].Evaluate(t)[0] * correlationData.singleTimeFourier[j].Evaluate(newAxis)
+                            z[tIndex, :] -= correlationData.singleTimeFourier[i].Evaluate(t)[0] * correlationData.singleTimeFourier[j].Evaluate(newAxis)
 
-                        ax[col].plot(correlationData.tAxisDim[tIndex], correlationData.tauAxisDim[tauMask], self._plottingFunctions[1:][col](z)[tauMask],
-                                        color = "Black")
+                    mesh = ax[col].pcolormesh(correlationData.tauAxisDim[tauMask], correlationData.tAxisDim, self._plottingFunctions[1:][col](z)[:, tauMask], shading='nearest', cmap='bwr', vmin=vLim[0], vmax=vLim[1])
         
                     # Sets other properties.
-                    ax[col].set_xlabel(self._tLabel)
-                    ax[col].set_ylabel(self._tauLabel)
-                    ax[col].set_zlabel(zLabels[col])
+                    ax[col].set_xlabel(self._tauLabel)
+                    ax[col].set_ylabel(self._tLabel)
+                    # ax[col].set_zlabel(zLabels[col])
 
-                    if zLim is not None:
-                        ax[col].set_zlim(zLim)
+                    fig.colorbar(mesh, ax=ax[col])
+
+                    # if zLim is not None:
+                    #     ax[col].set_zlim(zLim)
 
                 title = rf"{correlationName} -- $k = {k / np.pi} \pi,\, t_1 = {self._sim.params.t1},\, t_2 = {self._sim.params.t2},\, A_0 = {self._sim.params.drivingAmplitude},\, \Omega = {self._sim.params.drivingFreq:.5f},\, \gamma_- = {self._sim.params.decayConstant}$"
                 plt.suptitle(title)
