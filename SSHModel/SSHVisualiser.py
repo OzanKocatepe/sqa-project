@@ -21,7 +21,7 @@ class SSHVisualiser:
         self._tLabel = r"$t \gamma_-$"
         self._tauLabel = r"$\tau \gamma_-$"
 
-    def PlotSingleTimeCorrelations(self, k: float, overplotFourier: bool=False, saveFigs: bool=False) -> None:
+    def PlotSingleTimeCorrelations(self, k: float, overplotFourier: bool=False, saveFigs: bool=False, show: bool=True) -> None:
         r"""Plots the single-time correlations $\langle \tilde \sigma_-(t) \rangle,\, \langle \tilde \sigma_+(t) \rangle,\, \langle \tilde \sigma_z(t) \rangle$ for a fixed momentum.
 
         Parameters
@@ -32,6 +32,8 @@ class SSHVisualiser:
             Whether to overplot the fourier expansions as well.
         saveFigs : bool
             Determines whether to save the figure or not.
+        show : bool
+            Whether to show the plots or not.
         """
 
         correlationData = self._sim.models[k].correlationData
@@ -50,6 +52,7 @@ class SSHVisualiser:
 
         # Creates the 3x3 subplots.
         nrows, ncols = 3, 3
+        plt.clf()
         fig, ax = plt.subplots(nrows, ncols, figsize=(16, 8.8))
 
         for row in np.arange(nrows):
@@ -71,9 +74,10 @@ class SSHVisualiser:
         plt.tight_layout()
         if saveFigs:
             plt.savefig("plots/Single-Time Correlators.png", dpi=300)
-        plt.show()
+        if show:
+            plt.show()
 
-    def PlotDoubleTimeCorrelations(self, k: float, slice: list[tuple[int]]=None, numTauPoints: int=None, saveFigs: bool=False, subtractUncorrelatedValues: bool=False, vLim: tuple[float]=(None, None)) -> None:
+    def PlotDoubleTimeCorrelations(self, k: float, slice: list[tuple[int]]=None, numTauPoints: int=None, saveFigs: bool=False, subtractUncorrelatedValues: bool=False, vLim: tuple[float]=(None, None), show: bool=True) -> None:
         r"""Plots the double-time correlations.
 
         Parameters
@@ -94,6 +98,8 @@ class SSHVisualiser:
             interaction with the environment.
         vLim : tuple[float]
             The limits of the colorbar to use when plotting.
+        show : bool
+            Whether to show the plots or not.
         """
 
         correlationData = self._sim.models[k].correlationData
@@ -132,6 +138,7 @@ class SSHVisualiser:
 
                 # Creates the 2 3D subplots.
                 nrows, ncols = 1, 2
+                plt.clf()
                 fig, ax = plt.subplots(nrows, ncols, figsize=(16, 8.8))
 
                 for col in np.arange(ncols):                    
@@ -164,10 +171,10 @@ class SSHVisualiser:
                     if subtractUncorrelatedValues:
                         folderName = "Double-Time Connected Correlators"
                     plt.savefig(f"plots/{folderName}/ssh {subscripts[i]}, {subscripts[j]}.png", dpi=300)
+                if show:
+                    plt.show()
 
-                plt.show()
-
-    def PlotSingleTimeProducts(self, k: float, slice: list[tuple[int]]=None, numTauPoints: int=None, saveFigs: bool=False, vLim: tuple[float]=(None, None)) -> None:
+    def PlotSingleTimeProducts(self, k: float, slice: list[tuple[int]]=None, numTauPoints: int=None, saveFigs: bool=False, vLim: tuple[float]=(None, None), show: bool=True) -> None:
         r"""
         Plots the expected steady state of the double-time correlations, which is the product of the
         expectations of the single-time correlations at times $t$ and $t' = t + \tau$.
@@ -185,6 +192,8 @@ class SSHVisualiser:
             Determines whether to save the figure or not.
         vLim : tuple[float]
             The limits of the colorbar to use when plotting.
+        show : bool
+            Whether to show the plots or not.
         """
 
         correlationData = self._sim.models[k].correlationData
@@ -242,7 +251,8 @@ class SSHVisualiser:
                 plt.tight_layout()
                 if saveFigs:
                     plt.savefig(f"plots/Single-Time Products/ssh {subscripts[i]} * {subscripts[j]}.png", dpi=300)
-                plt.show()
+                if show:
+                    plt.show()
         
     def PlotTotalCurrent(self) -> None:
         """Plots the total current operator in the time and frequency domains."""
