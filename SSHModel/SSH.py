@@ -288,8 +288,8 @@ class SSH:
 
             for i in innerIterable:
                 # Calculates the new initial conditions and inhomogenous term.
-                # newInhomPart = -self.__params.decayConstant * self.__correlationData.singleTimeFourier[i].Evaluate(t)[0]
-                newInhomPart = 0.0
+                newInhomPart = -self.__params.decayConstant * self.__correlationData.singleTimeFourier[i].Evaluate(t)[0]
+                # newInhomPart = 0.0
                 # Solves system.
                 args = (newInhomPart,)
                 self.__correlationData.doubleTime[i, :, tIndex, :] = integrate.solve_ivp(
