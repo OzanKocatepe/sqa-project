@@ -156,6 +156,7 @@ class SSH:
             'fun' : self.__ClassicallyDrivenSSHEquations,
             'rtol' : 1e-10,
             'atol' : 1e-12,
+            'max_step' : 0.01 / self.__params.decayConstant
         }
 
         if debug:
@@ -297,7 +298,6 @@ class SSH:
                     t_eval = t + self.__correlationData.tauAxisSec,
                     y0 = doubleTimeInitialConditions[i, :, tIndex],
                     args = args,
-                    max_step = 0.01 / self.__params.decayConstant,
                     **odeParams
                 ).y
          

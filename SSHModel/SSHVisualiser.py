@@ -21,7 +21,7 @@ class SSHVisualiser:
         self._tLabel = r"$t \gamma_-$"
         self._tauLabel = r"$\tau \gamma_-$"
 
-    def PlotSingleTimeCorrelations(self, k: float, overplotFourier: bool=False):
+    def PlotSingleTimeCorrelations(self, k: float, overplotFourier: bool=False) -> None:
         r"""Plots the single-time correlations $\langle \tilde \sigma_-(t) \rangle,\, \langle \tilde \sigma_+(t) \rangle,\, \langle \tilde \sigma_z(t) \rangle$ for a fixed momentum.
 
         Parameters
@@ -69,7 +69,7 @@ class SSHVisualiser:
         plt.tight_layout()
         plt.show()
 
-    def PlotDoubleTimeCorrelations(self, k: float, slice: list[tuple[int]]=None, numTauPoints: int=None, saveFigs: bool=False, subtractUncorrelatedValues: bool=False):
+    def PlotDoubleTimeCorrelations(self, k: float, slice: list[tuple[int]]=None, numTauPoints: int=None, saveFigs: bool=False, subtractUncorrelatedValues: bool=False) -> None:
         r"""Plots the double-time correlations.
 
         Parameters
@@ -152,8 +152,85 @@ class SSHVisualiser:
                 if saveFigs:
                     plt.savefig(f"plots/ssh {subscripts[i]}, {subscripts[j]}, subtract={subtractUncorrelatedValues}.png", dpi=300)
                 plt.show()
+
+    def PlotSingleTimeProducts(self, k: float, slice: list[tuple[int]]=None, numTauPoints: int=None, saveFigs: bool=False) -> None:
+        r"""
+        Plots the expected steady state of the double-time correlations, which is the product of the
+        expectations of the single-time correlations at times $t$ and $t' = t + \tau$.
+
+        Parameters
+        ----------
+        k : float
+            The momentum for which we want to plot the correlation functions.
+        slice : list[tuple[int]]
+            A list of tuples of the form (i, j), which will make the function only
+            plot those specific double-time correlations.
+        numTauPoints : int
+            The number of tau points to plot on the 3D figures. If none, will just use the normal tauAxis.
+        saveFigs : bool
+            Determines whether to save the figure or not.
+        """
+
+        correlationData = self._sim.models[k].correlationData
+
+        tauMask = None
+        if numTauPoints is None:
+            tauMask = np.ones((correlationData.tauAxisDim.size,), dtype=bool)
+        else:
+            modulus = self._sim.tauAxisDim.size // numTauPoints
+            tauMask = np.arange(correlationData.tauAxisDim.size) % modulus == 0
+
+        subscripts = ['-', '+', 'z']
+
+        operatorLabels = [r"\tilde \sigma_-",
+                          r"\tilde \sigma_+",
+                          r"\tilde \sigma_z"]
+
+        # Loops over all nine double-time correlation functions.
+        if slice is None:
+            i, j = np.meshgrid(range(3), range(3))
+            iterable = tuple(zip(i.flatten(), j.flatten()))
+        # Or, allow us to choose a subset to plot.
+        else:
+            iterable = slice
+
+        for i, j in iterable:
+                # Creates the y-labels for each pair of operators.
+                correlationName = rf"$\langle {operatorLabels[i]}(t) \rangle \langle {operatorLabels[j]}(t + \tau) \rangle$"
+                zLabels = [
+                    f"Real Part of {correlationName}",
+                    f"Imaginary Part of {correlationName}"
+                ] 
+
+                # Creates the 2 3D subplots.
+                nrows, ncols = 1, 2
+                fig, ax = plt.subplots(nrows, ncols, figsize=(16, 8.8), subplot_kw={"projection": "3d"})
+
+                for col in np.arange(ncols):                    
+                    # Plots each system as a line, with each line representing
+                    # a different initial condition within a steady-state period.
+                    for tIndex, t in enumerate(correlationData.tAxisSec):
+                        newAxis = t + correlationData.tauAxisSec
+                        z = correlationData.singleTimeFourier[i].Evaluate(t)[0] * correlationData.singleTimeFourier[j].Evaluate(newAxis)
+                        print(f"-(t) = {correlationData.singleTimeFourier[i].Evaluate(t)[0]}")
+                        print(f"-(t + tau) = {correlationData.singleTimeFourier[j].Evaluate(newAxis)}")
+
+                        ax[col].plot(correlationData.tAxisDim[tIndex], correlationData.tauAxisDim[tauMask], self._plottingFunctions[1:][col](z)[tauMask],
+                                        color = "Black")
         
-    def PlotTotalCurrent(self):
+                    # Sets other properties.
+                    ax[col].set_xlabel(self._tLabel)
+                    ax[col].set_ylabel(self._tauLabel)
+                    ax[col].set_zlabel(zLabels[col])
+
+                title = rf"{correlationName} -- $k = {k / np.pi} \pi,\, t_1 = {self._sim.params.t1},\, t_2 = {self._sim.params.t2},\, A_0 = {self._sim.params.drivingAmplitude},\, \Omega = {self._sim.params.drivingFreq:.5f},\, \gamma_- = {self._sim.params.decayConstant}$"
+                plt.suptitle(title)
+                plt.tight_layout()
+                if saveFigs:
+                    plt.savefig(f"plots/ssh {subscripts[i]} * {subscripts[j]}.png", dpi=300)
+                plt.show()
+        
+    def PlotTotalCurrent(self) -> None:
         """Plots the total current operator in the time and frequency domains."""
 
         currentData = self._sim.CalculateTotalCurrent()
