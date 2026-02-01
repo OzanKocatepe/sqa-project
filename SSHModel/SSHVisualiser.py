@@ -21,7 +21,7 @@ class SSHVisualiser:
         self._tLabel = r"$t \gamma_-$"
         self._tauLabel = r"$\tau \gamma_-$"
 
-    def PlotSingleTimeCorrelations(self, k: float, overplotFourier: bool=False) -> None:
+    def PlotSingleTimeCorrelations(self, k: float, overplotFourier: bool=False, saveFigs: bool=False) -> None:
         r"""Plots the single-time correlations $\langle \tilde \sigma_-(t) \rangle,\, \langle \tilde \sigma_+(t) \rangle,\, \langle \tilde \sigma_z(t) \rangle$ for a fixed momentum.
 
         Parameters
@@ -30,6 +30,8 @@ class SSHVisualiser:
             The momentum for which we want to plot the correlation functions.
         overplotFourier : bool
             Whether to overplot the fourier expansions as well.
+        saveFigs : bool
+            Determines whether to save the figure or not.
         """
 
         correlationData = self._sim.models[k].correlationData
@@ -67,6 +69,8 @@ class SSHVisualiser:
         title = rf"$k = {k / np.pi} \pi,\, t_1 = {self._sim.params.t1},\, t_2 = {self._sim.params.t2},\, A_0 = {self._sim.params.drivingAmplitude},\, \Omega = {self._sim.params.drivingFreq:.5f},\, \gamma_- = {self._sim.params.decayConstant}$"
         plt.suptitle(title)
         plt.tight_layout()
+        if saveFigs:
+            plt.savefig("plots/Single-Time Correlators.png", dpi=300)
         plt.show()
 
     def PlotDoubleTimeCorrelations(self, k: float, slice: list[tuple[int]]=None, numTauPoints: int=None, saveFigs: bool=False, subtractUncorrelatedValues: bool=False, vLim: tuple[float]=(None, None)) -> None:
@@ -117,7 +121,10 @@ class SSHVisualiser:
 
         for i, j in iterable:
                 # Creates the y-labels for each pair of operators.
-                correlationName = rf"$\langle {operatorLabels[i]}(t) {operatorLabels[j]}(t + \tau) \rangle$"
+                correlationName = rf"$\langle {operatorLabels[i]}(t) {operatorLabels[j]}(t + \tau) \rangle$" 
+                if subtractUncorrelatedValues:
+                    correlationName = rf"$\langle {operatorLabels[i]}(t) {operatorLabels[j]}(t + \tau) \rangle - \langle {operatorLabels[i]}(t) \rangle \langle {operatorLabels[j]}(t + \tau) \rangle$"
+
                 zLabels = [
                     f"Real Part of {correlationName}",
                     f"Imaginary Part of {correlationName}"
@@ -151,8 +158,13 @@ class SSHVisualiser:
                 title = rf"{correlationName} -- $k = {k / np.pi} \pi,\, t_1 = {self._sim.params.t1},\, t_2 = {self._sim.params.t2},\, A_0 = {self._sim.params.drivingAmplitude},\, \Omega = {self._sim.params.drivingFreq:.5f},\, \gamma_- = {self._sim.params.decayConstant}$"
                 plt.suptitle(title)
                 plt.tight_layout()
+
                 if saveFigs:
-                    plt.savefig(f"plots/ssh {subscripts[i]}, {subscripts[j]}, subtract={subtractUncorrelatedValues}.png", dpi=300)
+                    folderName = "Double-Time Correlators"
+                    if subtractUncorrelatedValues:
+                        folderName = "Double-Time Connected Correlators"
+                    plt.savefig(f"plots/{folderName}/ssh {subscripts[i]}, {subscripts[j]}.png", dpi=300)
+
                 plt.show()
 
     def PlotSingleTimeProducts(self, k: float, slice: list[tuple[int]]=None, numTauPoints: int=None, saveFigs: bool=False, vLim: tuple[float]=(None, None)) -> None:
@@ -229,7 +241,7 @@ class SSHVisualiser:
                 plt.suptitle(title)
                 plt.tight_layout()
                 if saveFigs:
-                    plt.savefig(f"plots/ssh {subscripts[i]} * {subscripts[j]}.png", dpi=300)
+                    plt.savefig(f"plots/Single-Time Products/ssh {subscripts[i]} * {subscripts[j]}.png", dpi=300)
                 plt.show()
         
     def PlotTotalCurrent(self) -> None:
