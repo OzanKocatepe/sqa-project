@@ -23,5 +23,5 @@ sim.Run(tauAxis, initialConditions, numT, debug=True)
 
 vis = SSHVisualiser(sim)
 vis.PlotSingleTimeCorrelations(k, overplotFourier=True)
-vis.PlotDoubleTimeCorrelations(k, saveFigs=True, subtractUncorrelatedValues=True, numTauPoints=None)
+vis.PlotDoubleTimeCorrelations(k, saveFigs=True, subtractUncorrelatedValues=True, numTauPoints=None, zLim=(-1.5, 1.5))
 # vis.PlotSingleTimeProducts(k, saveFigs=True, numTauPoints=None, slice=[(0, 0)])

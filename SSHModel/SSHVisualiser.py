@@ -69,7 +69,7 @@ class SSHVisualiser:
         plt.tight_layout()
         plt.show()
 
-    def PlotDoubleTimeCorrelations(self, k: float, slice: list[tuple[int]]=None, numTauPoints: int=None, saveFigs: bool=False, subtractUncorrelatedValues: bool=False) -> None:
+    def PlotDoubleTimeCorrelations(self, k: float, slice: list[tuple[int]]=None, numTauPoints: int=None, saveFigs: bool=False, subtractUncorrelatedValues: bool=False, zLim: tuple[float]=None) -> None:
         r"""Plots the double-time correlations.
 
         Parameters
@@ -88,6 +88,8 @@ class SSHVisualiser:
             $\langle \sigma_i (t) \rangle \langle \sigma_j(t + \tau) \rangle$. This would be the value of the double-time correlation if the two operators were
             entirely uncorrelated, and as $\tau$ gets sufficiently large we expect the system to become uncorrelated due to
             interaction with the environment.
+        zLim : tuple[float]
+            The limits of the zAxis to use when plotting.
         """
 
         correlationData = self._sim.models[k].correlationData
@@ -145,6 +147,9 @@ class SSHVisualiser:
                     ax[col].set_xlabel(self._tLabel)
                     ax[col].set_ylabel(self._tauLabel)
                     ax[col].set_zlabel(zLabels[col])
+
+                    if zLim is not None:
+                        ax[col].set_zlim(zLim)
 
                 title = rf"{correlationName} -- $k = {k / np.pi} \pi,\, t_1 = {self._sim.params.t1},\, t_2 = {self._sim.params.t2},\, A_0 = {self._sim.params.drivingAmplitude},\, \Omega = {self._sim.params.drivingFreq:.5f},\, \gamma_- = {self._sim.params.decayConstant}$"
                 plt.suptitle(title)
