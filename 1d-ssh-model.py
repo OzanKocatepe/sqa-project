@@ -4,7 +4,7 @@ import math
 
 from SSHModel import *
 
-tauAxis = np.linspace(0, 30, 200)
+tauAxis = np.linspace(0, 30, 20000)
 initialConditions = np.array([-0.5, -0.5, 0], dtype=complex)
 
 params = SSHParameters(
@@ -23,4 +23,4 @@ sim.Run(tauAxis, initialConditions, numT, debug=True)
 
 vis = SSHVisualiser(sim)
 vis.PlotSingleTimeCorrelations(k, overplotFourier=True)
-vis.PlotDoubleTimeCorrelations(k, saveFigs=True, subtractUncorrelatedValues=True, numTauPoints=None)
+vis.PlotDoubleTimeCorrelations(k, saveFigs=True, subtractUncorrelatedValues=False, numTauPoints=None)
