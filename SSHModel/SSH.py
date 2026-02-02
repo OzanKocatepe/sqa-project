@@ -379,7 +379,7 @@ class SSH:
  
     def __CalculateDoubleProductCurrent(self) -> None:
         r"""
-        Calculates the current double-time product, of the form $\langle j(t) \rangle \langle j(t + \tau) \rangle$, using the fact that
+        Calculates the current double-time product, of the form $\int dt\, \langle j(t) \rangle \langle j(t + \tau) \rangle$, using the fact that
         it can be expressed as the fourier series $\sum_{n = -N}^N | j_n |^2 e^{i \omega n \tau}$. Stores the result directly in currentData.
 
         The calculated result is *after* integrating w.r.t. dt over a period.
@@ -422,7 +422,7 @@ class SSH:
             operators3 = doubleTimeAtT[1, 2, :] - doubleTimeAtT[0, 2, :]
             operators4 = doubleTimeAtT[2, 1, :] - doubleTimeAtT[2, 0, :]
 
-            self.__currentData.doubleTimeData[tIndex, :] = coeff1 * operators1 + coeff2 * operators2 + coeff3 * operators3 + coeff4 * operators4
+            self.__currentData.doubleTimeData[tIndex, :] = self.__params.t2**2 * (coeff1 * operators1 + coeff2 * operators2 + coeff3 * operators3 + coeff4 * operators4)
     
     def __CalculateIntegratedConnectedCorrelator(self) -> None:
         """Calculates the double-time connected correlator which has been integrated over one period w.r.t t.
