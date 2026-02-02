@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import numpy as np
 from .Fourier import Fourier
-from .SSHParameters import SSHParameters
+from .SSHParameters import ModelParameters
 from .CorrelationData import CorrelationData
 import scipy.special as special
 
@@ -50,7 +50,7 @@ class CurrentData:
             freqAxis = self.freqAxis
         )
 
-    def CalculateFourier(self, k: float, params: SSHParameters, correlationData: CorrelationData) -> None:
+    def CalculateFourier(self, k: float, params: ModelParameters, correlationData: CorrelationData) -> None:
         """
         Calculates the fourier expansions of the coefficients of the pauli expectations, when the current expectation is written in
         terms of the pauli expectations, and the fourier expansions of the current expectation on its own.
@@ -59,7 +59,7 @@ class CurrentData:
         ----------
         k : float
             The momentum of the system.
-        params : SSHParameters
+        params : ModelParameters
             The parameters of the SSH model.
         correlationData : CorrelationData
             The correlation data calculated within the relevant SSH instance.
@@ -70,7 +70,7 @@ class CurrentData:
         # Calculates the full fourier expansion of the current expectation and stores it in fourierExpansion.
         self.__CalculateCurrentExpectationCoefficients(params, correlationData)
 
-    def __CalculateCurrentExpectationCoefficients(self, params: SSHParameters, correlationData: CorrelationData) -> None:
+    def __CalculateCurrentExpectationCoefficients(self, params: ModelParameters, correlationData: CorrelationData) -> None:
         r"""
         Calculates the coefficients for the fourier expansion of the expectation of the current operator
         into the laser harmonics. These are calculated from the fourier coefficients of the single-time
@@ -78,7 +78,7 @@ class CurrentData:
 
         Parameters
         ----------
-        params : SSHParameters
+        params : ModelParameters
             The parameters of the SSH model.
         correlationData : CorrelationData
             The correlation data calculated within the relevant SSH instance.
@@ -133,7 +133,7 @@ class CurrentData:
             coefficients
         )
 
-    def __CalculateCurrentCoefficients(self, k: float, params: SSHParameters, tauAxisSec: np.ndarray[float]) -> None:
+    def __CalculateCurrentCoefficients(self, k: float, params: ModelParameters, tauAxisSec: np.ndarray[float]) -> None:
         r"""
         Calculates the fourier coefficients corresponding to the coefficients of the operators in the current operator.
         i.e. the coefficients for $j_-(t), j_+(t), j_z(t)$.
@@ -142,7 +142,7 @@ class CurrentData:
         ----------
         k : float
             The momentum of the system.
-        params : SSHParameters
+        params : ModelParameters
             The parameters of the SSH model.
         tauAxisSec : ndarray[float]
             The points in time, in seconds, that the current operator in the time-domain was calculated at.

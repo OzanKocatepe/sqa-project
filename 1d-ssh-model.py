@@ -9,7 +9,7 @@ numT = 20
 tauAxis = np.linspace(0, 30, 20000)
 initialConditions = np.array([-0.5, -0.5, 0], dtype=complex)
 
-params = SSHParameters(
+params = EnsembleParameters(
     t1 = 2,
     t2 = 1,
     decayConstant = 0.1,
@@ -21,8 +21,8 @@ sim = SSHSimulation(params)
 sim.AddMomentum(k)
 sim.Run(tauAxis, initialConditions, numT, debug=True)
 
-vis = SSHVisualiser(sim)
-vis.PlotSingleTimeCorrelations(k, overplotFourier=False, saveFigs=True, show=False)
-vis.PlotDoubleTimeCorrelations(k, saveFigs=True, subtractUncorrelatedValues=False, numTauPoints=None, show=False)
-vis.PlotDoubleTimeCorrelations(k, saveFigs=True, subtractUncorrelatedValues=True, numTauPoints=None, show=False)
-vis.PlotSingleTimeProducts(k, saveFigs=True, numTauPoints=None, show=False)
+# vis = SSHVisualiser(sim)
+# vis.PlotSingleTimeCorrelations(k, overplotFourier=False, saveFigs=True, show=False)
+# vis.PlotDoubleTimeCorrelations(k, saveFigs=True, subtractUncorrelatedValues=False, numTauPoints=None, show=False)
+# vis.PlotDoubleTimeCorrelations(k, saveFigs=True, subtractUncorrelatedValues=True, numTauPoints=None, show=False)
+# vis.PlotSingleTimeProducts(k, saveFigs=True, numTauPoints=None, show=False)

@@ -9,7 +9,7 @@ from .SSHVisualiser import SSHVisualiser
 __all__ = [
     'SSH',
     'ModelParameters',
-    'EnsembleParameters'
+    'EnsembleParameters',
     'SSHSimulation',
     'SSHVisualiser'
 ]
