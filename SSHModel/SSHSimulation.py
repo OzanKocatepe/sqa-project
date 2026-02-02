@@ -63,11 +63,12 @@ class SSHSimulation:
         if numT < 2:
             numT = 2
 
-        iterable = self.__models.items()
+        iterable = enumerate(self.__models.items())
 
-        for k, model in iterable:
+        for kIndex, tup in iterable:
+            k, model = tup
             if debug:
-                print(f"Solving for momentum {k / np.pi:.2f}pi...")
+                print(f"Solving for momentum {k / np.pi:.2f}pi ({kIndex + 1}/{len(self.__models.items())})...")
 
             model.Solve(tauAxis, initialConditions, numT, debug=debug)
             model.CalculateCurrent(steadyStateCutoff)

@@ -154,9 +154,9 @@ class SSH:
             'max_step' : 0.01 / self.__params.decayConstant
         }
 
-        if debug:
-            print("Solving single-time correlations...")
-        self.__correlationData.singleTime = self.__CalculateSingleTimeCorrelations(initialConditions, odeParams, debug)
+        # if debug:
+        #     print("Calculating single-time correlations...")
+        self.__correlationData.singleTime = self.__CalculateSingleTimeCorrelations(initialConditions, odeParams, debug=False)
 
         # Calculates the single-time fourier expansions.
         self.__correlationData.singleTimeFourier = []
@@ -240,8 +240,8 @@ class SSH:
         # each time within the steady-state period that we want to calculate.
         doubleTimeInitialConditions = self.__CalculateDoubleTimeInitialConditions()
 
-        if debug:
-            print(f"Calculating double-time correlations for k = {self.__params.k / np.pi:.2f}pi...")
+        # if debug:
+        #     print(f"Calculating double-time correlations...")
 
         # Loops through each initial condition time t.
         outerIterable = self.__correlationData.tAxisSec
@@ -265,7 +265,7 @@ class SSH:
                 ).y
 
     def __CalculateTAxis(self, steadyStateCutoff: int, numT: int) -> None:
-        """
+        r"""
         Calculates the points along the t axis, within a steady state period, that will
         be used when calculating the double-time correlations.
         
