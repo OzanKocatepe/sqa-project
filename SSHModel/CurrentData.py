@@ -12,12 +12,12 @@ class CurrentData:
     timeDomainData: np.ndarray[complex] = None
     freqDomainData: np.ndarray[complex] = None
     fourierExpansion: Fourier = None
-    coefficientFourierExpansion: list[Fourier] = None
+    doubleTimeData: np.ndarray[complex] = None
+    doubleProductData: np.ndarray[complex] = None
+    doubleConnectedCorrelator: np.ndarray[complex] = None
     tauAxisDim: np.ndarray[float] = None
     tauAxisSec: np.ndarray[float] = None
     freqAxis: np.ndarray[float] = None
-    doubleTimeData: np.ndarray[complex] = None
-    doubleProductData: np.ndarray[complex] = None
 
     def __add__(self, other: CurrentData) -> CurrentData:
         """
@@ -44,7 +44,9 @@ class CurrentData:
             timeDomainData = self.timeDomainData + other.timeDomainData,
             freqDomainData = self.freqDomainData + other.freqDomainData,
             fourierExpansion = self.fourierExpansion + other.fourierExpansion,
-            coefficientFourierExpansion = coefficientExpansions,
+            doubleTimeData = self.doubleTimeData + other.doubleTimeData,
+            doubleProductData = self.doubleProductData + other.doubleProductData,
+            doubleConnectedCorrelator = self.doubleConnectedCorrelator + other.doubleConnectedCorrelator,
             tauAxisDim = self.tauAxisDim,
             tauAxisSec = self.tauAxisSec,
             freqAxis = self.freqAxis
@@ -66,11 +68,11 @@ class CurrentData:
         """
 
         # Calculates value of current coefficients and stores them in coefficientFourierExpansion.
-        self.__CalculateCurrentCoefficients(k, params, correlationData.tauAxisSec)
+        coefficientFourierExpansions = self.__CalculateCurrentCoefficients(k, params, correlationData.tauAxisSec)
         # Calculates the full fourier expansion of the current expectation and stores it in fourierExpansion.
-        self.__CalculateCurrentExpectationCoefficients(params, correlationData)
+        self.__CalculateCurrentExpectationCoefficients(params, correlationData, coefficientFourierExpansions)
 
-    def __CalculateCurrentExpectationCoefficients(self, params: ModelParameters, correlationData: CorrelationData) -> None:
+    def __CalculateCurrentExpectationCoefficients(self, params: ModelParameters, correlationData: CorrelationData, coefficientFourierExpansions: list[Fourier]) -> None:
         r"""
         Calculates the coefficients for the fourier expansion of the expectation of the current operator
         into the laser harmonics. These are calculated from the fourier coefficients of the single-time
@@ -82,6 +84,9 @@ class CurrentData:
             The parameters of the SSH model.
         correlationData : CorrelationData
             The correlation data calculated within the relevant SSH instance.
+        coefficientFourierExpansions : list[Fourier]
+            A list containing the fourier series for the coefficients of the pauli matrices when the current operator is expanded
+            into the pauli matrix basis.
         """
 
         # The value of n must be the same as that of the expectation and current coefficient fourier expansions,
@@ -133,7 +138,7 @@ class CurrentData:
             coefficients
         )
 
-    def __CalculateCurrentCoefficients(self, k: float, params: ModelParameters, tauAxisSec: np.ndarray[float]) -> None:
+    def __CalculateCurrentCoefficients(self, k: float, params: ModelParameters, tauAxisSec: np.ndarray[float]) -> list[Fourier]:
         r"""
         Calculates the fourier coefficients corresponding to the coefficients of the operators in the current operator.
         i.e. the coefficients for $j_-(t), j_+(t), j_z(t)$.
@@ -146,6 +151,12 @@ class CurrentData:
             The parameters of the SSH model.
         tauAxisSec : ndarray[float]
             The points in time, in seconds, that the current operator in the time-domain was calculated at.
+
+        Returns
+        -------
+        list[Fourier]
+            A list containing the fourier series for each of the coefficient functions to the pauli matrices when the current
+            operator is expanded in terms of the pauli matrices.
         """
 
         n = Fourier.DetermineMaxN(tauAxisSec, params.drivingFreq)
@@ -164,11 +175,13 @@ class CurrentData:
         coefficients[1, :] = -coefficients[0, :]
 
 
-        self.coefficientFourierExpansion = []
+        coefficientFourierExpansion = []
         for i in range(3):
-            self.coefficientFourierExpansion.append(
+            coefficientFourierExpansion.append(
                 Fourier(
                     params.drivingFreq,
                     coefficients[i, :]
                 )
             )
+
+        return coefficientFourierExpansion

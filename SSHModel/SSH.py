@@ -251,11 +251,11 @@ class SSH:
         for tIndex, t in enumerate(outerIterable):
             # Loops through all 3 operators that we can left-multiply by.
             for i in range(3):
-                # Calculates the new initial conditions and inhomogenous term.
+                # Calculates the new inhomogenous term.
                 newInhomPart = -self.__params.decayConstant * self.__correlationData.singleTimeFourier[i].Evaluate(t)[0]
-                # newInhomPart = 0.0
-                # Solves system.
                 args = (newInhomPart,)
+
+                # Solves system.
                 self.__correlationData.doubleTime[i, :, tIndex, :] = integrate.solve_ivp(
                     t_span = t + np.array([0, np.max(self.__correlationData.tauAxisSec)]),
                     t_eval = t + self.__correlationData.tauAxisSec,
@@ -349,21 +349,19 @@ class SSH:
             + 1j * np.cos(self.__params.k - self.__params.phiK - drivingSamples) * (self.__correlationData.singleTime[1] - self.__correlationData.singleTime[0])
         )
 
-        # Only considers the system in steady state for the Fourier transform, if desired.
-        if steadyStateCutoff != None:
+        if steadyStateCutoff is not None:
             mask = self.__correlationData.tauAxisSec >= steadyStateCutoff / self.__params.decayConstant
         else:
             mask = np.full(self.__correlationData.tauAxisSec.size, True, dtype=bool)
 
-        # The full axis which we have declared to be in a steady state.
-        fullSteadyStateAxis = self.__correlationData.tauAxisSec[mask]
+        steadyStateAxis = self.__correlationData.tauAxisSec[mask]
 
         # Calculates the Fourier transform of the solution.
         self.__currentData.freqDomainData = np.fft.fftshift(np.fft.fft(self.__currentData.timeDomainData[mask]))
 
         # Calculates the relevant frequency axis.
-        sampleSpacing = (np.max(fullSteadyStateAxis) - np.min(fullSteadyStateAxis)) / fullSteadyStateAxis.size
-        self.__currentData.freqAxis = np.fft.fftshift(np.fft.fftfreq(fullSteadyStateAxis.size, sampleSpacing))
+        sampleSpacing = (np.max(steadyStateAxis) - np.min(steadyStateAxis)) / steadyStateAxis.size
+        self.__currentData.freqAxis = np.fft.fftshift(np.fft.fftfreq(steadyStateAxis.size, sampleSpacing))
 
         # Calculates the fourier expansions of the current data.
         self.__currentData.CalculateFourier(self.__params.k, self.__params, self.__correlationData)
@@ -374,8 +372,11 @@ class SSH:
         # Calculates the double product data (the second term in the connected correlator).
         self.__CalculateDoubleProductCurrent()
 
-        return self.__currentData
-    
+        # Calculates the connected correlator.
+        self.__CalculateIntegratedConnectedCorrelator()
+
+        return self.__currentData  
+ 
     def __CalculateDoubleProductCurrent(self) -> None:
         r"""
         Calculates the current double-time product, of the form $\langle j(t) \rangle \langle j(t + \tau) \rangle$, using the fact that
@@ -423,6 +424,26 @@ class SSH:
 
             self.__currentData.doubleTimeData[tIndex, :] = coeff1 * operators1 + coeff2 * operators2 + coeff3 * operators3 + coeff4 * operators4
     
+    def __CalculateIntegratedConnectedCorrelator(self) -> None:
+        """Calculates the double-time connected correlator which has been integrated over one period w.r.t t.
+        
+        Returns
+        -------
+        ndarray[complex]
+            An array containing the value of the integrated connected correlated at each time t + tau.
+        """
+        
+        # Integrates our double-time correlation function over a single steady-state period w.r.t t.
+        integratedDoubleTimeData = np.trapezoid(
+            y = self.__currentData.doubleTimeData,
+            x = self.__correlationData.tAxisSec,
+            axis = 0
+        )
+
+        # Subtracts the (already integrated) double product data from the newly calculated integrated double-time
+        # correlation function.
+        self.__currentData.doubleConnectedCorrelator = integratedDoubleTimeData - self.__currentData.doubleProductData
+
     @property
     def correlationData(self) -> CorrelationData:
         if self.__correlationData is None:
