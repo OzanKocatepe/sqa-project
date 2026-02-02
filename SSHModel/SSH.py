@@ -1,9 +1,6 @@
 import numpy as np
 import scipy.integrate as integrate
-from typing import Callable
 from tqdm import tqdm
-import copy
-import time
 
 from SSHModel import CorrelationData, CurrentData, ModelParameters, Fourier
 
