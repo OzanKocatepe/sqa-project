@@ -1,6 +1,6 @@
 import numpy as np
 from .SSH import SSH
-from .SSHParameters import SSHParameters
+from .SSHParameters import EnsembleParameters, ModelParameters
 from .CurrentData import CurrentData
 
 class SSHSimulation:
@@ -9,14 +9,14 @@ class SSHSimulation:
     All interactions with the SSH class should ideally occur through this class.
     """
 
-    def __init__(self, params: SSHParameters):
+    def __init__(self, params: EnsembleParameters):
         """
         Constructs an instance of SSHSimulation, setting the physical parameters of our system.
 
         Parameters
         ----------
-        params : SSHParameters
-            An instance of SSHParameters that contains the model parameters.
+        params : EnsembleParameters
+            An instance of EnsembleParameters that contains the model parameters.
         """
 
         self.params = params
@@ -37,7 +37,8 @@ class SSHSimulation:
         k = np.atleast_1d(k)
 
         for kPoint in k:
-            self.__models[kPoint] = SSH(kPoint, self.params)
+            modelParams = ModelParameters.FromEnsemble(kPoint, self.params)
+            self.__models[kPoint] = SSH(modelParams)
 
     def Run(self, tauAxis: np.ndarray[float], initialConditions: np.ndarray[complex], numT: int=5, steadyStateCutoff: float=25, debug: bool=False):
         r"""Runs the simulations for all the momentum values.

@@ -5,7 +5,7 @@ from tqdm import tqdm
 import copy
 import time
 
-from SSHModel import CorrelationData, CurrentData, SSHParameters, Fourier
+from SSHModel import CorrelationData, CurrentData, ModelParameters, Fourier
 
 class SSH:
     """
@@ -13,24 +13,19 @@ class SSH:
     Since we consider a fixed momentum, this system simplifies to essentially a two-level system.
     """
 
-    def __init__(self, k: float, params: SSHParameters):
+    def __init__(self, params: ModelParameters):
         """
         Constructs an instance of the SSH model.
 
         Parameters
         ----------
-        k : float
-            The momentum.
-        params: SSHParameters
+        params: ModelParameters
             The parameters of the SSH model.
         """
 
-        self.k = k
-        self.__params = copy.deepcopy(params)
+        self.__params = params
         self.__correlationData: CorrelationData = None
         self.__currentData: CurrentData = None
-
-        self.__params.CalculateUsefulTerms(k)
 
     def __SinusoidalDrivingTerm(self, t: float | np.ndarray[float]) ->  float | np.ndarray[float]:
         """A classical, sinusoidal driving term for the system.
