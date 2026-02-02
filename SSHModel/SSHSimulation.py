@@ -50,13 +50,18 @@ class SSHSimulation:
         initialConditions : ndarray[complex]
             The initial conditions in the eigenbasis of the system.
         numT : int
-            The number of t values within a steady state period to use.
+            The number of t values within a steady state period to use. If <2, will be set to 2
+            so that the integration step for the double-time current correlations actually averages
+            over a steady-state period.
         steadyStateCutoff : float
             The time (in units of $\gamma_-^{-1}$) which we consider the system to be in steady-state.
             i.e. we only consider the Fourier transform of the system after this point.
         debug : bool
             Whether to output debug progress statements.
         """
+
+        if numT < 2:
+            numT = 2
 
         iterable = self.__models.items()
 

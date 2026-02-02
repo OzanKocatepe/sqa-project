@@ -5,7 +5,7 @@ import math
 from SSHModel import *
 
 k = np.pi / 4
-numT = 1
+numT = 5
 tauAxis = np.linspace(0, 30, 20000)
 initialConditions = np.array([-0.5, -0.5, 0], dtype=complex)
 

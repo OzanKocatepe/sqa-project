@@ -13,6 +13,7 @@ class CurrentData:
     freqDomainData: np.ndarray[complex] = None
     fourierExpansion: Fourier = None
     doubleTimeData: np.ndarray[complex] = None
+    integratedDoubleTimeData: np.ndarray[complex] = None
     doubleProductData: np.ndarray[complex] = None
     doubleConnectedCorrelator: np.ndarray[complex] = None
     tauAxisDim: np.ndarray[float] = None
@@ -45,6 +46,7 @@ class CurrentData:
             freqDomainData = self.freqDomainData + other.freqDomainData,
             fourierExpansion = self.fourierExpansion + other.fourierExpansion,
             doubleTimeData = self.doubleTimeData + other.doubleTimeData,
+            integratedDoubleTimeData = self.integratedDoubleTimeData + other.integratedDoubleTimeData,
             doubleProductData = self.doubleProductData + other.doubleProductData,
             doubleConnectedCorrelator = self.doubleConnectedCorrelator + other.doubleConnectedCorrelator,
             tauAxisDim = self.tauAxisDim,

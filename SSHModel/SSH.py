@@ -434,7 +434,7 @@ class SSH:
         """
         
         # Integrates our double-time correlation function over a single steady-state period w.r.t t.
-        integratedDoubleTimeData = np.trapezoid(
+        self.__currentData.integratedDoubleTimeData = np.trapezoid(
             y = self.__currentData.doubleTimeData,
             x = self.__correlationData.tAxisSec,
             axis = 0
@@ -442,7 +442,7 @@ class SSH:
 
         # Subtracts the (already integrated) double product data from the newly calculated integrated double-time
         # correlation function.
-        self.__currentData.doubleConnectedCorrelator = integratedDoubleTimeData - self.__currentData.doubleProductData
+        self.__currentData.doubleConnectedCorrelator = self.__currentData.integratedDoubleTimeData - self.__currentData.doubleProductData
 
     @property
     def correlationData(self) -> CorrelationData:
