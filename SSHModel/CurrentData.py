@@ -16,6 +16,7 @@ class CurrentData:
     integratedDoubleTimeData: np.ndarray[complex] = None
     doubleProductData: np.ndarray[complex] = None
     doubleConnectedCorrelator: np.ndarray[complex] = None
+    doubleConnectedCorrelatorFreqDomain: np.ndarray[complex] = None
     tauAxisDim: np.ndarray[float] = None
     tauAxisSec: np.ndarray[float] = None
     freqAxis: np.ndarray[float] = None
@@ -45,6 +46,7 @@ class CurrentData:
             integratedDoubleTimeData = self.integratedDoubleTimeData + other.integratedDoubleTimeData,
             doubleProductData = self.doubleProductData + other.doubleProductData,
             doubleConnectedCorrelator = self.doubleConnectedCorrelator + other.doubleConnectedCorrelator,
+            doubleConnectedCorrelatorFreqDomain = self.doubleConnectedCorrelatorFreqDomain + other.doubleConnectedCorrelatorFreqDomain,
             tauAxisDim = self.tauAxisDim,
             tauAxisSec = self.tauAxisSec,
             freqAxis = self.freqAxis

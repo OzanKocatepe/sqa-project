@@ -5,6 +5,7 @@ import math
 from SSHModel import *
 
 # k = np.pi / 4
+numK = 10
 numT = 10
 tauAxis = np.linspace(0, 30, 20000)
 initialConditions = np.array([-0.5, -0.5, 0], dtype=complex)
@@ -19,6 +20,7 @@ params = EnsembleParameters(
 
 sim = SSHSimulation(params)
 sim.AddMomentum(np.linspace(-np.pi, np.pi, 10))
+# sim.AddMomentum(np.pi / 4)
 sim.Run(tauAxis, initialConditions, numT, debug=True)
 
 vis = SSHVisualiser(sim)
@@ -28,3 +30,5 @@ vis = SSHVisualiser(sim)
 # vis.PlotSingleTimeProducts(k, saveFigs=True, numTauPoints=None, show=False)
 vis.PlotTotalCurrent(saveFig = True, show = False)
 vis.PlotConnectedCurrentCorrelator(saveFig = True, show = False)
+vis.PlotIntegratedDoubleTimeCurrentCorrelation(saveFig=True, show=False)
+vis.PlotIntegratedDoubleTimeCurrentProduct(saveFig=True, show=False)

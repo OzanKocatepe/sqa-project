@@ -358,6 +358,20 @@ class SSHVisualiser:
         if show:
             plt.show()
 
+        plt.figure(figsize=(16, 8.8))
+
+        # Plotting the fourier transform of the connected correlator.
+        plt.semilogy(currentData.freqAxis / self._sim.params.drivingFreq, np.abs(currentData.doubleConnectedCorrelatorFreqDomain)**2,
+                color = 'black')
+
+        plt.suptitle(title)
+        plt.xlabel(r"$\omega / \Omega$")
+        plt.ylabel(r"$\| \mathcal{F}[\int dt\, \langle j(t) j(t + \tau) \rangle - \langle j(t) \rangle \langle j(t + \tau) \rangle](\omega) \|^2$")
+        if saveFig:
+            plt.savefig("plots/Current Connected Correlator Freq Domain.png", dpi=300)
+        if show:
+            plt.show()
+
     def PlotIntegratedDoubleTimeCurrentCorrelation(self, saveFig: bool=False, show: bool=True) -> None:
         r"""Plots the integrated double-time current correlation, $\int dt\, \langle j(t) j(t + \tau) \rangle$.
         

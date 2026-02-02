@@ -350,7 +350,7 @@ class SSH:
         )
 
         if steadyStateCutoff is not None:
-            mask = self.__correlationData.tauAxisSec >= steadyStateCutoff / self.__params.decayConstant
+            mask = self.__correlationData.tauAxisDim >= steadyStateCutoff
         else:
             mask = np.full(self.__correlationData.tauAxisSec.size, True, dtype=bool)
 
@@ -375,6 +375,10 @@ class SSH:
         # Calculates the connected correlator.
         self.__CalculateIntegratedConnectedCorrelator()
 
+        # Calculates the FFT of the current connected correlator. Since we are using the same tau axis and steady
+        # state cutoff, we can use the same frequency axis as before.
+        self.__currentData.doubleConnectedCorrelatorFreqDomain = np.fft.fftshift(np.fft.fft(self.__currentData.doubleConnectedCorrelator[mask]))
+
         return self.__currentData  
  
     def __CalculateDoubleProductCurrent(self) -> None:
@@ -392,7 +396,7 @@ class SSH:
             baseFreq = self.__params.drivingFreq,
             coeffs = coefficients
         )
-        
+ 
         self.__currentData.doubleProductData = fourier.Evaluate(self.__correlationData.tauAxisSec)
     
     def __CalculateDoubleTimeCurrent(self) -> None:
@@ -434,7 +438,7 @@ class SSH:
         """
         
         # Integrates our double-time correlation function over a single steady-state period w.r.t t.
-        self.__currentData.integratedDoubleTimeData = np.trapezoid(
+        self.__currentData.integratedDoubleTimeData = self.__params.drivingFreq * np.trapezoid(
             y = self.__currentData.doubleTimeData,
             x = self.__correlationData.tAxisSec,
             axis = 0
