@@ -37,10 +37,6 @@ class CurrentData:
             the sum of their time and frequency data.
         """
 
-        coefficientExpansions = []
-        for i in range(3):
-            coefficientExpansions[i] = self.coefficientFourierExpansion[i] + other.coefficientFourierExpansion[i]
-
         return CurrentData(
             timeDomainData = self.timeDomainData + other.timeDomainData,
             freqDomainData = self.freqDomainData + other.freqDomainData,
