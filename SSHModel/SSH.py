@@ -349,7 +349,39 @@ class SSH:
         # Calculates the fourier expansions of the current data.
         self.__currentData.CalculateFourier(self.k, self.__params, self.__correlationData)
 
+        # Calculates the double-time current data.
+        self.__CalculateDoubleTimeCurrent()
+
         return self.__currentData
+    
+    def __CalculateDoubleTimeCurrent(self) -> None:
+        r"""
+        Calculates the double-time current correlation data in the form of $\langle j(t) j(t + \tau) \rangle$ for the current momentum.
+        Stores the values in currentData directly.
+        """
+
+        self.__currentData.doubleTimeData = np.zeros((self.__correlationData.tAxisSec.size, self.__correlationData.tauAxisSec.size), dtype=complex)
+
+        # Defines useful properties.
+        kSubtract = self.k - self.__params.phiK
+        drivingSamplesT = self.__SinusoidalDrivingTerm(self.__correlationData.tAxisSec)
+
+        # Calculates the current operator at all times tau for each time t.
+        for tIndex, t in enumerate(self.__correlationData.tAxisSec):
+            doubleTimeAtT = self.__correlationData.doubleTime[:, :, tIndex, :]
+            drivingSamplesTau = self.__SinusoidalDrivingTerm(t + self.__correlationData.tauAxisSec)
+
+            coeff1 = np.sin(kSubtract - drivingSamplesT) * np.sin(kSubtract - drivingSamplesTau)
+            coeff2 = -np.cos(kSubtract - drivingSamplesT) * np.cos(kSubtract - drivingSamplesTau)
+            coeff3 = -1j * np.cos(kSubtract - drivingSamplesT) * np.sin(kSubtract - drivingSamplesTau)
+            coeff4 = -1j * np.sin(kSubtract - drivingSamplesT) * np.cos(kSubtract - drivingSamplesTau)
+
+            operators1 = doubleTimeAtT[2, 2, :]
+            operators2 = doubleTimeAtT[1, 1, :] - doubleTimeAtT[1, 0, :] - doubleTimeAtT[0, 1, :] + doubleTimeAtT[0, 0, :]
+            operators3 = doubleTimeAtT[1, 2, :] - doubleTimeAtT[0, 2, :]
+            operators4 = doubleTimeAtT[2, 1, :] - doubleTimeAtT[2, 0, :]
+
+            self.__currentData.doubleTimeData[tIndex, :] = coeff1 * operators1 + coeff2 * operators2 + coeff3 * operators3 + coeff4 * operators4
     
     @property
     def correlationData(self) -> CorrelationData:

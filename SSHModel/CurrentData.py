@@ -8,6 +8,7 @@ import scipy.special as special
 @dataclass
 class CurrentData:
     """Contains all of the data relating to the current operator."""
+
     timeDomainData: np.ndarray[complex] = None
     freqDomainData: np.ndarray[complex] = None
     fourierExpansion: Fourier = None
@@ -15,6 +16,7 @@ class CurrentData:
     tauAxisDim: np.ndarray[float] = None
     tauAxisSec: np.ndarray[float] = None
     freqAxis: np.ndarray[float] = None
+    doubleTimeData: np.ndarray[complex] = None
 
     def __add__(self, other: CurrentData) -> CurrentData:
         """
