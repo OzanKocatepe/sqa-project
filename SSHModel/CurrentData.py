@@ -17,6 +17,7 @@ class CurrentData:
     tauAxisSec: np.ndarray[float] = None
     freqAxis: np.ndarray[float] = None
     doubleTimeData: np.ndarray[complex] = None
+    doubleProductData: np.ndarray[complex] = None
 
     def __add__(self, other: CurrentData) -> CurrentData:
         """

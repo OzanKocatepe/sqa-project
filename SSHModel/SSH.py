@@ -352,7 +352,28 @@ class SSH:
         # Calculates the double-time current data.
         self.__CalculateDoubleTimeCurrent()
 
+        # Calculates the double product data (the second term in the connected correlator).
+        self.__CalculateDoubleProductCurrent()
+
         return self.__currentData
+    
+    def __CalculateDoubleProductCurrent(self) -> None:
+        r"""
+        Calculates the current double-time product, of the form $\langle j(t) \rangle \langle j(t + \tau) \rangle$, using the fact that
+        it can be expressed as the fourier series $\sum_{n = -N}^N | j_n |^2 e^{i \omega n \tau}$. Stores the result directly in currentData.
+
+        The calculated result is *after* integrating w.r.t. dt over a period.
+        """
+
+        coefficients = np.abs(self.__currentData.fourierExpansion.coeffs)**2
+
+        # Stores the new fourier data so that we can evaluate it.
+        fourier = Fourier(
+            baseFreq = self.__params.drivingFreq,
+            coeffs = coefficients
+        )
+        
+        self.__currentData.doubleProductData = fourier.Evaluate(self.__correlationData.tauAxisSec)
     
     def __CalculateDoubleTimeCurrent(self) -> None:
         r"""
