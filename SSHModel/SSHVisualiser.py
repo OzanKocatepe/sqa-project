@@ -268,6 +268,8 @@ class SSHVisualiser:
         currentData = self._sim.CalculateTotalCurrent()
 
         kValues = self._sim.momentums
+        if kValues.size > 3:
+            kValues = f"[{np.min(kValues) / np.pi}, {np.max(kValues) / np.pi}, {kValues.size}]"
         title = rf"$k = {kValues} \pi,\, t_1 = {self._sim.params.t1},\, t_2 = {self._sim.params.t2},\, A_0 = {self._sim.params.drivingAmplitude},\, \Omega = {self._sim.params.drivingFreq:.5f},\, \gamma_- = {self._sim.params.decayConstant}$"
 
         currentLabel = r"$\langle\tilde j_k \rangle$"
@@ -323,6 +325,8 @@ class SSHVisualiser:
         currentData = self._sim.CalculateTotalCurrent()
 
         kValues = self._sim.momentums
+        if kValues.size > 3:
+            kValues = f"[{np.min(kValues) / np.pi}, {np.max(kValues) / np.pi}, {kValues.size}]"
         title = rf"$k = {kValues} \pi,\, t_1 = {self._sim.params.t1},\, t_2 = {self._sim.params.t2},\, A_0 = {self._sim.params.drivingAmplitude},\, \Omega = {self._sim.params.drivingFreq:.5f},\, \gamma_- = {self._sim.params.decayConstant}$"
 
         currentLabel = r"$\int dt\, \langle \tilde j (t) \tilde j(t + \tau) \rangle - \langle \tilde j(t) \rangle \langle \tilde j(t + \tau) \rangle$"
@@ -364,6 +368,8 @@ class SSHVisualiser:
         currentData = self._sim.CalculateTotalCurrent()
 
         kValues = self._sim.momentums
+        if kValues.size > 3:
+            kValues = f"[{np.min(kValues) / np.pi}, {np.max(kValues) / np.pi}, {kValues.size}]"
         title = rf"$k = {kValues} \pi,\, t_1 = {self._sim.params.t1},\, t_2 = {self._sim.params.t2},\, A_0 = {self._sim.params.drivingAmplitude},\, \Omega = {self._sim.params.drivingFreq:.5f},\, \gamma_- = {self._sim.params.decayConstant}$"
 
         currentLabel = r"$\int dt\, \langle \tilde j (t) \tilde j(t + \tau) \rangle$"
@@ -405,6 +411,8 @@ class SSHVisualiser:
         currentData = self._sim.CalculateTotalCurrent()
 
         kValues = self._sim.momentums
+        if kValues.size > 3:
+            kValues = f"[{np.min(kValues) / np.pi}, {np.max(kValues) / np.pi}, {kValues.size}]"
         title = rf"$k = {kValues} \pi,\, t_1 = {self._sim.params.t1},\, t_2 = {self._sim.params.t2},\, A_0 = {self._sim.params.drivingAmplitude},\, \Omega = {self._sim.params.drivingFreq:.5f},\, \gamma_- = {self._sim.params.decayConstant}$"
 
         currentLabel = r"$\int dt\, \langle \tilde j(t) \rangle \langle \tilde j(t + \tau) \rangle$"
