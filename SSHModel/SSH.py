@@ -412,10 +412,10 @@ class SSH:
             doubleTimeAtT = self.__correlationData.doubleTime[:, :, tIndex, :]
             drivingSamplesTau = self.__SinusoidalDrivingTerm(t + self.__correlationData.tauAxisSec)
 
-            coeff1 = np.sin(kSubtract - drivingSamplesT) * np.sin(kSubtract - drivingSamplesTau)
-            coeff2 = -np.cos(kSubtract - drivingSamplesT) * np.cos(kSubtract - drivingSamplesTau)
-            coeff3 = -1j * np.cos(kSubtract - drivingSamplesT) * np.sin(kSubtract - drivingSamplesTau)
-            coeff4 = -1j * np.sin(kSubtract - drivingSamplesT) * np.cos(kSubtract - drivingSamplesTau)
+            coeff1 = np.sin(kSubtract - drivingSamplesT[tIndex]) * np.sin(kSubtract - drivingSamplesTau)
+            coeff2 = -np.cos(kSubtract - drivingSamplesT[tIndex]) * np.cos(kSubtract - drivingSamplesTau)
+            coeff3 = -1j * np.cos(kSubtract - drivingSamplesT[tIndex]) * np.sin(kSubtract - drivingSamplesTau)
+            coeff4 = -1j * np.sin(kSubtract - drivingSamplesT[tIndex]) * np.cos(kSubtract - drivingSamplesTau)
 
             operators1 = doubleTimeAtT[2, 2, :]
             operators2 = doubleTimeAtT[1, 1, :] - doubleTimeAtT[1, 0, :] - doubleTimeAtT[0, 1, :] + doubleTimeAtT[0, 0, :]

@@ -98,7 +98,7 @@ class CurrentData:
         currentCoeff = np.zeros((3, 2 * n + 1), dtype=complex)
         for i in range(3):
             expectationCoeff[i] = correlationData.singleTimeFourier[i].coeffs
-            currentCoeff[i] = self.coefficientFourierExpansion[i].coeffs
+            currentCoeff[i] = coefficientFourierExpansions[i].coeffs
 
         r"""
         The following code is slightly convoluted, so a better explanation is given here. We have two fourier expansions.

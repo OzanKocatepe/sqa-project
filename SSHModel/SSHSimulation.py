@@ -79,7 +79,7 @@ class SSHSimulation:
             The CurrentData object containing the data for the sum of the currents at each momentum.
         """
 
-        totalCurrentData = np.array([model.currentData.timeDomainData for model in self.__models.values()])
+        totalCurrentData = np.array([model.currentData for model in self.__models.values()])
         return np.sum(totalCurrentData)
 
     @property

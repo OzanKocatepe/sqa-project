@@ -254,8 +254,16 @@ class SSHVisualiser:
                 if show:
                     plt.show()
         
-    def PlotTotalCurrent(self) -> None:
-        """Plots the total current operator in the time and frequency domains."""
+    def PlotTotalCurrent(self, saveFig: bool=False, show: bool=True) -> None:
+        """Plots the total current operator in the time and frequency domains.
+        
+        Parameters
+        ----------
+        saveFigs : bool
+            Determines whether to save the figure or not.
+        show : bool
+            Whether to show the plots or not.
+        """
 
         currentData = self._sim.CalculateTotalCurrent()
 
@@ -277,12 +285,15 @@ class SSHVisualiser:
             ax[row].plot(currentData.tauAxisDim, self._plottingFunctions[row](currentData.timeDomainData),
                         color = "Black")
     
-            ax[row].set_xlabel(self._tLabel)
+            ax[row].set_xlabel(self._tauLabel)
             ax[row].set_ylabel(yLabels[row])
 
         plt.suptitle(title)
         plt.tight_layout()
-        plt.show()
+        if saveFig:
+            plt.savefig("plots/Current Time Domain.png", dpi=300)
+        if show:
+            plt.show()
 
         plt.figure(figsize=(16, 8.8))
 
@@ -293,4 +304,48 @@ class SSHVisualiser:
         plt.suptitle(title)
         plt.xlabel(r"$\omega / \Omega$")
         plt.ylabel(r"$\| \tilde j (\omega) \|^2$")
-        plt.show()
+        if saveFig:
+            plt.savefig("plots/Current Freq Domain.png", dpi=300)
+        if show:
+            plt.show()
+
+    def PlotConnectedCurrentCorrelator(self, saveFig: bool=False, show: bool=True) -> None:
+        """Plots the total integrated connected current correlator.
+        
+        Parameters
+        ----------
+        saveFigs : bool
+            Determines whether to save the figure or not.
+        show : bool
+            Whether to show the plots or not.
+        """
+
+        currentData = self._sim.CalculateTotalCurrent()
+
+        kValues = self._sim.momentums
+        title = rf"$k = {kValues} \pi,\, t_1 = {self._sim.params.t1},\, t_2 = {self._sim.params.t2},\, A_0 = {self._sim.params.drivingAmplitude},\, \Omega = {self._sim.params.drivingFreq:.5f},\, \gamma_- = {self._sim.params.decayConstant}$"
+
+        currentLabel = r"$\int dt\, \langle \tilde j (t) \tilde j(t + \tau) \rangle - \langle \tilde j(t) \rangle \langle \tilde j(t + \tau) \rangle$"
+        yLabels = [
+            f"Magnitude of {currentLabel}",
+            f"Real Part of {currentLabel}",
+            f"Imaginary Part of {currentLabel}"
+        ]
+
+        nrows, ncols = 3, 1
+        fig, ax = plt.subplots(nrows, ncols, figsize=(16, 8.8))
+
+        for row in np.arange(nrows):
+            # Plot the numerical solution.
+            ax[row].plot(currentData.tauAxisDim, self._plottingFunctions[row](currentData.doubleConnectedCorrelator),
+                        color = "Black")
+    
+            ax[row].set_xlabel(self._tauLabel)
+            ax[row].set_ylabel(yLabels[row])
+
+        plt.suptitle(title)
+        plt.tight_layout()
+        if saveFig:
+            plt.savefig("plots/Current Connected Correlator.png", dpi=300)
+        if show:
+            plt.show()
