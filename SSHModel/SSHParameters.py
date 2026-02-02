@@ -48,20 +48,3 @@ class ModelParameters(EnsembleParameters):
             drivingAmplitude = ensemble.drivingAmplitude,
             drivingFreq = ensemble.drivingFreq
         )
-
-ensemble = EnsembleParameters(
-    t1 = 1,
-    t2 = 2,
-    decayConstant = 0.1,
-    drivingAmplitude = 0.2,
-    drivingFreq = 2 / 3.01
-)
-
-print(ensemble)
-
-model = ModelParameters.FromEnsemble(
-    k = np.pi / 4,
-    ensemble = ensemble
-)
-
-print(model)
