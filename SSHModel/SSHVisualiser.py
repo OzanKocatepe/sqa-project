@@ -379,10 +379,47 @@ class SSHVisualiser:
 
         plt.suptitle(title)
         plt.xlabel(r"$\omega / \Omega$")
-        plt.ylabel(r"$\| \mathcal{F}[\int dt\, \langle j(t) j(t + \tau) \rangle - \langle j(t) \rangle \langle j(t + \tau) \rangle](\omega) \|^2$")
+        plt.ylabel(r"$\| \mathcal{F}\left[\int dt\, \langle j(t) j(t + \tau) \rangle - \langle j(t) \rangle \langle j(t + \tau) \rangle\right](\omega) \|^2$")
         plt.xlim(fLim)
         if saveFig:
             plt.savefig("plots/Current Connected Correlator Freq Domain.png", dpi=300)
+        if show:
+            plt.show()
+
+    def PlotNumericallyIntegratedHarmonics(self, saveFig: bool=False, show: bool=True, fLim: tuple[float]=(-12, 12)) -> None:
+        r"""
+        Plots the fourier transform of the harmonics at each $n\Omega$, manually integrated.
+
+        Parameters
+        ----------
+        saveFigs : bool
+            Determines whether to save the figure or not.
+        show : bool
+            Whether to show the plots or not.
+        fLim: tuple[float]
+            The limits to apply on the frequency axis.
+        """
+        currentData = self._sim.CalculateTotalCurrent()
+        plt.figure(figsize=(16, 8.8))
+
+        kValues = self._sim.momentums
+        if kValues.size > 3:
+            kValues = f"[{np.min(kValues) / np.pi}, {np.max(kValues) / np.pi}, {kValues.size}]"
+        else:
+            kValues /= np.pi
+        title = rf"$k = {kValues} \pi,\, t_1 = {self._sim.params.t1},\, t_2 = {self._sim.params.t2},\, A_0 = {self._sim.params.drivingAmplitude},\, \Omega = {self._sim.params.drivingFreq:.5f},\, \gamma_- = {self._sim.params.decayConstant}$"
+
+        # Plotting the fourier transform of the connected correlator.
+        n = (currentData.harmonics.size - 1) // 2
+        plt.semilogy(np.arange(-n, n + 1), currentData.harmonics.real, 'o',
+                color = 'black')
+
+        plt.suptitle(title)
+        plt.xlabel(r"$\omega / \Omega$")
+        plt.ylabel(r"Real Part of $\mathcal{F}\left[\int dt\, \langle j(t) j(t + \tau) \rangle - \langle j(t) \rangle \langle j(t + \tau) \rangle\right](\omega)$")
+        plt.xlim(fLim)
+        if saveFig:
+            plt.savefig("plots/Connected Correlator Harmonics.png", dpi=300)
         if show:
             plt.show()
 

@@ -31,5 +31,6 @@ if __name__ == "__main__":
     # vis.PlotSingleTimeProducts(k, saveFigs=True, numTauPoints=None, show=False)
     # vis.PlotTotalCurrent(saveFig = True, show = False)
     # vis.PlotConnectedCurrentCorrelator(saveFig = True, show = False)
+    vis.PlotNumericallyIntegratedHarmonics(saveFig = True, show = False, fLim=(-12.5, 12.5))
     # vis.PlotIntegratedDoubleTimeCurrentCorrelation(saveFig=True, show=False)
     # vis.PlotIntegratedDoubleTimeCurrentProduct(saveFig=True, show=False)

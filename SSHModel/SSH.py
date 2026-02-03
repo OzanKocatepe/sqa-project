@@ -376,7 +376,50 @@ class SSH:
         # state cutoff, we can use the same frequency axis as before.
         self.__currentData.doubleConnectedCorrelatorFreqDomain = np.fft.fftshift(np.fft.fft(self.__currentData.doubleConnectedCorrelator.real[mask]))
 
-        return self.__currentData  
+        # Now that we have the connected correlator, we can also calculate the manual
+        # fourier transform at the harmonics.
+        self.__ManuallyCalculateFourierAtHarmonics(mask)
+
+        return self.__currentData
+    
+    def __ManuallyCalculateFourierAtHarmonics(self, steadyStateMask: np.ndarray[bool] | np.ndarray[int], maxHarmonic: int=12) -> None:
+        """Manually calculates the fourier transform at the harmonic frequencies.
+        
+        Parameters
+        ----------
+        steadyStateMask : ndarray[bool] | ndarray[int]
+            A mask determining which points we consider in the steady state.
+        maxHarmonic : int
+            Determines the range of harmonics we calculate. Ranges from -maxHarmonic to maxHarmonic.
+        """
+
+        angularFreq = 2 * np.pi * self.__params.drivingFreq
+        # Array to store the fourier transforms.
+        harmonics = np.zeros((2 * maxHarmonic + 1,), dtype=complex)
+
+        steadyStateTauAxis = self.__correlationData.tauAxisSec[steadyStateMask]
+        steadyStateConnectedCorrelator = self.__currentData.doubleConnectedCorrelator[steadyStateMask]
+
+        # Creates the required exponential terms. First axis is degree of harmonic, second axis is tau axis.
+        expTerms = np.outer(-1j * np.arange(-maxHarmonic, maxHarmonic + 1) * angularFreq, steadyStateTauAxis)
+        expTerms = np.exp(expTerms)
+
+        # We want to multiply each fixed n with the value of the connected correlator at every value of tauaxis.
+        # So, we loop through each harmonic index.
+        integrand = np.zeros(expTerms.shape, dtype=complex)
+        for nIndex in range(expTerms.shape[0]):
+            integrand[nIndex, :] = expTerms[nIndex, :] * steadyStateConnectedCorrelator
+
+        # Now, our integrand contains every relevant term $D_k(\tau) e^{-in \omega \tau}$, with the first axis determining n, and the second
+        # determining $\tau$. Hence, since we are integrating along the tau axis to determine the magnitude at each harmonic, we integrate
+        # along the tau axis (axis 1).
+        for nIndex in range(expTerms.shape[0]):
+            harmonics[nIndex] = np.trapezoid(
+                y = integrand[nIndex, :],
+                x = steadyStateTauAxis
+            )
+
+        self.__currentData.harmonics = harmonics
  
     def __CalculateDoubleProductCurrent(self) -> None:
         r"""

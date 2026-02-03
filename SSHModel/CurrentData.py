@@ -17,6 +17,7 @@ class CurrentData:
     doubleProductData: np.ndarray[complex] = None
     doubleConnectedCorrelator: np.ndarray[complex] = None
     doubleConnectedCorrelatorFreqDomain: np.ndarray[complex] = None
+    harmonics : np.ndarray[complex] = None
     tauAxisDim: np.ndarray[float] = None
     tauAxisSec: np.ndarray[float] = None
     freqAxis: np.ndarray[float] = None
@@ -47,6 +48,7 @@ class CurrentData:
             doubleProductData = self.doubleProductData + other.doubleProductData,
             doubleConnectedCorrelator = self.doubleConnectedCorrelator + other.doubleConnectedCorrelator,
             doubleConnectedCorrelatorFreqDomain = self.doubleConnectedCorrelatorFreqDomain + other.doubleConnectedCorrelatorFreqDomain,
+            harmonics = self.harmonics + other.harmonics,
             tauAxisDim = self.tauAxisDim,
             tauAxisSec = self.tauAxisSec,
             freqAxis = self.freqAxis
