@@ -374,7 +374,7 @@ class SSH:
 
         # Calculates the FFT of the real part of the current connected correlator. Since we are using the same tau axis and steady
         # state cutoff, we can use the same frequency axis as before.
-        self.__currentData.doubleConnectedCorrelatorFreqDomain = np.fft.fftshift(np.fft.fft(self.__currentData.doubleConnectedCorrelator.real[mask]))
+        self.__currentData.doubleConnectedCorrelatorFreqDomain = np.fft.fftshift(np.fft.fft(self.__currentData.doubleConnectedCorrelator[mask]))
 
         # Now that we have the connected correlator, we can also calculate the manual
         # fourier transform at the harmonics.
@@ -397,6 +397,7 @@ class SSH:
         # Array to store the fourier transforms.
         harmonics = np.zeros((2 * maxHarmonic + 1,), dtype=complex)
 
+        # Gets the data in steady-state, we will not consider data not in steady state.
         steadyStateTauAxis = self.__correlationData.tauAxisSec[steadyStateMask]
         steadyStateConnectedCorrelator = self.__currentData.doubleConnectedCorrelator[steadyStateMask]
 
