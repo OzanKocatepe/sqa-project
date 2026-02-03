@@ -308,6 +308,7 @@ class SSHVisualiser:
         plt.suptitle(title)
         plt.xlabel(r"$\omega / \Omega$")
         plt.ylabel(r"$\| \tilde j (\omega) \|^2$")
+        plt.xlim((-15, 15))
         if saveFig:
             plt.savefig("plots/Current Freq Domain.png", dpi=300)
         if show:
@@ -367,6 +368,7 @@ class SSHVisualiser:
         plt.suptitle(title)
         plt.xlabel(r"$\omega / \Omega$")
         plt.ylabel(r"$\| \mathcal{F}[\int dt\, \langle j(t) j(t + \tau) \rangle - \langle j(t) \rangle \langle j(t + \tau) \rangle](\omega) \|^2$")
+        plt.xlim((-15, 15))
         if saveFig:
             plt.savefig("plots/Current Connected Correlator Freq Domain.png", dpi=300)
         if show:

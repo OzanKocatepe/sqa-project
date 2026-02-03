@@ -316,7 +316,7 @@ class SSH:
             ]], dtype=complex
         )
          
-    def CalculateCurrent(self, steadyStateCutoff: float=None) -> tuple[np.ndarray[complex], np.ndarray[complex]]:
+    def CalculateCurrent(self, steadyStateCutoff: float=None) -> CurrentData:
         r"""Calculates the current operator for the given parameters.
         
         Parameters
@@ -327,11 +327,8 @@ class SSH:
 
         Returns
         -------
-        np.ndarray[complex]
-            The value of the current operator at each point along the time axis.
-            Should be entirely real (within numerical uncertainty).
-        np.ndarray[complex]
-            The fourier transform of the current operator.
+        CurrentData
+            The instance of CurrentData which contains all of the relevant current information.
 
         Raises
         ------
@@ -354,12 +351,12 @@ class SSH:
         else:
             mask = np.full(self.__correlationData.tauAxisSec.size, True, dtype=bool)
 
-        steadyStateAxis = self.__correlationData.tauAxisSec[mask]
 
         # Calculates the Fourier transform of the solution.
         self.__currentData.freqDomainData = np.fft.fftshift(np.fft.fft(self.__currentData.timeDomainData[mask]))
 
         # Calculates the relevant frequency axis.
+        steadyStateAxis = self.__correlationData.tauAxisSec[mask]
         sampleSpacing = (np.max(steadyStateAxis) - np.min(steadyStateAxis)) / steadyStateAxis.size
         self.__currentData.freqAxis = np.fft.fftshift(np.fft.fftfreq(steadyStateAxis.size, sampleSpacing))
 
