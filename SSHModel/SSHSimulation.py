@@ -3,6 +3,8 @@ from .SSH import SSH
 from .SSHParameters import EnsembleParameters, ModelParameters
 from .CurrentData import CurrentData
 
+import multiprocessing
+
 class SSHSimulation:
     """
     Controls the simulation of an arbitrary number of SSH models at once.
@@ -63,18 +65,26 @@ class SSHSimulation:
         if numT < 2:
             numT = 2
 
-        iterable = enumerate(self.__models.items())
-
-        for kIndex, tup in iterable:
+        # Creates the args for our multiprocess.
+        args = []
+        for kIndex, tup in enumerate(self.__models.items()):
             k, model = tup
-            if debug:
-                print(f"Solving for momentum {k / np.pi:.2f}pi ({kIndex + 1}/{len(self.__models.items())})...")
+            args.append((k, kIndex, model, len(list(self.__models.items())), tauAxis, initialConditions, numT, steadyStateCutoff, debug))
 
-            model.Solve(tauAxis, initialConditions, numT, debug=debug)
-            model.CalculateCurrent(steadyStateCutoff)
+        # Runs the models on multiple cores.
+        with multiprocessing.Pool(6) as p:
+            results = p.map(func=self._RunWrapper, iterable=args)
 
-            if debug:
-                print('\n')
+        for index, arg in enumerate(args):
+            k = arg[0]
+            self.__models[k] = results[index]
+            
+    def _RunWrapper(self, argTuple):
+        k, kIndex, model, modelsSize, tauAxis, initialConditions, numT, steadyStateCutoff, debug = argTuple
+        print(f"Solving for momentum {k / np.pi:.2f}pi ({kIndex + 1}/{modelsSize})...")
+        model.Solve(tauAxis, initialConditions, numT, debug=False)
+        model.CalculateCurrent(steadyStateCutoff)
+        return model
 
     def CalculateTotalCurrent(self) -> CurrentData:
         """Calculates the total current in the time and frequency domains.
