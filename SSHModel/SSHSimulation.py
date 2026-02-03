@@ -69,15 +69,16 @@ class SSHSimulation:
         args = []
         for kIndex, tup in enumerate(self.__models.items()):
             k, model = tup
-            args.append((k, model, tauAxis, initialConditions, numT, steadyStateCutoff, debug))
+            args.append((k, kIndex, model, len(list(self.__models.items())), tauAxis, initialConditions, numT, steadyStateCutoff, debug))
 
         # Runs the models on multiple cores.
         with multiprocessing.Pool(4) as p:
-            p.map(self.__RunWrapper, args)
+            p.map(func=self._RunWrapper, iterable=args)
             
-    def __RunWrapper(k, model, tauAxis, initialConditions, numT, steadyStateCutoff, debug):
-        print(f"Solving for momentum {k / np.pi:.2f}pi)...")
-        model.Solve(tauAxis, initialConditions, numT, debug=True)
+    def _RunWrapper(self, argTuple):
+        k, kIndex, model, modelsSize, tauAxis, initialConditions, numT, steadyStateCutoff, debug = argTuple
+        print(f"Solving for momentum {k / np.pi:.2f}pi ({kIndex + 1}/{modelsSize})...")
+        model.Solve(tauAxis, initialConditions, numT, debug=False)
         model.CalculateCurrent(steadyStateCutoff)
 
     def CalculateTotalCurrent(self) -> CurrentData:
