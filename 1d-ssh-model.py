@@ -29,7 +29,7 @@ if __name__ == "__main__":
     # vis.PlotDoubleTimeCorrelations(k, saveFigs=True, subtractUncorrelatedValues=False, numTauPoints=None, show=False)
     # vis.PlotDoubleTimeCorrelations(k, saveFigs=True, subtractUncorrelatedValues=True, numTauPoints=None, show=False)
     # vis.PlotSingleTimeProducts(k, saveFigs=True, numTauPoints=None, show=False)
-    vis.PlotTotalCurrent(saveFig = True, show = False)
+    # vis.PlotTotalCurrent(saveFig = True, show = False)
     vis.PlotConnectedCurrentCorrelator(saveFig = True, show = False)
     # vis.PlotIntegratedDoubleTimeCurrentCorrelation(saveFig=True, show=False)
     # vis.PlotIntegratedDoubleTimeCurrentProduct(saveFig=True, show=False)

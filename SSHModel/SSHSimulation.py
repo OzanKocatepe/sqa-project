@@ -69,6 +69,7 @@ class SSHSimulation:
         args = []
         for kIndex, tup in enumerate(self.__models.items()):
             k, model = tup
+            print(k)
             args.append((k, kIndex, model, len(list(self.__models.items())), tauAxis, initialConditions, numT, steadyStateCutoff, debug))
 
         # Runs the models on multiple cores.
