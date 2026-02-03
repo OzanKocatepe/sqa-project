@@ -372,9 +372,9 @@ class SSH:
         # Calculates the connected correlator.
         self.__CalculateIntegratedConnectedCorrelator()
 
-        # Calculates the FFT of the current connected correlator. Since we are using the same tau axis and steady
+        # Calculates the FFT of the real part of the current connected correlator. Since we are using the same tau axis and steady
         # state cutoff, we can use the same frequency axis as before.
-        self.__currentData.doubleConnectedCorrelatorFreqDomain = np.fft.fftshift(np.fft.fft(self.__currentData.doubleConnectedCorrelator[mask]))
+        self.__currentData.doubleConnectedCorrelatorFreqDomain = np.fft.fftshift(np.fft.fft(self.__currentData.doubleConnectedCorrelator.real[mask]))
 
         return self.__currentData  
  
