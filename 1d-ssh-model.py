@@ -5,7 +5,7 @@ import math
 from SSHModel import *
 
 # k = np.pi / 4
-numK = 10
+numK = 25
 numT = 10
 tauAxis = np.linspace(0, 30, 20000)
 initialConditions = np.array([-0.5, -0.5, 0], dtype=complex)
@@ -19,7 +19,7 @@ params = EnsembleParameters(
 )
 
 sim = SSHSimulation(params)
-sim.AddMomentum(np.linspace(-np.pi, np.pi, 10))
+sim.AddMomentum(np.linspace(-np.pi, np.pi, numK))
 # sim.AddMomentum(np.pi / 4)
 sim.Run(tauAxis, initialConditions, numT, debug=True)
 

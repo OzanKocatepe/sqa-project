@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from .SSHSimulation import SSHSimulation
+import math
 
 class SSHVisualiser:
     """Manages the plotting logic for the information stored in SSHSimulation."""
@@ -254,7 +255,7 @@ class SSHVisualiser:
                 if show:
                     plt.show()
         
-    def PlotTotalCurrent(self, saveFig: bool=False, show: bool=True) -> None:
+    def PlotTotalCurrent(self, saveFig: bool=False, show: bool=True, fLim: tuple[float]=(-12, 12)) -> None:
         """Plots the total current operator in the time and frequency domains.
         
         Parameters
@@ -263,6 +264,8 @@ class SSHVisualiser:
             Determines whether to save the figure or not.
         show : bool
             Whether to show the plots or not.
+        fLim: tuple[float]
+            The limits to apply on the frequency axis.
         """
 
         currentData = self._sim.CalculateTotalCurrent()
@@ -305,16 +308,20 @@ class SSHVisualiser:
         plt.semilogy(currentData.freqAxis / self._sim.params.drivingFreq, np.abs(currentData.freqDomainData)**2,
                 color = 'black')
 
+        # Adds dashed lines at the harmonics.       
+        for n in range(math.ceil(fLim[0]), math.ceil(fLim[1])):
+            plt.axvline(n, color='blue', linestyle='dashed')
+
         plt.suptitle(title)
         plt.xlabel(r"$\omega / \Omega$")
         plt.ylabel(r"$\| \tilde j (\omega) \|^2$")
-        plt.xlim((-15, 15))
+        plt.xlim(fLim)
         if saveFig:
             plt.savefig("plots/Current Freq Domain.png", dpi=300)
         if show:
             plt.show()
 
-    def PlotConnectedCurrentCorrelator(self, saveFig: bool=False, show: bool=True) -> None:
+    def PlotConnectedCurrentCorrelator(self, saveFig: bool=False, show: bool=True, fLim: tuple[float]=(-12, 12)) -> None:
         """Plots the total integrated connected current correlator.
         
         Parameters
@@ -323,6 +330,8 @@ class SSHVisualiser:
             Determines whether to save the figure or not.
         show : bool
             Whether to show the plots or not.
+        fLim: tuple[float]
+            The limits to apply on the frequency axis.
         """
 
         currentData = self._sim.CalculateTotalCurrent()
@@ -365,10 +374,13 @@ class SSHVisualiser:
         plt.semilogy(currentData.freqAxis / self._sim.params.drivingFreq, np.abs(currentData.doubleConnectedCorrelatorFreqDomain)**2,
                 color = 'black')
 
+        for n in range(math.ceil(fLim[0]), math.ceil(fLim[1])):
+            plt.axvline(n, color='blue', linestyle='dashed')
+
         plt.suptitle(title)
         plt.xlabel(r"$\omega / \Omega$")
         plt.ylabel(r"$\| \mathcal{F}[\int dt\, \langle j(t) j(t + \tau) \rangle - \langle j(t) \rangle \langle j(t + \tau) \rangle](\omega) \|^2$")
-        plt.xlim((-15, 15))
+        plt.xlim(fLim)
         if saveFig:
             plt.savefig("plots/Current Connected Correlator Freq Domain.png", dpi=300)
         if show:
