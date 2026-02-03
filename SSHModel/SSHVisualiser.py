@@ -411,12 +411,12 @@ class SSHVisualiser:
 
         # Plotting the fourier transform of the connected correlator.
         n = (currentData.harmonics.size - 1) // 2
-        plt.semilogy(np.arange(-n, n + 1), currentData.harmonics.real, 'o',
+        plt.semilogy(np.arange(-n, n + 1), np.abs(currentData.harmonics)**2, 'o',
                 color = 'black')
 
         plt.suptitle(title)
         plt.xlabel(r"$\omega / \Omega$")
-        plt.ylabel(r"Real Part of $\mathcal{F}\left[\int dt\, \langle j(t) j(t + \tau) \rangle - \langle j(t) \rangle \langle j(t + \tau) \rangle\right](\omega)$")
+        plt.ylabel(r"Magnitude of $\mathcal{F}\left[\int dt\, \langle j(t) j(t + \tau) \rangle - \langle j(t) \rangle \langle j(t + \tau) \rangle\right](\omega)$")
         plt.xlim(fLim)
         if saveFig:
             plt.savefig("plots/Connected Correlator Harmonics.png", dpi=300)
