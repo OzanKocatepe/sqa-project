@@ -12,9 +12,9 @@ params = ModelParameters(
     drivingFreq = 2
 )
 
-frequencies = np.array([1, 2, 5]) * params.drivingFreq
+frequencies = np.array([1, 3, 5]) * params.drivingFreq
 tauAxis = np.linspace(0, 30, 10000)
-signal = np.sum( np.sin( np.outer(2 * np.pi * frequencies, tauAxis) ), axis = 0)
+signal = np.sum( np.sin( np.outer(2 * np.pi * frequencies, tauAxis) ), axis = 0) * 1e-4
 
 # plt.plot(tauAxis, signal)
 # plt.show()
