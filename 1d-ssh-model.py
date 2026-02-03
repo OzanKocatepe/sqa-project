@@ -6,8 +6,8 @@ from SSHModel import *
 
 # k = np.pi / 4
 if __name__ == "__main__":
-    numK = 5
-    numT = 2
+    numK = 25
+    numT = 10
     tauAxis = np.linspace(0, 30, 20000)
     initialConditions = np.array([-0.5, -0.5, 0], dtype=complex)
 
