@@ -207,4 +207,70 @@ j(t) j(t + \tau) &= t_2^2 \[ \sin(k - \phi_k - A(t)) \sin(k - \phi_k - A(t + \ta
 \end{align*}
 $$
 
-The final product that we want is 
+The final product that we want is $\frac{1}{T} \int dt\, \langle j(t) j(t + \tau) \rangle - \langle j(t) \rangle \langle j(t + \tau) \rangle$, where clearly $\frac{1}{T} = \Omega$. By using the fourier series of the current
+
+$$
+\langle j(t) \rangle = \sum_{n = -N}^N j_n e^{i 2\pi n \Omega t}
+$$
+
+we can find that
+
+$$
+\Omega \int dt\, \langle j(t) \rangle \langle j(t + \tau) \rangle = \sum_{n = -N}^N |j_n|^2 e^{i 2\pi n \Omega \tau}
+$$
+
+and this is calculated in CalculateFourier() in SSHModel/CurrentData.py. The term $\int \,dt \langle j(t) \rangle \langle j(t + \tau) \rangle$ is calculated in the later parts of CalculateCurrent() in SSHModel/SSH.py. First, __CalculateDoubleTimeCurrent() implements the formula for $\langle j(t) j(t + \tau) \rangle$ seen above. Then, we integrate it numerically along the t axis in lines 481-490.
+
+```
+# Integrates our double-time correlation function over a single steady-state period w.r.t t.
+self.__currentData.integratedDoubleTimeData = self.__params.drivingFreq * np.trapezoid(
+  y = self.__currentData.doubleTimeData,
+  x = self.__correlationData.tAxisSec,
+  axis = 0
+)
+
+# Subtracts the (already integrated) double product data from the newly calculated integrated double-time
+# correlation function.
+self.__currentData.doubleConnectedCorrelator = self.__currentData.integratedDoubleTimeData - self.__currentData.doubleProductData
+```
+
+The integrated data is then subtracted from the fourier series representation of the second half of the connected correlator we saw above, and that is how we calculate the desired integrated connected correlator.
+
+The final step is to find the fourier transforms at the harmonics. This is done self-explanatorily using the integral definition
+
+$$
+\mathcal{F}[D_k(\tau)] (\omega) = \int_{-\infty}^\infty D_k(\tau') e^{-s\tau'} \,d\tau'
+$$
+
+for a fixed momentum $k$, where we restrict the domain to be the domain of $\tau$ that we actually use. Once this is calculated in lines 396-421 of SSHModel/SSH.py,
+
+```
+angularFreq = 2 * np.pi * self.__params.drivingFreq
+# Array to store the fourier transforms.
+harmonics = np.zeros((2 * maxHarmonic + 1,), dtype=complex)
+
+# Gets the data in steady-state, we will not consider data not in steady state.
+steadyStateTauAxis = self.__correlationData.tauAxisSec[steadyStateMask]
+steadyStateConnectedCorrelator = self.__currentData.doubleConnectedCorrelator[steadyStateMask]
+
+# Creates the required exponential terms. First axis is degree of harmonic, second axis is tau axis.
+expTerms = np.outer(-1j * np.arange(-maxHarmonic, maxHarmonic + 1) * angularFreq, steadyStateTauAxis)
+expTerms = np.exp(expTerms)
+
+# We want to multiply each fixed n with the value of the connected correlator at every value of tauaxis.
+# So, we loop through each harmonic index.
+integrand = np.zeros(expTerms.shape, dtype=complex)
+for nIndex in range(expTerms.shape[0]):
+  integrand[nIndex, :] = expTerms[nIndex, :] * steadyStateConnectedCorrelator
+
+  # Now, our integrand contains every relevant term $D_k(\tau) e^{-in \omega \tau}$, with the first axis determining n, and the second
+  # determining $\tau$. Hence, since we are integrating along the tau axis to determine the magnitude at each harmonic, we integrate
+  # along the tau axis (axis 1).
+  for nIndex in range(expTerms.shape[0]):
+    harmonics[nIndex] = np.trapezoid(
+      y = integrand[nIndex, :],
+      x = steadyStateTauAxis
+    )
+```
+
+Hopefully the comments above are illuminating enough about how the integration occurs, but this is how we calculate the fourier transforms at the integer harmonics. This is the final step of our program. Of course, there are many implementation details that are not mentioned here. The code itself is generally rather well-documented, if a little messy or sloppy at times, so understanding the full process by reading the code should be an achievable process.
