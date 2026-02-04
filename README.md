@@ -239,10 +239,10 @@ The integrated data is then subtracted from the fourier series representation of
 The final step is to find the fourier transforms at the harmonics. This is done self-explanatorily using the integral definition
 
 $$
-\mathcal{F}[D_k(\tau)] (\omega) = \int_{-\infty}^\infty D_k(\tau') e^{-s\tau'} \,d\tau'
+\mathcal{F}[D_k(\tau)] (\omega) = \int_{-\infty}^\infty D_k(\tau') e^{-2 \pi \omega \tau'} \,d\tau'
 $$
 
-for a fixed momentum $k$, where we restrict the domain to be the domain of $\tau$ that we actually use. Once this is calculated in lines 396-421 of SSHModel/SSH.py,
+for a fixed momentum $k$, where $\omega$ is in $s^{-1}$ and we restrict the domain to be the domain of $\tau$ that we actually use (0 to 30 decay periods). Once this is calculated in lines 396-421 of SSHModel/SSH.py,
 
 ```
 angularFreq = 2 * np.pi * self.__params.drivingFreq
@@ -274,3 +274,4 @@ for nIndex in range(expTerms.shape[0]):
 ```
 
 Hopefully the comments above are illuminating enough about how the integration occurs, but this is how we calculate the fourier transforms at the integer harmonics. This is the final step of our program. Of course, there are many implementation details that are not mentioned here. The code itself is generally rather well-documented, if a little messy or sloppy at times, so understanding the full process by reading the code should be an achievable process.
+
