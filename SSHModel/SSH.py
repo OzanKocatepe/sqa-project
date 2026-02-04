@@ -283,6 +283,9 @@ class SSH:
         self.__correlationData.tAxisSec = np.linspace(startPoint, endPoint, numT)
         self.__correlationData.tAxisDim = self.__correlationData.tAxisSec * self.__params.decayConstant
 
+        self.__currentData.tAxisSec = self.__correlationData.tAxisSec
+        self.__currentData.tAxisDim = self.__correlationData.tAxisDim
+
     def __CalculateDoubleTimeInitialConditions(self) -> np.ndarray[complex]:
         """
         Calculates the double-time initial conditions for all 9 double-time correlators, at each time t.

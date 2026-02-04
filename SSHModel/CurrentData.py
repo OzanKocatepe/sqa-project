@@ -20,6 +20,8 @@ class CurrentData:
     harmonics : np.ndarray[complex] = None
     tauAxisDim: np.ndarray[float] = None
     tauAxisSec: np.ndarray[float] = None
+    tAxisDim: np.ndarray[float] = None
+    tAxisSec: np.ndarray[float] = None
     freqAxis: np.ndarray[float] = None
 
     def __add__(self, other: CurrentData) -> CurrentData:
@@ -51,6 +53,8 @@ class CurrentData:
             harmonics = self.harmonics + other.harmonics,
             tauAxisDim = self.tauAxisDim,
             tauAxisSec = self.tauAxisSec,
+            tAxisDim = self.tAxisDim,
+            tAxisSec = self.tAxisSec,
             freqAxis = self.freqAxis
         )
 

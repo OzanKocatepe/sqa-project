@@ -512,6 +512,18 @@ class SSHVisualiser:
             f"Imaginary Part of {currentLabel}"
         ]
 
+        # Manually calculates the double-product data.
+        if overplotManualProduct:
+            manualData = np.zeros((currentData.tAxisDim.size, currentData.tauAxisDim.size), dtype=complex)
+            for tIndex, t in enumerate(currentData.tAxisSec):
+                manualData[tIndex, :] = currentData.fourierExpansion.Evaluate(t) * currentData.fourierExpansion.Evaluate(t + currentData.tauAxisSec)
+
+            integratedManualData = self._sim.params.drivingFreq * np.trapezoid(
+                y = manualData,
+                x = currentData.tAxisSec,
+                axis = 0
+            )
+
         nrows, ncols = 3, 1
         fig, ax = plt.subplots(nrows, ncols, figsize=(16, 8.8))
 
@@ -519,6 +531,10 @@ class SSHVisualiser:
             # Plot the numerical solution.
             ax[row].plot(currentData.tauAxisDim, self._plottingFunctions[row](currentData.doubleProductData),
                         color = "Black")
+            
+            if overplotManualProduct:
+                ax[row].plot(currentData.tauAxisDim, self._plottingFunctions[row](integratedManualData),
+                            color = "Blue")
     
             ax[row].set_xlabel(self._tauLabel)
             ax[row].set_ylabel(yLabels[row])
