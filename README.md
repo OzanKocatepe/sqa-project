@@ -23,11 +23,11 @@ could be functioning incorrectly.
 
     - I figured it out - when calculating the solution using the analytical series $\sum_{n = -N}^N | j_n |^2 e^{i 2 \pi n \Omega \tau}, we calculate this at each momentum $k$, i.e.
 
-    $$ \langle j_k(t) \rangle \langle j_k(t + \tau) \rangle = \sum_{n = -N}^N |j_{k, n} |^2 e^{i 2 \pi n \Omega \tau}$$
+    $$\langle j_k(t) \rangle \langle j_k(t + \tau) \rangle = \sum_{n = -N}^N |j_{k, n} |^2 e^{i 2 \pi n \Omega \tau}$$
     
     and then we sum up all of the momentums at the end, resulting in
 
-    $$ \langle j(t) \rangle \langle j(t + \tau) \rangle = \sum_{n = -N}^N \left( \sum_k |j_{k, n} |^2 \right) e^{i 2\pi n \Omega \tau}$$
+    $$\langle j(t) \rangle \langle j(t + \tau) \rangle = \sum_{n = -N}^N \left( \sum_k |j_{k, n} |^2 \right) e^{i 2\pi n \Omega \tau}$$
 
     However, when comparing this to the numerical solution (i.e. numerically multiplying the current expectations together to make sure our fourier series above is correct), we calculate it at the end, so our current fourier series is
 
@@ -313,4 +313,5 @@ for nIndex in range(expTerms.shape[0]):
 ```
 
 Hopefully the comments above are illuminating enough about how the integration occurs, but this is how we calculate the fourier transforms at the integer harmonics. This is the final step of our program. Of course, there are many implementation details that are not mentioned here. The code itself is generally rather well-documented, if a little messy or sloppy at times, so understanding the full process by reading the code should be an achievable process.
+
 
