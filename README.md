@@ -15,7 +15,7 @@ could be functioning incorrectly.
 
   - The fourier series of the current operator matches the numerically calculated current operator perfectly.
 
-- [ ] 
+- [ ] The fourier series of $\int dt\, \langle j(t) \rangle \langle j(t + \tau) \rangle$ is wrong, despite the current fourier series being correct.
 
 # SSH Model
 The relevant code for the 1-dimensional SSH model is stored within _SSHModel/_ as a package. We assume a chain with entirely real hopping amplitudes $t_1, t_2$, an infinite bulk (and
