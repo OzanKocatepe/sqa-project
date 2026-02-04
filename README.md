@@ -21,6 +21,26 @@ could be functioning incorrectly.
 
   - The issue here is, if we assume that the manually calculated data is correct, then the connected current correlator won't go to zero. But clearly the theoretical and numerical data doesn't align, which is inherently weird.
 
+    - I figured it out - when calculating the solution using the analytical series $\sum_{n = -N}^N | j_n |^2 e^{i 2 \pi n \Omega \tau}, we calculate this at each momentum $k$, i.e.
+
+    $$ \langle j_k(t) \rangle \langle j_k(t + \tau) \rangle = \sum_{n = -N}^N |j_{k, n} |^2 e^{i 2 \pi n \Omega \tau}$$
+    
+    and then we sum up all of the momentums at the end, resulting in
+
+    $$ \langle j(t) \rangle \langle j(t + \tau) \rangle = \sum_{n = -N}^N \left( \sum_k |j_{k, n} |^2 \right) e^{i 2\pi n \Omega \tau}$$
+
+    However, when comparing this to the numerical solution (i.e. numerically multiplying the current expectations together to make sure our fourier series above is correct), we calculate it at the end, so our current fourier series is
+
+    $$\langle j(t) \rangle = \sum_{n = -N}^N \left( \sum_k j_{k, n} \right) e^{i 2 \pi n \Omega t}$$
+
+    and hence, doing the same thing we did before, we get
+
+    $$\langle j(t) \rangle \langle j(t + \tau) \rangle = \sum_{n = -N}^N \left| \sum_k j_{k, n} \right|^2 e^{i 2 \pi n \Omega t}$$
+
+    so the coefficients aren't the same. Clearly, the second method allows the coefficients to cancel out and have no zero frequency part, while the first method doesn't, which is why that method gives us a current product that is not oscillating around zero.
+
+    However, the first method is the way that Denis original told me to do this (I believe), and this is the way that makes the connected current correlator go to zero, so I have to assume that this is the right method. I will have to check if this method works properly numerically as well, but honestly the fact that the connected correlator *does* go to zero with this current product is such tempting evidence that this makes sense.
+
 # SSH Model
 The relevant code for the 1-dimensional SSH model is stored within _SSHModel/_ as a package. We assume a chain with entirely real hopping amplitudes $t_1, t_2$, an infinite bulk (and
 hence periodic boundary conditions), and a classical driving field $A(t) = A_0 \sin(2\pi \Omega t)$. In this section we will describe each package at a high-level (more detailed documentation
