@@ -19,7 +19,7 @@ could be functioning incorrectly.
 
   - So this may in some sense be true. The fourier series for $\langle j(t) \rangle$ is correct, but when we compare the analytically derived fourier series $\langle j(t) \rangle \langle j(t + \tau) \rangle = \sum_{n = -N}^N |j_n|^2 e^{i 2 \pi n \Omega t}$ to when we manually calculate $\langle j(t) \rangle \langle j(t + \tau) \rangle$ by numerically multiplying their individual fourier series, we find that the two differ by a *constant*.
 
-  The issue here is, if we assume that the manually calculated data is correct, then the connected current correlator won't go to zero. But clearly the theoretical and numerical data doesn't align, which is inherently weird.
+  - The issue here is, if we assume that the manually calculated data is correct, then the connected current correlator won't go to zero. But clearly the theoretical and numerical data doesn't align, which is inherently weird.
 
 # SSH Model
 The relevant code for the 1-dimensional SSH model is stored within _SSHModel/_ as a package. We assume a chain with entirely real hopping amplitudes $t_1, t_2$, an infinite bulk (and
