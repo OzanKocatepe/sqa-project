@@ -255,7 +255,7 @@ class SSHVisualiser:
                 if show:
                     plt.show()
         
-    def PlotTotalCurrent(self, saveFig: bool=False, show: bool=True, fLim: tuple[float]=(-12, 12)) -> None:
+    def PlotTotalCurrent(self, saveFig: bool=False, show: bool=True, fLim: tuple[float]=(-12, 12), overplotFourier: bool=False) -> None:
         """Plots the total current operator in the time and frequency domains.
         
         Parameters
@@ -266,6 +266,8 @@ class SSHVisualiser:
             Whether to show the plots or not.
         fLim: tuple[float]
             The limits to apply on the frequency axis.
+        overplotFourier : bool
+            Whether to overplot the current fourier series on the time-domain.
         """
 
         currentData = self._sim.CalculateTotalCurrent()
@@ -291,6 +293,10 @@ class SSHVisualiser:
             # Plot the numerical solution.
             ax[row].plot(currentData.tauAxisDim, self._plottingFunctions[row](currentData.timeDomainData),
                         color = "Black")
+            
+            if overplotFourier:
+                ax[row].plot(currentData.tauAxisDim, self._plottingFunctions[row](currentData.fourierExpansion.Evaluate(currentData.tauAxisSec)),
+                             color = "Blue")
     
             ax[row].set_xlabel(self._tauLabel)
             ax[row].set_ylabel(yLabels[row])
@@ -400,7 +406,6 @@ class SSHVisualiser:
             The limits to apply on the frequency axis.
         """
         currentData = self._sim.CalculateTotalCurrent()
-        plt.figure(figsize=(16, 8.8))
 
         kValues = self._sim.momentums
         if kValues.size > 3:
@@ -411,17 +416,27 @@ class SSHVisualiser:
 
         # Plotting the fourier transform of the connected correlator.
         n = (currentData.harmonics.size - 1) // 2
-        plt.semilogy(np.arange(-n, n + 1), currentData.harmonics.real, 'o',
-                color = 'black')
+        functionLabels = ['Magnitude', 'Real', 'Imaginary']
 
-        plt.suptitle(title)
-        plt.xlabel(r"$\omega / \Omega$")
-        plt.ylabel(r"Real Part of of $\mathcal{F}\left[\int dt\, \langle j(t) j(t + \tau) \rangle - \langle j(t) \rangle \langle j(t + \tau) \rangle\right](\omega)$")
-        plt.xlim(fLim)
-        if saveFig:
-            plt.savefig("plots/Connected Correlator Harmonics.png", dpi=300)
-        if show:
-            plt.show()
+        yLabels = [r'Magnitude of $\mathcal{F} \left[\int dt\, \langle j(t) j(t + \tau) \rangle - \langle j(t) \rangle \langle j(t + \tau) \rangle\right](\omega)$',
+                   
+                   r'Real Part of $\mathcal{F} \left[\int dt\, \langle j(t) j(t + \tau) \rangle - \langle j(t) \rangle \langle j(t + \tau) \rangle\right](\omega)$',
+                   
+                   r'Imaginary Part of $\mathcal{F} \left[\int dt\, \langle j(t) j(t + \tau) \rangle - \langle j(t) \rangle \langle j(t + \tau) \rangle\right](\omega)$']
+
+        for i in range(3):
+            plt.figure(figsize=(16, 8.8))
+            plt.semilogy(np.arange(-n, n + 1), self._plottingFunctions[i](currentData.harmonics), 'o',
+                    color = 'black')
+
+            plt.suptitle(title)
+            plt.xlabel(r"$\omega / \Omega$")
+            plt.ylabel(yLabels[i])
+            plt.xlim(fLim)
+            if saveFig:
+                plt.savefig(f"plots/[{functionLabels[i]}] Connected Correlator Harmonics.png", dpi=300)
+            if show:
+                plt.show()
 
     def PlotIntegratedDoubleTimeCurrentCorrelation(self, saveFig: bool=False, show: bool=True) -> None:
         r"""Plots the integrated double-time current correlation, $\int dt\, \langle j(t) j(t + \tau) \rangle$.
@@ -468,7 +483,7 @@ class SSHVisualiser:
         if show:
             plt.show()
 
-    def PlotIntegratedDoubleTimeCurrentProduct(self, saveFig: bool=False, show: bool=True) -> None:
+    def PlotIntegratedDoubleTimeCurrentProduct(self, saveFig: bool=False, show: bool=True, overplotManualProduct: bool=False) -> None:
         r"""Plots the integrated double time current product $\int dt\, \langle j(t) \rangle \langle j(t + \tau) \rangle$.
         
         Parameters
@@ -477,6 +492,8 @@ class SSHVisualiser:
             Determines whether to save the figure or not.
         show : bool
             Whether to show the plots or not.
+        overplotManualProduct : bool
+            Whether to overplot the manual calculation of $\int \,dt \langle j(t) \rangle \langle j(t + \tau) \rangle$ over the plot.
         """
 
         currentData = self._sim.CalculateTotalCurrent()

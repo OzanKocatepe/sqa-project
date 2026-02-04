@@ -2,6 +2,21 @@
 This repo contains the code I used to model resonance fluorescence in a variety of systems. Currently, we can model a qubit in a waveguide (following [Kocabas et. al., 2012](https://arxiv.org/abs/1111.7315))
 and are currently in the process of modelling a one-dimensional Su–Schrieffer–Heeger (SSH) model with an infinite bulk.
 
+# Progress
+
+Currently searching for the error in the code. Potential problems include:
+
+- [x] The function which manually calculates the fourier transforms of the connected current correlator at the integer harmonics,
+could be functioning incorrectly.
+
+  - Tested the function in HarmonicTest.py, function works fine for normal signals, even at small amplitudes. The results look weird when the signal isn't composed of purely integer harmonics of the driving frequency, so maybe our signal isn't at integer harmonics and thats the problem, but otherwise the function works fine.
+
+- [x] The fourier series of $\langle j(t) \rangle$ which we use to calculate $\int \,dt \langle j(t) \rangle \langle j(t + \tau) \rangle$ could be incorrect, in which case the second half of our connected correlator would be incorrect. I don't find this super likely since the connected correlator decays to zero as expected, but idk.
+
+  - The fourier series of the current operator matches the numerically calculated current operator perfectly.
+
+- [ ] 
+
 # SSH Model
 The relevant code for the 1-dimensional SSH model is stored within _SSHModel/_ as a package. We assume a chain with entirely real hopping amplitudes $t_1, t_2$, an infinite bulk (and
 hence periodic boundary conditions), and a classical driving field $A(t) = A_0 \sin(2\pi \Omega t)$. In this section we will describe each package at a high-level (more detailed documentation
@@ -242,7 +257,7 @@ $$
 \mathcal{F}[D_k(\tau)] (\omega) = \int_{-\infty}^\infty D_k(\tau') e^{-2 \pi \omega \tau'} \,d\tau'
 $$
 
-for a fixed momentum $k$, where $\omega$ is in $s^{-1}$ and we restrict the domain to be the domain of $\tau$ that we actually use (0 to 30 decay periods). Once this is calculated in lines 396-421 of SSHModel/SSH.py,
+for a fixed momentum $k$, where $\omega$ is in $s^{-1}$ and we restrict the domain to be the domain of $\tau$ where it is in the steady state (typically the steady state is everything past 25 decay periods). Once this is calculated in lines 396-421 of SSHModel/SSH.py,
 
 ```
 angularFreq = 2 * np.pi * self.__params.drivingFreq
