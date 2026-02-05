@@ -41,6 +41,8 @@ could be functioning incorrectly.
 
     However, the first method is the way that Denis original told me to do this (I believe), and this is the way that makes the connected current correlator go to zero, so I have to assume that this is the right method. I will have to check if this method works properly numerically as well, but honestly the fact that the connected correlator *does* go to zero with this current product is such tempting evidence that this makes sense.
 
+  - Changed the manual calculation to occur in each SSH model, and now the product terms match, so that's not the problem.
+
 # SSH Model
 The relevant code for the 1-dimensional SSH model is stored within _SSHModel/_ as a package. We assume a chain with entirely real hopping amplitudes $t_1, t_2$, an infinite bulk (and
 hence periodic boundary conditions), and a classical driving field $A(t) = A_0 \sin(2\pi \Omega t)$. In this section we will describe each package at a high-level (more detailed documentation

@@ -23,6 +23,7 @@ class CurrentData:
     tAxisDim: np.ndarray[float] = None
     tAxisSec: np.ndarray[float] = None
     freqAxis: np.ndarray[float] = None
+    _integratedManualData: np.ndarray[float] = None
 
     def __add__(self, other: CurrentData) -> CurrentData:
         """
@@ -55,7 +56,8 @@ class CurrentData:
             tauAxisSec = self.tauAxisSec,
             tAxisDim = self.tAxisDim,
             tAxisSec = self.tAxisSec,
-            freqAxis = self.freqAxis
+            freqAxis = self.freqAxis,
+            _integratedManualData = self._integratedManualData + other._integratedManualData
         )
 
     def CalculateFourier(self, k: float, params: ModelParameters, correlationData: CorrelationData) -> None:

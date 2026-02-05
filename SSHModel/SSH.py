@@ -440,6 +440,17 @@ class SSH:
             baseFreq = self.__params.drivingFreq,
             coeffs = coefficients
         )
+
+        # Creates the manual data.
+        manualData = np.zeros((self.__currentData.tAxisDim.size, self.__currentData.tauAxisDim.size), dtype=complex)
+        for tIndex, t in enumerate(self.__currentData.tAxisSec):
+            manualData[tIndex, :] = self.__currentData.fourierExpansion.Evaluate(t) * self.__currentData.fourierExpansion.Evaluate(t + self.__currentData.tauAxisSec)
+
+        self.currentData._integratedManualData = self.__params.drivingFreq * np.trapezoid(
+            y = manualData,
+            x = self.__currentData.tAxisSec,
+            axis = 0
+        )
  
         self.__currentData.doubleProductData = fourier.Evaluate(self.__correlationData.tauAxisSec)
     
