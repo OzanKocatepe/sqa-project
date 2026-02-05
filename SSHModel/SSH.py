@@ -400,6 +400,8 @@ class SSH:
         # Array to store the fourier transforms.
         harmonics = np.zeros((2 * maxHarmonic + 1,), dtype=complex)
 
+        steadyStateMask = np.arange(self.__currentData.doubleConnectedCorrelator.size)
+
         # Gets the data in steady-state, we will not consider data not in steady state.
         steadyStateTauAxis = self.__correlationData.tauAxisSec[steadyStateMask]
         steadyStateConnectedCorrelator = self.__currentData.doubleConnectedCorrelator[steadyStateMask]
