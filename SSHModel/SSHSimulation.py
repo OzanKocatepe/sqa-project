@@ -96,7 +96,11 @@ class SSHSimulation:
         """
 
         totalCurrentData = np.array([model.currentData for model in self.__models.values()])
-        return np.sum(totalCurrentData)
+        totalCurrentData = np.sum(totalCurrentData) 
+        totalCurrentData.ManuallyCalculateFourierAtHarmonics(self.params, self.tauAxisSec, self.tauAxisDim >= 15)
+
+        return totalCurrentData
+
 
     @property
     def momentums(self) -> np.ndarray[float]:
@@ -125,3 +129,7 @@ class SSHSimulation:
     @property
     def tauAxisDim(self) -> np.ndarray[complex]:
         return list( self.__models.values() )[0].correlationData.tauAxisDim
+
+    @property
+    def tauAxisSec(self) -> np.ndarray[complex]:
+        return list( self.__models.values() )[0].correlationData.tauAxisSec
