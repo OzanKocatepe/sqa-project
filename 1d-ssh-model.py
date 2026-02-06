@@ -8,7 +8,7 @@ from SSHModel import *
 if __name__ == "__main__":
     numK = 10
     numT = 10
-    tauAxis = np.linspace(0, 30, 20000)
+    tauAxis = np.linspace(0, 50, 20000)
     initialConditions = np.array([-0.5, -0.5, 0], dtype=complex)
 
     params = EnsembleParameters(
@@ -34,7 +34,7 @@ if __name__ == "__main__":
     
     # Everything for all k.
     vis.PlotTotalCurrent(saveFig = True, show = False, overplotFourier=True)
-    vis.PlotConnectedCurrentCorrelator(saveFig = True, show = False)
+    vis.PlotConnectedCurrentCorrelator(saveFig = True, show = False, yLim=(-5e-4, 5e-4))
     vis.PlotNumericallyIntegratedHarmonics(saveFig = True, show = False, fLim=(-12.5, 12.5))
     vis.PlotIntegratedDoubleTimeCurrentCorrelation(saveFig=True, show=False)
     vis.PlotIntegratedDoubleTimeCurrentProduct(saveFig=True, overplotManualProduct=True, show=False)

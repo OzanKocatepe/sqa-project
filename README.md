@@ -47,6 +47,8 @@ could be functioning incorrectly.
 
   - Tried this, the result is identical whether we calculate harmonics at each momentum or at the end.
 
+Significant Progress: Zooming into the connected correlator, I found that the imaginary part does actually decay to zero, but the real part actually oscillates on the order of 1e-4, and it is NOT centered at zero, which is where the zero frequency term is coming from - so it actually is a real result. Its possible the higher order harmonics being excited because I was taking the Fourier transform when not fully in the steady state - it seems the transient effects on the order of 1e-4 last for roughly 25 decay periods or more, so increasing the range to 50 decay periods and increasing the steady state cutoff is wise.
+
 # SSH Model
 The relevant code for the 1-dimensional SSH model is stored within _SSHModel/_ as a package. We assume a chain with entirely real hopping amplitudes $t_1, t_2$, an infinite bulk (and
 hence periodic boundary conditions), and a classical driving field $A(t) = A_0 \sin(2\pi \Omega t)$. In this section we will describe each package at a high-level (more detailed documentation

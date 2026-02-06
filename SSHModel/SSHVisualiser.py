@@ -327,7 +327,7 @@ class SSHVisualiser:
         if show:
             plt.show()
 
-    def PlotConnectedCurrentCorrelator(self, saveFig: bool=False, show: bool=True, tauLim: tuple[float]=None, fLim: tuple[float]=(-12, 12)) -> None:
+    def PlotConnectedCurrentCorrelator(self, saveFig: bool=False, show: bool=True, tauLim: tuple[float]=None, yLim: tuple[float]=None, fLim: tuple[float]=(-12, 12)) -> None:
         """Plots the total integrated connected current correlator.
         
         Parameters
@@ -374,6 +374,8 @@ class SSHVisualiser:
 
             if tauLim is not None:
                 ax[row].set_xlim(tauLim)
+            if yLim is not None:
+                ax[row].set_ylim(yLim)
 
         plt.suptitle(title)
         plt.tight_layout()
