@@ -365,6 +365,9 @@ class SSHVisualiser:
             # Plot the numerical solution.
             ax[row].plot(currentData.tauAxisDim, self._plottingFunctions[row](currentData.doubleConnectedCorrelator),
                         color = "Black")
+            
+            if row == 0:
+                ax[row].set_yscale('log')
     
             ax[row].set_xlabel(self._tauLabel)
             ax[row].set_ylabel(yLabels[row])
