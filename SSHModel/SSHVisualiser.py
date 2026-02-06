@@ -327,7 +327,7 @@ class SSHVisualiser:
         if show:
             plt.show()
 
-    def PlotConnectedCurrentCorrelator(self, saveFig: bool=False, show: bool=True, fLim: tuple[float]=(-12, 12)) -> None:
+    def PlotConnectedCurrentCorrelator(self, saveFig: bool=False, show: bool=True, tauLim: tuple[float]=None, fLim: tuple[float]=(-12, 12)) -> None:
         """Plots the total integrated connected current correlator.
         
         Parameters
@@ -336,6 +336,8 @@ class SSHVisualiser:
             Determines whether to save the figure or not.
         show : bool
             Whether to show the plots or not.
+        tauLim : tuple[float]
+            The limits of the tau axis to plot.
         fLim: tuple[float]
             The limits to apply on the frequency axis.
         """
@@ -366,6 +368,9 @@ class SSHVisualiser:
     
             ax[row].set_xlabel(self._tauLabel)
             ax[row].set_ylabel(yLabels[row])
+
+            if tauLim is not None:
+                ax[row].set_xlim(tauLim)
 
         plt.suptitle(title)
         plt.tight_layout()
