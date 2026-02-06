@@ -404,7 +404,7 @@ class SSH:
 
         # Gets the data in steady-state, we will not consider data not in steady state.
         steadyStateTauAxis = self.__correlationData.tauAxisSec[steadyStateMask]
-        steadyStateConnectedCorrelator = self.__currentData.doubleConnectedCorrelator[steadyStateMask]
+        steadyStateConnectedCorrelator = self.__currentData.doubleTimeData[steadyStateMask]
 
         # Creates the required exponential terms. First axis is degree of harmonic, second axis is tau axis.
         expTerms = np.outer(-1j * np.arange(-maxHarmonic, maxHarmonic + 1) * angularFreq, steadyStateTauAxis)
