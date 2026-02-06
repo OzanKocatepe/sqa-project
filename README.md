@@ -43,6 +43,10 @@ could be functioning incorrectly.
 
   - Changed the manual calculation to occur in each SSH model, and now the product terms match, so that's not the problem.
 
+- [x] Maybe there is a numerical issue with calculating the harmonics at each momentum? Even though there shouldn't be? 
+
+  - Tried this, the result is identical whether we calculate harmonics at each momentum or at the end.
+
 # SSH Model
 The relevant code for the 1-dimensional SSH model is stored within _SSHModel/_ as a package. We assume a chain with entirely real hopping amplitudes $t_1, t_2$, an infinite bulk (and
 hence periodic boundary conditions), and a classical driving field $A(t) = A_0 \sin(2\pi \Omega t)$. In this section we will describe each package at a high-level (more detailed documentation
