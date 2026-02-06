@@ -151,7 +151,7 @@ class SSH:
             'fun' : self.__ClassicallyDrivenSSHEquations,
             'rtol' : 1e-10,
             'atol' : 1e-12,
-            'max_step' : 0.01 / self.__params.decayConstant
+            'max_step' : 0.001 / self.__params.decayConstant
         }
 
         # if debug:
@@ -172,6 +172,11 @@ class SSH:
             )
 
         self.__CalculateDoubleTimeCorrelations(steadyStateCutoff, numT, odeParams, debug)
+
+        # meanDoubleTime = np.mean(self.__correlationData.doubleTime, axis=2)
+        # print(self.__params.k)
+        # print(np.mean(meanDoubleTime[:, :, self.__correlationData.tauAxisDim >= steadyStateCutoff], axis=2))
+        # print('\n')
   
         return self.__correlationData
     

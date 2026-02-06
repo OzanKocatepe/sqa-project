@@ -47,6 +47,10 @@ could be functioning incorrectly.
 
   - Tried this, the result is identical whether we calculate harmonics at each momentum or at the end.
 
+- [x] Trying different numK showed that the offset changes with k. At 9 it was 5e-5, at 10 it was 1e-4, and at 11 it was something else (I forgot). I thought maybe the problem was not including the zero momentum term - this may also indicate that more k cancels out the offset and removes the zero-frequency term.
+
+  - Nevermind, increasing numK didn't do anything to the zero frequency term, even at an odd number. Also, for some reason, the connected correlator offset is now positive. I swear it was negative before. Whatever.
+
 Significant Progress: Zooming into the connected correlator, I found that the imaginary part does actually decay to zero, but the real part actually oscillates on the order of 1e-4, and it is NOT centered at zero, which is where the zero frequency term is coming from - so it actually is a real result. Its possible the higher order harmonics being excited because I was taking the Fourier transform when not fully in the steady state - it seems the transient effects on the order of 1e-4 last for roughly 25 decay periods or more, so increasing the range to 50 decay periods and increasing the steady state cutoff is wise.
 
 # SSH Model

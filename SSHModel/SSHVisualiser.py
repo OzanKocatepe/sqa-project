@@ -438,6 +438,8 @@ class SSHVisualiser:
             plt.figure(figsize=(16, 8.8))
             plt.semilogy(np.arange(-n, n + 1), self._plottingFunctions[i](currentData.harmonics), 'o',
                     color = 'black')
+            plt.semilogy(np.arange(-n, n + 1), -self._plottingFunctions[i](currentData.harmonics), 'o',
+                    color = 'red')
 
             plt.suptitle(title)
             plt.xlabel(r"$\omega / \Omega$")
