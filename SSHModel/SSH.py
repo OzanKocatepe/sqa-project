@@ -420,7 +420,7 @@ class SSH:
         # determining $\tau$. Hence, since we are integrating along the tau axis to determine the magnitude at each harmonic, we integrate
         # along the tau axis (axis 1).
         for nIndex in range(expTerms.shape[0]):
-            harmonics[nIndex] = np.trapezoid(
+            harmonics[nIndex] = integrate.simpson(
                 y = integrand[nIndex, :],
                 x = steadyStateTauAxis
             )

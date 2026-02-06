@@ -34,7 +34,7 @@ if __name__ == "__main__":
     
     # Everything for all k.
     vis.PlotTotalCurrent(saveFig = True, show = False, overplotFourier=True)
-    vis.PlotConnectedCurrentCorrelator(saveFig = True, show = False, tauLim=(15, 30))
+    vis.PlotConnectedCurrentCorrelator(saveFig = True, show = False)
     vis.PlotNumericallyIntegratedHarmonics(saveFig = True, show = False, fLim=(-12.5, 12.5))
     vis.PlotIntegratedDoubleTimeCurrentCorrelation(saveFig=True, show=False)
     vis.PlotIntegratedDoubleTimeCurrentProduct(saveFig=True, overplotManualProduct=True, show=False)
