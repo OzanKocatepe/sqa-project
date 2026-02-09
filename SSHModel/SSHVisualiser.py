@@ -95,7 +95,7 @@ class SSHVisualiser:
             A list of tuples of the form (i, j), which will make the function only
             plot those specific double-time correlations.
         numTauPoints : int
-            The number of tau points to plot on the 3D figures. If none, will just use the normal tauAxis.
+            The number of tau points to plot. If none, will just use the normal tauAxis.
         saveFigs : bool
             Determines whether to save the figure or not.
         subtractUncorrelatedValues : bool
@@ -180,6 +180,103 @@ class SSHVisualiser:
                 if show:
                     plt.show()
 
+    def PlotDoubleTimeTIntegratedCorrelations(self, numTauPoints: int=None, saveFigs: bool=False, subtractUncorrelatedValues: bool=False, show: bool=True) -> None:
+        r"""Plots the double-time correlations, integrated over a steady state period.
+
+        Parameters
+        ----------
+        numTauPoints : int
+            The number of tau points to plot. If none, will just use the normal tauAxis.
+        saveFigs : bool
+            Determines whether to save the figure or not.
+        subtractUncorrelatedValues : bool
+            Whether, for the double-time correlation $\langle \sigma_i(t), \sigma_j(t + \tau) \rangle$, to subtract the value of
+            $\langle \sigma_i (t) \rangle \langle \sigma_j(t + \tau) \rangle$. This would be the value of the double-time correlation if the two operators were
+            entirely uncorrelated, and as $\tau$ gets sufficiently large we expect the system to become uncorrelated due to
+            interaction with the environment.
+        show : bool
+            Whether to show the plots or not.
+        """
+
+        correlationData = np.sum([self._sim.models[k].correlationData for k in self._sim.momentums])
+
+        tauMask = None
+        if numTauPoints is None:
+            tauMask = np.ones((correlationData.tauAxisDim.size,), dtype=bool)
+        else:
+            modulus = self._sim.tauAxisDim.size // numTauPoints
+            tauMask = np.arange(correlationData.tauAxisDim.size) % modulus == 0
+
+        subscripts = ['-', '+', 'z']
+
+        operatorLabels = [r"\tilde \sigma_-",
+                          r"\tilde \sigma_+",
+                          r"\tilde \sigma_z"]
+
+        for i in range(3):
+            # Creates the 9 subplots.
+            nrows, ncols = 3, 2
+            fig, ax = plt.subplots(nrows, ncols, figsize=(16, 8.8))
+
+            for j in range(3):
+                # Creates the y-labels for each pair of operators.
+                correlationName = rf"$\int dt\, \langle {operatorLabels[i]}(t) {operatorLabels[j]}(t + \tau) \rangle$" 
+                if subtractUncorrelatedValues:
+                    correlationName = rf"$\int dt\, \langle {operatorLabels[i]}(t) {operatorLabels[j]}(t + \tau) \rangle - \langle {operatorLabels[i]}(t) \rangle \langle {operatorLabels[j]}(t + \tau) \rangle$"
+
+                yLabels = [
+                    f"Real Part of {correlationName}",
+                    f"Imaginary Part of {correlationName}"
+                ] 
+
+                # Calculates the value of the double-time correlators integrated over a steady state period.
+                z = np.zeros((correlationData.tAxisSec.size, correlationData.tauAxisSec.size), dtype=complex)
+                for tIndex, t in enumerate(correlationData.tAxisSec):
+                    z[tIndex, :] = correlationData.doubleTime[i, j, tIndex, :]
+                        
+                    # Subtracts the uncorrelated values if the system desired that.
+                    if subtractUncorrelatedValues:
+                        # Subtracts the value of the single-time correlation fourier expansions
+                        # at each time on the tau axis.
+                        newAxis = t + correlationData.tauAxisSec
+                        z[tIndex, :] -= correlationData.singleTimeFourier[i].Evaluate(t)[0] * correlationData.singleTimeFourier[j].Evaluate(newAxis)
+
+                # Integrates the correlator.
+                integratedCorrelator = self._sim.params.drivingFreq * np.trapezoid(
+                    y = z,
+                    x = correlationData.tAxisSec,
+                    axis = 0
+                )
+
+                ax[j, 0].plot(correlationData.tauAxisDim, integratedCorrelator.real, color='black')
+                ax[j, 1].plot(correlationData.tauAxisDim, integratedCorrelator.imag, color='black')
+        
+                # Sets other properties.
+                ax[j, 0].set_xlabel(self._tauLabel)
+                ax[j, 1].set_xlabel(self._tauLabel)
+            
+                ax[j, 0].set_ylabel(f"Real part of {correlationName}")
+                ax[j, 1].set_ylabel(f"Imag part of {correlationName}")
+
+            kValues = self._sim.momentums
+            if kValues.size > 3:
+                kValues = f"[{np.min(kValues) / np.pi}, {np.max(kValues) / np.pi}, {kValues.size}]"
+            else:
+                kValues /= np.pi
+            title = rf"{correlationName} -- $k = {kValues}\pi,\, t_1 = {self._sim.params.t1},\, t_2 = {self._sim.params.t2},\, A_0 = {self._sim.params.drivingAmplitude},\, \Omega = {self._sim.params.drivingFreq:.5f},\, \gamma_- = {self._sim.params.decayConstant}$"
+            plt.suptitle(title)
+
+            plt.tight_layout()
+
+            if saveFigs:
+                if subtractUncorrelatedValues:
+                    plt.savefig(f"plots/[{subscripts[i]}] Integrated Double-Time Correlators.png", dpi=300)
+                else:
+                    plt.savefig(f"plots/[{subscripts[i]}] Integrated Double-Time Connected Correlators.png", dpi=300)
+
+            if show:
+                plt.show()
+
     def PlotSingleTimeProducts(self, k: float, slice: list[tuple[int]]=None, numTauPoints: int=None, saveFigs: bool=False, vLim: tuple[float]=(None, None), show: bool=True) -> None:
         r"""
         Plots the expected steady state of the double-time correlations, which is the product of the
@@ -193,7 +290,7 @@ class SSHVisualiser:
             A list of tuples of the form (i, j), which will make the function only
             plot those specific double-time correlations.
         numTauPoints : int
-            The number of tau points to plot on the 3D figures. If none, will just use the normal tauAxis.
+            The number of tau points to plot. If none, will just use the normal tauAxis.
         saveFigs : bool
             Determines whether to save the figure or not.
         vLim : tuple[float]
@@ -275,7 +372,7 @@ class SSHVisualiser:
             Whether to overplot the current fourier series on the time-domain.
         """
 
-        currentData = self._sim.CalculateTotalCurrent()
+        currentData = self._sim.CalculateTotalCurrent
 
         kValues = self._sim.momentums
         if kValues.size > 3:
@@ -347,7 +444,7 @@ class SSHVisualiser:
             The limits to apply on the frequency axis.
         """
 
-        currentData = self._sim.CalculateTotalCurrent()
+        currentData = self._sim.CalculateTotalCurrent
 
         kValues = self._sim.momentums
         if kValues.size > 3:
@@ -420,7 +517,7 @@ class SSHVisualiser:
         fLim: tuple[float]
             The limits to apply on the frequency axis.
         """
-        currentData = self._sim.CalculateTotalCurrent()
+        currentData = self._sim.CalculateTotalCurrent
 
         kValues = self._sim.momentums
         if kValues.size > 3:
@@ -466,7 +563,7 @@ class SSHVisualiser:
             Whether to show the plots or not.
         """
 
-        currentData = self._sim.CalculateTotalCurrent()
+        currentData = self._sim.CalculateTotalCurrent
 
         kValues = self._sim.momentums
         if kValues.size > 3:
@@ -513,7 +610,7 @@ class SSHVisualiser:
             Whether to overplot the manual calculation of $\int \,dt \langle j(t) \rangle \langle j(t + \tau) \rangle$ over the plot.
         """
 
-        currentData = self._sim.CalculateTotalCurrent()
+        currentData = self._sim.CalculateTotalCurrent
 
         kValues = self._sim.momentums
         if kValues.size > 3:

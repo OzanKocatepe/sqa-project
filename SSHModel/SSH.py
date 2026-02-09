@@ -269,12 +269,13 @@ class SSH:
                     **odeParams
                 ).y
 
-                labels = ['-', '+', 'z']
-                for j in range(3):
-                    newAxis = t + self.__correlationData.tauAxisSec
-                    connectedCorrelator = self.__correlationData.doubleTime[i, j, tIndex, :] - self.__correlationData.singleTimeFourier[i].Evaluate(t)[0] * self.__correlationData.singleTimeFourier[j].Evaluate(newAxis)
-                    if np.mean(connectedCorrelator[self.__correlationData.tauAxisDim >= steadyStateCutoff]) > 1e-5:
-                        print(f"Double-time correlator {labels[i]}, {labels[j]} at k = {self.__params.k / np.pi}pi, t = {self.__correlationData.tAxisDim[tIndex]} not decaying to zero.")
+                # Prints if any of these particular connected correlators aren't decaying to zero.
+                # labels = ['-', '+', 'z']
+                # for j in range(3):
+                #     newAxis = t + self.__correlationData.tauAxisSec
+                #     connectedCorrelator = self.__correlationData.doubleTime[i, j, tIndex, :] - self.__correlationData.singleTimeFourier[i].Evaluate(t)[0] * self.__correlationData.singleTimeFourier[j].Evaluate(newAxis)
+                #     if np.mean(connectedCorrelator[self.__correlationData.tauAxisDim >= steadyStateCutoff]) > 1e-5:
+                #         print(f"Double-time correlator {labels[i]}, {labels[j]} at k = {self.__params.k / np.pi}pi, t = {self.__correlationData.tAxisDim[tIndex]} not decaying to zero.")
 
     def __CalculateTAxis(self, steadyStateCutoff: int, numT: int) -> None:
         r"""

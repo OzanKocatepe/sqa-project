@@ -28,11 +28,11 @@ if __name__ == "__main__":
 
     # Everything for a fixed k.
     momentums = sim.momentums
-    for k in [momentums[3], momentums[-4]]:
-        vis.PlotSingleTimeCorrelations(k, overplotFourier=False, saveFigs=True, show=True, overplotInitialConditions=True)
-        vis.PlotDoubleTimeCorrelations(k, saveFigs=True, subtractUncorrelatedValues=False, numTauPoints=None, show=False)
-        vis.PlotDoubleTimeCorrelations(k, saveFigs=True, subtractUncorrelatedValues=True, numTauPoints=None, show=False)
-        vis.PlotSingleTimeProducts(k, saveFigs=True, numTauPoints=None, show=False)
+    # for k in [momentums[3], momentums[-4]]:
+    #     vis.PlotSingleTimeCorrelations(k, overplotFourier=False, saveFigs=True, show=True, overplotInitialConditions=True)
+    #     vis.PlotDoubleTimeCorrelations(k, saveFigs=True, subtractUncorrelatedValues=False, numTauPoints=None, show=False)
+    #     vis.PlotDoubleTimeCorrelations(k, saveFigs=True, subtractUncorrelatedValues=True, numTauPoints=None, show=False)
+    #     vis.PlotSingleTimeProducts(k, saveFigs=True, numTauPoints=None, show=False)
     
     # Everything for all k.
     vis.PlotTotalCurrent(saveFig = True, show = False, overplotFourier=True)
@@ -40,3 +40,6 @@ if __name__ == "__main__":
     vis.PlotNumericallyIntegratedHarmonics(saveFig = True, show = False, fLim=(-12.5, 12.5))
     vis.PlotIntegratedDoubleTimeCurrentCorrelation(saveFig=True, show=False)
     vis.PlotIntegratedDoubleTimeCurrentProduct(saveFig=True, overplotManualProduct=True, show=False)
+
+    vis.PlotDoubleTimeTIntegratedCorrelations(saveFigs = True, show = False)
+    vis.PlotDoubleTimeTIntegratedCorrelations(saveFigs = False, show = False)
