@@ -4,6 +4,7 @@ from .SSHParameters import EnsembleParameters, ModelParameters
 from .CurrentData import CurrentData
 
 import multiprocessing
+from functools import cached_property
 
 class SSHSimulation:
     """
@@ -86,8 +87,14 @@ class SSHSimulation:
         model.CalculateCurrent(steadyStateCutoff)
         return model
 
+    @cached_property
     def CalculateTotalCurrent(self) -> CurrentData:
-        """Calculates the total current in the time and frequency domains.
+        """
+        Calculates the total current in the time and frequency domains.
+
+        This is a cached property, since it should only be calculated once per simulation after everything
+        has been calculated.
+        It doesn't take much time to calculate, but it's still a waste to calculate it multiple times.
         
         Returns
         -------
