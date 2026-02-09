@@ -22,7 +22,7 @@ class SSHVisualiser:
         self._tLabel = r"$t \gamma_-$"
         self._tauLabel = r"$\tau \gamma_-$"
 
-    def PlotSingleTimeCorrelations(self, k: float, overplotFourier: bool=False, saveFigs: bool=False, show: bool=True) -> None:
+    def PlotSingleTimeCorrelations(self, k: float, overplotFourier: bool=False, saveFigs: bool=False, show: bool=True, overplotInitialConditions: bool=False) -> None:
         r"""Plots the single-time correlations $\langle \tilde \sigma_-(t) \rangle,\, \langle \tilde \sigma_+(t) \rangle,\, \langle \tilde \sigma_z(t) \rangle$ for a fixed momentum.
 
         Parameters
@@ -35,6 +35,9 @@ class SSHVisualiser:
             Determines whether to save the figure or not.
         show : bool
             Whether to show the plots or not.
+        overplotInitialConditions : bool
+            Whether to plot the points for the single-time correlators that are taken as our initial conditions
+            double-time conditions. Particularly useful for checking that tAxis lies all within one steady-state period.
         """
 
         correlationData = self._sim.models[k].correlationData
@@ -53,7 +56,6 @@ class SSHVisualiser:
 
         # Creates the 3x3 subplots.
         nrows, ncols = 3, 3
-        plt.clf()
         fig, ax = plt.subplots(nrows, ncols, figsize=(16, 8.8))
 
         for row in np.arange(nrows):
@@ -65,6 +67,10 @@ class SSHVisualiser:
                 if overplotFourier:
                     ax[row, col].plot(correlationData.tauAxisDim, self._plottingFunctions[col](correlationData.singleTimeFourier[row].Evaluate(correlationData.tauAxisSec)),
                                     color = "blue")
+                    
+                if overplotInitialConditions:
+                    for t in correlationData.tAxisDim:
+                        ax[row, col].axvline(t, color='red', linestyle='dashed')
         
                 # Sets other properties.
                 ax[row, col].set_xlabel(self._tLabel)
@@ -74,7 +80,7 @@ class SSHVisualiser:
         plt.suptitle(title)
         plt.tight_layout()
         if saveFigs:
-            plt.savefig("plots/Single-Time Correlators.png", dpi=300)
+            plt.savefig(f"plots/[k = {k / np.pi}pi] Single-Time Correlators.png", dpi=300)
         if show:
             plt.show()
 
@@ -139,7 +145,6 @@ class SSHVisualiser:
 
                 # Creates the 2 3D subplots.
                 nrows, ncols = 1, 2
-                plt.clf()
                 fig, ax = plt.subplots(nrows, ncols, figsize=(16, 8.8))
 
                 for col in np.arange(ncols):                    

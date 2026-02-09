@@ -6,7 +6,7 @@ from SSHModel import *
 
 # k = np.pi / 4
 if __name__ == "__main__":
-    numK = 10
+    numK = 11
     numT = 10
     tauAxis = np.linspace(0, 100, 40000)
     initialConditions = np.array([-0.5, -0.5, 0], dtype=complex)
@@ -27,14 +27,16 @@ if __name__ == "__main__":
     vis = SSHVisualiser(sim)
 
     # Everything for a fixed k.
-    # vis.PlotSingleTimeCorrelations(k, overplotFourier=False, saveFigs=True, show=False)
+    momentums = sim.momentums
+    for k in [momentums[3], momentums[-4]]:
+        vis.PlotSingleTimeCorrelations(k, overplotFourier=False, saveFigs=True, show=True, overplotInitialConditions=True)
     # vis.PlotDoubleTimeCorrelations(k, saveFigs=True, subtractUncorrelatedValues=False, numTauPoints=None, show=False)
     # vis.PlotDoubleTimeCorrelations(k, saveFigs=True, subtractUncorrelatedValues=True, numTauPoints=None, show=False)
     # vis.PlotSingleTimeProducts(k, saveFigs=True, numTauPoints=None, show=False)
     
     # Everything for all k.
     vis.PlotTotalCurrent(saveFig = True, show = False, overplotFourier=True)
-    vis.PlotConnectedCurrentCorrelator(saveFig = True, show = False, yLim=(-3e-4, 3e-4))
+    vis.PlotConnectedCurrentCorrelator(saveFig = True, show = False)
     vis.PlotNumericallyIntegratedHarmonics(saveFig = True, show = False, fLim=(-12.5, 12.5))
     vis.PlotIntegratedDoubleTimeCurrentCorrelation(saveFig=True, show=False)
     vis.PlotIntegratedDoubleTimeCurrentProduct(saveFig=True, overplotManualProduct=True, show=False)

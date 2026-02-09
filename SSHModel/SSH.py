@@ -151,7 +151,7 @@ class SSH:
             'fun' : self.__ClassicallyDrivenSSHEquations,
             'rtol' : 1e-10,
             'atol' : 1e-12,
-            'max_step' : 0.001 / self.__params.decayConstant
+            'max_step' : 0.01 / self.__params.decayConstant
         }
 
         # if debug:
