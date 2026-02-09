@@ -41,5 +41,5 @@ if __name__ == "__main__":
     vis.PlotIntegratedDoubleTimeCurrentCorrelation(saveFig=True, show=False)
     vis.PlotIntegratedDoubleTimeCurrentProduct(saveFig=True, overplotManualProduct=True, show=False)
 
-    vis.PlotDoubleTimeTIntegratedCorrelations(saveFigs = True, show = False)
-    vis.PlotDoubleTimeTIntegratedCorrelations(saveFigs = False, show = False)
+    vis.PlotDoubleTimeTIntegratedCorrelations(saveFigs = True, show = False, subtractUncorrelatedValues=True)
+    vis.PlotDoubleTimeTIntegratedCorrelations(saveFigs = True, show = False, subtractUncorrelatedValues=False)

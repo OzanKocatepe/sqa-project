@@ -270,9 +270,9 @@ class SSHVisualiser:
 
             if saveFigs:
                 if subtractUncorrelatedValues:
-                    plt.savefig(f"plots/[{subscripts[i]}] Integrated Double-Time Correlators.png", dpi=300)
-                else:
                     plt.savefig(f"plots/[{subscripts[i]}] Integrated Double-Time Connected Correlators.png", dpi=300)
+                else:
+                    plt.savefig(f"plots/[{subscripts[i]}] Integrated Double-Time Correlators.png", dpi=300)
 
             if show:
                 plt.show()
