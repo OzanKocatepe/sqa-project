@@ -30,9 +30,9 @@ if __name__ == "__main__":
     momentums = sim.momentums
     for k in [momentums[3], momentums[-4]]:
         vis.PlotSingleTimeCorrelations(k, overplotFourier=False, saveFigs=True, show=True, overplotInitialConditions=True)
-    # vis.PlotDoubleTimeCorrelations(k, saveFigs=True, subtractUncorrelatedValues=False, numTauPoints=None, show=False)
-    # vis.PlotDoubleTimeCorrelations(k, saveFigs=True, subtractUncorrelatedValues=True, numTauPoints=None, show=False)
-    # vis.PlotSingleTimeProducts(k, saveFigs=True, numTauPoints=None, show=False)
+        vis.PlotDoubleTimeCorrelations(k, saveFigs=True, subtractUncorrelatedValues=False, numTauPoints=None, show=False)
+        vis.PlotDoubleTimeCorrelations(k, saveFigs=True, subtractUncorrelatedValues=True, numTauPoints=None, show=False)
+        vis.PlotSingleTimeProducts(k, saveFigs=True, numTauPoints=None, show=False)
     
     # Everything for all k.
     vis.PlotTotalCurrent(saveFig = True, show = False, overplotFourier=True)
