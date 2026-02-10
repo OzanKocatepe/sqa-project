@@ -193,7 +193,7 @@ class Fourier:
         )
     
     @classmethod
-    def FromSamples(baseFreq: float, y: np.ndarray[complex] | np.ndarray[float], x: np.ndarray[float], numPeriods: int) -> Fourier:
+    def FromSamples(cls, baseFreq: float, y: np.ndarray[complex] | np.ndarray[float], x: np.ndarray[float], numPeriods: int) -> Fourier:
         """
         Creates a fourier series from a set of samples.
 
@@ -234,7 +234,7 @@ class Fourier:
         # Manually adds the mean back to the zero frequency coefficient.
         coeffs[n] += functionMean
 
-        return Fourier(
+        return cls(
             baseFreq = baseFreq,
             coeffs = coeffs
         )
