@@ -151,7 +151,7 @@ class Fourier:
         Returns
         -------
         float | ndarray[float]
-            The value of the fourier expansion at each point in 'tPoints'.
+            The value of the fourier expansion at each given point.
         """
 
         # Makes sure we can apply vectorised operations.

@@ -3,7 +3,7 @@ import numpy as np
 import scipy.special as special
 
 from .Fourier import Fourier
-from SSHModel.data.SSHParameters import ModelParameters
+from .SSHParameters import ModelParameters
 from .CorrelationData import CorrelationData
 
 @dataclass

@@ -21,6 +21,7 @@ class ModelParameters(EnsembleParameters):
 
     def __post_init__(self):
         """Defines useful values after the main parameters are initialised."""
+
         self.Ek = self.t1 + self.t2 * np.exp(1j * self.k)
         self.phiK = np.angle(self.Ek)
 

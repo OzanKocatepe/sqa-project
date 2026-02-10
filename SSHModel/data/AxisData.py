@@ -10,3 +10,4 @@ class AxisData:
     tAxisDim: np.ndarray[float]
     tAxisSec: np.ndarray[float]
     freqAxis: np.ndarray[float]
+    steadyStateCutoff: float
