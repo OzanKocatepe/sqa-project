@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 import numpy as np
 
+from .Fourier import Fourier
+
 @dataclass
 class CorrelationData:
     """Contains all of the data relating to the single- and double-time correlations."""
