@@ -109,6 +109,9 @@ class SSH:
         # solves in the complex domain.
         initialConditions = np.array(initialConditions, dtype=complex)
 
+        # Stores the axes.
+        self.__axes = axes
+
         # Stores parameters to be shared amongst the single- and double-time correlations by the ODE solver.
         odeParams = {
             'fun' : self.__ClassicallyDrivenSSHEquations,
@@ -531,8 +534,16 @@ class SSH:
         for nIndex in range(integrand.shape[0]):
             harmonics[nIndex] = integrate.simpson(
                 y = integrand[nIndex, :],
-                x = steadyStateTauAxis
+                x = steadyStateTauAxis,
                 axis = 1
             )
 
         return harmonics
+    
+    @property
+    def currentData(self) -> CurrentData:
+        return self.__currentData
+    
+    @property
+    def correlationData(self) -> CorrelationData:
+        return self.__correlationData
