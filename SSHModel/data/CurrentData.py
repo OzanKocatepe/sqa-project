@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import numpy as np
 from .Fourier import Fourier
-from .SSHParameters import ModelParameters
+from SSHParameters import ModelParameters
 from .CorrelationData import CorrelationData
 import scipy.special as special
 
