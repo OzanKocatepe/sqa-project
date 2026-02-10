@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import math
 
 from SSHModel import *
-from SSHModel.data import *
 
 # k = np.pi / 4
 if __name__ == "__main__":
@@ -12,7 +11,7 @@ if __name__ == "__main__":
     tauAxis = np.linspace(0, 100, 40000)
     initialConditions = np.array([-0.5, -0.5, 0], dtype=complex)
 
-    params = EnsembleParameters(
+    params = data.EnsembleParameters(
         t1 = 2,
         t2 = 1,
         decayConstant = 0.1,
@@ -23,12 +22,17 @@ if __name__ == "__main__":
     sim = SSHSimulation(params)
     sim.AddMomentum(np.linspace(-np.pi, np.pi, numK))
     # sim.AddMomentum(np.pi / 4)
-    sim.Run(tauAxis, initialConditions, numT, debug=True, steadyStateCutoff=60)
+    sim.Run(
+        initialConditions = initialConditions,
+        tauAxisDim = tauAxis,
+        steadyStateCutoff = 60,
+        numT = numT,
+        numProcesses = 6)
 
-    vis = SSHVisualiser(sim)
+    # vis = SSHVisualiser(sim)
 
     # Everything for a fixed k.
-    momentums = sim.momentums
+    # momentums = sim.momentums
     # for k in [momentums[3], momentums[-4]]:
     #     vis.PlotSingleTimeCorrelations(k, overplotFourier=False, saveFigs=True, show=True, overplotInitialConditions=True)
     #     vis.PlotDoubleTimeCorrelations(k, saveFigs=True, subtractUncorrelatedValues=False, numTauPoints=None, show=False)
@@ -36,11 +40,11 @@ if __name__ == "__main__":
     #     vis.PlotSingleTimeProducts(k, saveFigs=True, numTauPoints=None, show=False)
     
     # Everything for all k.
-    vis.PlotTotalCurrent(saveFig = True, show = False, overplotFourier=True)
-    vis.PlotConnectedCurrentCorrelator(saveFig = True, show = False)
-    vis.PlotNumericallyIntegratedHarmonics(saveFig = True, show = False, fLim=(-12.5, 12.5))
-    vis.PlotIntegratedDoubleTimeCurrentCorrelation(saveFig=True, show=False)
-    vis.PlotIntegratedDoubleTimeCurrentProduct(saveFig=True, overplotManualProduct=True, show=False)
+    # vis.PlotTotalCurrent(saveFig = True, show = False, overplotFourier=True)
+    # vis.PlotConnectedCurrentCorrelator(saveFig = True, show = False)
+    # vis.PlotNumericallyIntegratedHarmonics(saveFig = True, show = False, fLim=(-12.5, 12.5))
+    # vis.PlotIntegratedDoubleTimeCurrentCorrelation(saveFig=True, show=False)
+    # vis.PlotIntegratedDoubleTimeCurrentProduct(saveFig=True, overplotManualProduct=True, show=False)
 
-    vis.PlotDoubleTimeTIntegratedCorrelations(saveFigs = True, show = False, subtractUncorrelatedValues=True)
-    vis.PlotDoubleTimeTIntegratedCorrelations(saveFigs = True, show = False, subtractUncorrelatedValues=False)
+    # vis.PlotDoubleTimeTIntegratedCorrelations(saveFigs = True, show = False, subtractUncorrelatedValues=True)
+    # vis.PlotDoubleTimeTIntegratedCorrelations(saveFigs = True, show = False, subtractUncorrelatedValues=False)
