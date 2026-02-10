@@ -9,26 +9,36 @@ import scipy.special as special
 class CurrentData:
     """Contains all of the data relating to the current operator."""
 
-    timeDomainData: np.ndarray[complex] = None
-    freqDomainData: np.ndarray[complex] = None
-    fourierExpansion: Fourier = None
-    doubleTimeData: np.ndarray[complex] = None
-    integratedDoubleTimeData: np.ndarray[complex] = None
-    doubleProductData: np.ndarray[complex] = None
-    doubleConnectedCorrelator: np.ndarray[complex] = None
-    doubleConnectedCorrelatorFreqDomain: np.ndarray[complex] = None
+    # The expectation of the current operator in the time- and frequency- domains.
+    timeDomainCurrent: np.ndarray[complex] = None
+    freqDomainCurrent: np.ndarray[complex] = None
+
+    # The fourier series of the time-domain current.
+    currentFourierSeries: Fourier = None
+
+    # The expectation of the double-time current operator.
+    doubleTimeCurrent: np.ndarray[complex] = None
+    # The expectation of the double-time current operator, integrated w.r.t. t.
+    integratedDoubleTimeCurrent: np.ndarray[complex] = None
+    # The product of the expectation of the current operator, evaluated at two different times.
+    doubleTimeCurrentProduct: np.ndarray[complex] = None
+
+    # The connected correlator for the double-time current operator in time- and frequency- domains.
+    timeConnectedCorrelator: np.ndarray[complex] = None
+    freqConnectedCorrelator: np.ndarray[complex] = None
+
+    # The fourier transform of the connected-correlator evaluated at integer harmonics of the
+    # driving frequency.
     harmonics : np.ndarray[complex] = None
-    tauAxisDim: np.ndarray[float] = None
-    tauAxisSec: np.ndarray[float] = None
-    tAxisDim: np.ndarray[float] = None
-    tAxisSec: np.ndarray[float] = None
-    freqAxis: np.ndarray[float] = None
-    _integratedManualData: np.ndarray[float] = None
+
+    # The double-time current product (second half of the connected correlator) evaluated
+    # numerically using the timeDomainCurrent at multiple times, rather than using the fourier series
+    # derived analytically. Used to make the product term in the connected correlator is correct.
+    _numericalDoubleTimeCurrentProduct: np.ndarray[float] = None
 
     def __add__(self, other: CurrentData) -> CurrentData:
         """
         Adds another CurrentData instance to itself to create a new CurrentData instance.
-        Assumes that the axes for both instances are the same.
 
         Parameters
         ----------
@@ -38,26 +48,20 @@ class CurrentData:
         Returns
         -------
         CurrentData
-            The new current data instance, with the same axes as each currentData instance, but
-            the sum of their time and frequency data.
+            The new current data instance with the sum of their time and frequency data.
         """
 
         return CurrentData(
-            timeDomainData = self.timeDomainData + other.timeDomainData,
-            freqDomainData = self.freqDomainData + other.freqDomainData,
-            fourierExpansion = self.fourierExpansion + other.fourierExpansion,
-            doubleTimeData = self.doubleTimeData + other.doubleTimeData,
-            integratedDoubleTimeData = self.integratedDoubleTimeData + other.integratedDoubleTimeData,
-            doubleProductData = self.doubleProductData + other.doubleProductData,
-            doubleConnectedCorrelator = self.doubleConnectedCorrelator + other.doubleConnectedCorrelator,
-            doubleConnectedCorrelatorFreqDomain = self.doubleConnectedCorrelatorFreqDomain + other.doubleConnectedCorrelatorFreqDomain,
+            timeDomainCurrent = self.timeDomainCurrent + other.timeDomainCurrent,
+            freqDomainCurrent = self.freqDomainCurrent + other.freqDomainCurrent,
+            currentFourierSeries = self.currentFourierSeries + other.currentFourierSeries,
+            doubleTimeCurrent = self.doubleTimeCurrent + other.doubleTimeCurrent,
+            integratedDoubleTimeCurrent = self.integratedDoubleTimeCurrent + other.integratedDoubleTimeCurrent,
+            doubleTimeCurrentProduct = self.doubleTimeCurrentProduct + other.doubleTimeCurrentProduct,
+            timeConnectedCorrelator = self.timeConnectedCorrelator + other.timeConnectedCorrelator,
+            freqConnectedCorrelator = self.freqConnectedCorrelator + other.freqConnectedCorrelator,
             harmonics = self.harmonics + other.harmonics,
-            tauAxisDim = self.tauAxisDim,
-            tauAxisSec = self.tauAxisSec,
-            tAxisDim = self.tAxisDim,
-            tAxisSec = self.tAxisSec,
-            freqAxis = self.freqAxis,
-            _integratedManualData = self._integratedManualData + other._integratedManualData
+            _numericalDoubleTimeCurrentProduct = self._numericalDoubleTimeCurrentProduct + other._numericalDoubleTimeCurrentProduct
         )
 
     def CalculateFourier(self, k: float, params: ModelParameters, correlationData: CorrelationData) -> None:
@@ -77,7 +81,7 @@ class CurrentData:
 
         # Calculates value of current coefficients and stores them in coefficientFourierExpansion.
         coefficientFourierExpansions = self.__CalculateCurrentCoefficients(k, params, correlationData.tauAxisSec)
-        # Calculates the full fourier expansion of the current expectation and stores it in fourierExpansion.
+        # Calculates the full fourier expansion of the current expectation and stores it in currentFourierSeries.
         self.__CalculateCurrentExpectationCoefficients(params, correlationData, coefficientFourierExpansions)
 
     def __CalculateCurrentExpectationCoefficients(self, params: ModelParameters, correlationData: CorrelationData, coefficientFourierExpansions: list[Fourier]) -> None:
@@ -141,7 +145,7 @@ class CurrentData:
                     for functionIndex in range(3):
                         coefficients[frequencySum + 2 * n] += currentCoeff[functionIndex, firstIndex + n] * expectationCoeff[functionIndex, frequencySum - firstIndex + n]
 
-        self.fourierExpansion = Fourier(
+        self.currentFourierSeries = Fourier(
             params.drivingFreq,
             coefficients
         )

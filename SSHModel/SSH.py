@@ -4,7 +4,7 @@ from tqdm import tqdm
 
 from .CorrelationData import CorrelationData
 from .CurrentData import CurrentData
-from .Fourier import Fourier
+from .data.Fourier import Fourier
 from .SSHParameters import ModelParameters
 
 class SSH:
