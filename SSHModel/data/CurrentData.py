@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 import numpy as np
-from .Fourier import Fourier
-from SSHParameters import ModelParameters
-from .CorrelationData import CorrelationData
 import scipy.special as special
+
+from .Fourier import Fourier
+from SSHModel.data.SSHParameters import ModelParameters
+from .CorrelationData import CorrelationData
 
 @dataclass
 class CurrentData:
