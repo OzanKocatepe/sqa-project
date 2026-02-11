@@ -86,7 +86,7 @@ class Fourier:
         tPoints: np.ndarray[float] = np.atleast_1d(tPoints)
 
         # Calculates terms $-in\omega, \dots, in\omega = -2i\pi nf, \dots, 2i\pi nf$..
-        expTerms: np.ndarray[complex] = 1j * self.angularFreq * np.arange(-self.__n, self.__n + 1)
+        expTerms: np.ndarray[complex] = 1j * self.angularFreq * np.arange(-self.n, self.n + 1)
 
         r"""
         Takes the outer product with $t_0, \dots, t_m$ so that we get an array of shape
@@ -99,7 +99,7 @@ class Fourier:
 
         # Takes the dot product of each row (each row has constant time, contains frequency exponentials)
         # with the coefficients. Results in an array of shape (tPoints.size,) with the value of the expansion at each time.
-        return np.dot(expTerms, self.__coeffs)
+        return np.dot(expTerms, self.coeffs)
 
     @staticmethod
     def DetermineMaxN(x: np.ndarray[float], baseFreq: float) -> int:
@@ -122,7 +122,7 @@ class Fourier:
         """
 
         dx = np.mean(np.diff(x))
-        return np.floor(1 / (4 * dx * np.pi * baseFreq))
+        return np.floor(1 / (4 * dx * np.pi * baseFreq)).astype(int)
 
     @classmethod
     def Convolve(cls, first: Fourier, second: Fourier) -> Fourier:
@@ -194,7 +194,7 @@ class Fourier:
     
     @classmethod
     def FromSamples(cls, baseFreq: float, y: np.ndarray[complex] | np.ndarray[float], x: np.ndarray[float], numPeriods: int) -> Fourier:
-        """
+        r"""
         Creates a fourier series from a set of samples.
 
         Parameters
@@ -216,7 +216,7 @@ class Fourier:
             by the sampling rate.
         """
 
-        n = Fourier.DetermineMaxN(x, baseFreq)
+        n = cls.DetermineMaxN(x, baseFreq)
         coeffs = np.zeros((2 * n + 1), dtype=complex)
         angularFreq = 2 * np.pi * baseFreq
 

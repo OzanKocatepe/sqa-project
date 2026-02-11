@@ -6,7 +6,7 @@ from SSHModel import *
 # k = np.pi / 4
 if __name__ == "__main__":
     numK = 5
-    numT = 5
+    numT = 2
     tauAxis = np.linspace(0, 100, 40000)
     initialConditions = np.array([-0.5, -0.5, 0], dtype=complex)
 
@@ -26,7 +26,8 @@ if __name__ == "__main__":
         tauAxisDim = tauAxis,
         steadyStateCutoff = 60,
         numT = numT,
-        numProcesses = 6)
+        numProcesses = 6
+    )
 
     # vis = SSHVisualiser(sim)
 

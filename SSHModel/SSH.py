@@ -148,7 +148,7 @@ class SSH:
         
         else:
             dimPeriod = self.__params.decayConstant / self.__params.drivingFreq
-            return (self.__axes.steadyStateCutoff <= self.__axes.tauAxisDim) & (self.__axes.tauAxisDim <= dimPeriod * numPeriods)
+            return (self.__axes.steadyStateCutoff <= self.__axes.tauAxisDim) & (self.__axes.tauAxisDim <= self.__axes.steadyStateCutoff + dimPeriod * numPeriods)
 
     def __CalculateSingleTimeCorrelations(self, initialConditions: np.ndarray[complex], odeParams: dict) -> np.ndarray[complex]:
         r"""
@@ -239,7 +239,7 @@ class SSH:
                 # Solves system.
                 doubleTime[i, :, tIndex, :] = integrate.solve_ivp(
                     t_span = t + np.array([0, np.max(self.__axes.tauAxisSec)]),
-                    t_eval = t + self.__correlationData.tauAxisSec,
+                    t_eval = t + self.__axes.tauAxisSec,
                     y0 = doubleTimeInitialConditions[i, :, tIndex],
                     args = (doubleTimeInhomParts[i, tIndex],),
                     **odeParams
@@ -262,21 +262,21 @@ class SSH:
         return np.array([
             # When left-multiplying by $\sigma_-(t)$
             [
-                np.zeros(self.__correlationData.tAxisSec.size, dtype=complex),
-                -0.5 * (self.__correlationData.singleTimeFourier[2].Evaluate(self.__correlationData.tAxisSec) - 1),
-                self.__correlationData.singleTimeFourier[0].Evaluate(self.__correlationData.tAxisSec)
+                np.zeros(self.__axes.tAxisSec.size, dtype=complex),
+                -0.5 * (self.__correlationData.singleFourierSeries[2].Evaluate(self.__axes.tAxisSec) - 1),
+                self.__correlationData.singleFourierSeries[0].Evaluate(self.__axes.tAxisSec)
             ],
             # When left-multiplying by $\sigma_+(t)$
             [
-                0.5 * (self.__correlationData.singleTimeFourier[2].Evaluate(self.__correlationData.tAxisSec) + 1),
-                np.zeros(self.__correlationData.tAxisSec.size, dtype=complex),
-                -self.__correlationData.singleTimeFourier[1].Evaluate(self.__correlationData.tAxisSec)
+                0.5 * (self.__correlationData.singleFourierSeries[2].Evaluate(self.__axes.tAxisSec) + 1),
+                np.zeros(self.__axes.tAxisSec.size, dtype=complex),
+                -self.__correlationData.singleFourierSeries[1].Evaluate(self.__axes.tAxisSec)
             ],
             # When left-multiplying by $\sigma_z(t)$
             [
-                -self.__correlationData.singleTimeFourier[0].Evaluate(self.__correlationData.tAxisSec),
-                self.__correlationData.singleTimeFourier[1].Evaluate(self.__correlationData.tAxisSec),
-                np.ones(self.__correlationData.tAxisSec.size, dtype=complex),
+                -self.__correlationData.singleFourierSeries[0].Evaluate(self.__axes.tAxisSec),
+                self.__correlationData.singleFourierSeries[1].Evaluate(self.__axes.tAxisSec),
+                np.ones(self.__axes.tAxisSec.size, dtype=complex),
             ]], dtype=complex
         )
     
@@ -333,7 +333,7 @@ class SSH:
         """
 
         # Defines useful terms.
-        drivingSamples = self.__SinusoidalDrivingTerm(self.__correlationData.tauAxisSec)
+        drivingSamples = self.__SinusoidalDrivingTerm(self.__axes.tauAxisSec)
 
         coeff1 = -np.sin(self.__params.k - self.__params.phiK - drivingSamples)
         coeff2 = 1j * np.cos(self.__params.k - self.__params.phiK - drivingSamples)
@@ -432,8 +432,8 @@ class SSH:
 
         # Defines useful properties.
         theta = self.__params.k - self.__params.phiK
-        drivingSamplesT = self.__SinusoidalDrivingTerm(self.__correlationData.tAxisSec)
-        drivingSamplesTau = self.__SinusoidalDrivingTerm(self.__correlationData.tauAxisSec)
+        drivingSamplesT = self.__SinusoidalDrivingTerm(self.__axes.tAxisSec)
+        drivingSamplesTau = self.__SinusoidalDrivingTerm(self.__axes.tauAxisSec)
 
         # Calculates the coefficients, which each have shape (tAxis.size, tauAxis.size).
         coeff1 = np.outer(np.sin(theta - drivingSamplesT), np.sin(theta - drivingSamplesTau))
@@ -517,8 +517,8 @@ class SSH:
 
         # Gets the data in steady-state, we will not consider data not in steady state.
         mask = self.__CalculateSteadyStateMask()
-        steadyStateTauAxis = self.__correlationData.tauAxisSec[mask]
-        steadyStateConnectedCorrelator = self.__currentData.doubleConnectedCorrelator[mask]
+        steadyStateTauAxis = self.__axes.tauAxisSec[mask]
+        steadyStateConnectedCorrelator = self.__currentData.timeConnectedCorrelator[mask]
 
         # Creates the required exponential terms. First axis is degree of harmonic, second axis is tau axis.
         expTerms = np.outer(-1j * np.arange(-maxHarmonic, maxHarmonic + 1) * angularFreq, steadyStateTauAxis)
@@ -531,12 +531,11 @@ class SSH:
         # Now, our integrand contains every relevant term $D_k(\tau) e^{-in \omega \tau}$, with the first axis determining n, and the second
         # determining $\tau$. Hence, since we are integrating along the tau axis to determine the magnitude at each harmonic, we integrate
         # along the tau axis (axis 1).
-        for nIndex in range(integrand.shape[0]):
-            harmonics[nIndex] = integrate.simpson(
-                y = integrand[nIndex, :],
-                x = steadyStateTauAxis,
-                axis = 1
-            )
+        harmonics = integrate.simpson(
+            y = integrand,
+            x = steadyStateTauAxis,
+            axis = 1
+        )
 
         return harmonics
     

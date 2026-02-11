@@ -93,7 +93,7 @@ class SSHSimulation:
 
         # Runs the model on the desired number of cores.
         with multiprocessing.Pool(numProcesses) as p:
-            newModels = p.map(func = self.__RunWrapper, iterable=args)
+            newModels = p.map(func = self._RunWrapper, iterable=args)
 
         # Since we pass a copy of our model to the processes, when they run the model
         # we need to store it in newModels and then replace each model with its new version.
@@ -102,9 +102,11 @@ class SSHSimulation:
             k = processArgs[0]
             self.__models[k] = newModels[processIndex]
 
-    def __RunWrapper(self, args: tuple) -> SSH:
+    def _RunWrapper(self, args: tuple) -> SSH:
         """
         The wrapper function that allows each model to be solved in parallel by different processes.
+        Cannot be private due to the way multiprocess.map sends the function to the processes - left as
+        protected as the next best option.
 
         Parameters
         ----------
@@ -121,7 +123,7 @@ class SSHSimulation:
         return model
 
     def __CalculateAxisData(self, tauAxisDim: np.ndarray[float], steadyStateCutoff: float, numT: float) -> None:
-        """
+        r"""
         Calculates the axis data to be used for all SSH models in the simulation.
 
         Parameters
