@@ -3,7 +3,7 @@ import multiprocessing
 from functools import cached_property
 import os
 
-from data import EnsembleParameters, ModelParameters, AxisData, CurrentData
+from .data import EnsembleParameters, ModelParameters, AxisData, CurrentData
 from .SSH import SSH
 
 class SSHSimulation:
@@ -42,7 +42,7 @@ class SSHSimulation:
         kArr = np.atleast_1d(kArr)
 
         for k in kArr:
-            modelParams = ModelParameters.FromEnsemble(k, self.params)
+            modelParams = ModelParameters.FromEnsemble(k, self.__params)
             self.__models[k] = SSH(modelParams)
  
     def Run(self, initialConditions: np.ndarray[complex], tauAxisDim: np.ndarray[float], steadyStateCutoff: float, numT: int=10, numProcesses: int=None) -> None:
@@ -65,7 +65,7 @@ class SSHSimulation:
             The number of processes to run the code with. If None, it will use all available cores.
         """
 
-        maxProcesses = np.max(1, os.cpu_count() - 1)
+        maxProcesses = np.max((1, os.cpu_count() - 1))
 
         # If None, uses all available cores except for 1 left for the system.
         if numProcesses is None:
@@ -74,10 +74,10 @@ class SSHSimulation:
         # Otherwise, filters the input.
         else:
             # Ensures there is at least one process.
-            # Also deals with negative values.
-            numProcesses = np.max(1, numProcesses)
+            # Also deals with nega(tive values.
+            numProcesses = np.max((1, numProcesses))
             # Ensures numProcesses doesn't exceed the maximum number of allowed processes.
-            numProcesses = np.min(numProcesses, maxProcesses)
+            numProcesses = np.min((numProcesses, maxProcesses))
 
         # Calculates the t- and tau- axes.
         self.__CalculateAxisData(tauAxisDim, steadyStateCutoff, numT)
@@ -118,6 +118,7 @@ class SSHSimulation:
         print(f"Solving for momentum {k / np.pi:.2f}pi ({kIndex + 1}/{self.numModels})...")
         model.SolveCorrelations(self.__axes, initialConditions)
         model.CalculateCurrent()
+        return model
 
     def __CalculateAxisData(self, tauAxisDim: np.ndarray[float], steadyStateCutoff: float, numT: float) -> None:
         """
@@ -136,7 +137,7 @@ class SSHSimulation:
         """
 
         # Sets a minimum value of 2.
-        numT = np.max(2, numT)
+        numT = np.max((2, numT))
 
         # Finds the start and end points of a steady-state period in dimensionless unit,
         # assuming it has the same frequency as the driving frequency.
@@ -145,7 +146,7 @@ class SSHSimulation:
 
         # Calculates the frequency axis based on the steady state axis.
         mask = tauAxisDim >= steadyStateCutoff
-        steadyStateAxis = self.__correlationData.tauAxisSec[mask]
+        steadyStateAxis = tauAxisDim[mask] / self.__params.decayConstant
         sampleSpacing = (np.max(steadyStateAxis) - np.min(steadyStateAxis)) / steadyStateAxis.size
         freqAxis = np.fft.fftshift(np.fft.fftfreq(steadyStateAxis.size, sampleSpacing))
 

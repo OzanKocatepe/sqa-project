@@ -4,6 +4,6 @@ from .SSHSimulation import SSHSimulation
 
 __all__ = [
     'SSH',
-    'SSHSimulation'
+    'SSHSimulation',
     'data'
 ]

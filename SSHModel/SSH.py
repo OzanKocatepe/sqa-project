@@ -2,7 +2,7 @@ import numpy as np
 import scipy.integrate as integrate
 import scipy.special as special
 
-from data import ModelParameters, CorrelationData, CurrentData, AxisData, Fourier
+from .data import ModelParameters, CorrelationData, CurrentData, AxisData, Fourier
 
 class SSH:
     """
