@@ -208,33 +208,3 @@ class SSHVisualiser:
 
             # Appends this to the beginning of the title string.
             return kStr + " -- " + title
-            
-
-    def __PlotComplexDataInRows(self, x: np.ndarray[float], y: np.ndarray[complex], plotMagnitude: bool=False) -> None:
-        """
-        Plots each item of data in a row, with the columns corresponding to the components of the data.
-        
-        Parameters
-        ----------
-        x : ndarray[float]
-            The x-values of the data, with the same shape as specified for y.
-        y: ndarray[complex]
-            The complex data to plot, of shape (nrows, numPoints) where the first dimension specifies the piece of data,
-            and the second specifies the point along the x-axis.
-        plotMagnitude : bool
-            Whether to also plot the magnitude of the complex data in the first row.
-        """
-
-        nrows = 3 if plotMagnitude else 2
-        ncols = y.shape[0]
-        fig, ax = plt.subplots(nrows, ncols)
-
-        for row in range(nrows):
-            for col in range(ncols):
-                # Controls whether to plot the magnitude or not.
-                functionIndex = col
-                if plotMagnitude:
-                    functionIndex += 1
-
-                # Plots the single-time correlation.
-                ax[row, col].plot(x[row], self.__plottingFunctions[functionIndex](y[row]), color='black')
