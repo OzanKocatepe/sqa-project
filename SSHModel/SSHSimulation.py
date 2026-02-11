@@ -2,6 +2,8 @@ import numpy as np
 import multiprocessing
 from functools import cached_property
 import os
+import pickle
+import gzip
 
 from .data import EnsembleParameters, ModelParameters, AxisData, CurrentData
 from .SSH import SSH
@@ -28,6 +30,23 @@ class SSHSimulation:
         self.__models: dict[float, SSH] = {}
         # The axis information for our system, to be computed.
         self.__axes: AxisData = None
+
+    def __getitem__(self, k: float) -> SSH:
+        """
+        Returns the model with the given momentum.
+        
+        Parameters
+        ----------
+        k : float
+            The momentum of the model.
+            
+        Returns
+        -------
+        SSH
+            The model with momentum k, if it exists.
+        """
+
+        return self.__models[k]
  
     def AddMomentum(self, kArr: list[float] | np.ndarray[float]) -> None:
         r"""Adds one or more momentum points to the simulation.
@@ -161,14 +180,47 @@ class SSHSimulation:
             freqAxis = freqAxis,
             steadyStateCutoff = steadyStateCutoff
         )
-    
+
+    def Save(self, fileDir: str) -> None:
+        """
+        Saves the current simulation instance into a pickle file.
+        
+        Parameters
+        ----------
+        fileDir : str
+            The directory to save the file to.     
+        """
+
+        with gzip.open(f"{fileDir}/numK: {self.numModels}, numT: {self.__axes.tAxisDim.size}.pkl.gz", 'wb') as file:
+            pickle.dump(self, file)
+
+    @classmethod
+    def Load(cls, filePath: str) -> SSHSimulation:
+        """
+        Loads an instance of SSHSimulation from a pickled file.
+        
+        Parameters
+        ----------
+        filePath : str
+            Where to find the file to load.
+            
+        Returns
+        -------
+        SSHSimulation
+            The loaded instance.
+        """
+        
+        with gzip.open(filePath, 'rb') as file:
+            obj = pickle.load(file)
+        return obj
+
     @property
     def momentums(self) -> np.ndarray[float]:
         return np.array( list( self.__models.keys() ) )
     
     @property
-    def models(self) -> list[SSH]:
-        return list( self.__models.values() )
+    def models(self) -> dict[float, SSH]:
+        return self.__models
 
     @property
     def numModels(self) -> int:
@@ -182,3 +234,7 @@ class SSHSimulation:
     def totalCurrent(self) -> CurrentData:
         currents = [model.currentData for model in self.models]
         return np.sum(currents)
+    
+    @property
+    def params(self) -> EnsembleParameters:
+        return self.__params
