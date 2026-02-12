@@ -131,7 +131,7 @@ class SSHVisualiser:
             if format == 'noise':
                 operatorName = rf"$\langle {self.__operators[i]}(t) {self.__operators[j]}(t + \tau) \rangle$"
                 subFolder = "Double-Time Correlations"
-                data = correlationData.doubleTime
+                data = correlationData.doubleTime[i, j]
 
             else:
                 # Calculates the product data, since that is needed for both other options.
@@ -152,7 +152,7 @@ class SSHVisualiser:
                 elif format == 'connected':
                     operatorName = fr"$\langle {self.__operators[i]}(t) {self.__operators[j]}(t + \tau) \rangle - \langle {self.__operators[i]}(t) \rangle \langle {self.__operators[j]}(t + \tau) \rangle$"
                     subFolder = "Double-Time Connected Correlators"
-                    data = correlationData.doubleTime - productData
+                    data = correlationData.doubleTime[i, j] - productData
                 
                 else:
                     raise ValueError(f"The value of format must be 'noise', 'product', or 'connected', not '{format}'.")
@@ -166,7 +166,7 @@ class SSHVisualiser:
             for col in range(ncols):
                 ax[col].pcolormesh(self.__axes.tauAxisDim,
                                    self.__axes.tAxisDim,
-                                   self.__plottingFunctions[col + 1](data[i, j]),
+                                   self.__plottingFunctions[col + 1](data),
                                    cmap = 'bwr',
                                    shading = 'nearest')
 
@@ -182,9 +182,6 @@ class SSHVisualiser:
             if show:
                 plt.show()
     
-    def PlotIntegratedDoubleTimeCorrelations(self, k: float | list[float] | np.ndarray[float], saveFigs: bool=False, show: bool=True) -> None:
-        return
-
     def PlotCurrent(self, k: float | list[float] | np.ndarray[float] | None=None, saveFigs: bool=False, show: bool=True, overplotFourierSeries: bool=False) -> None:
         r"""
         Plots the expectation of the current operator, $\langle j(t) \rangle$, summed over the desired momentum values.
