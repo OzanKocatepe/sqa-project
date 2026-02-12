@@ -93,13 +93,19 @@ class Fourier:
         (tPoints.size, 2n + 1), where the first dimension corresponds to the time, and the second
         corresponds to the exponent.
         """
+        # Uses outer product to multiply every possible harmonic term by every possible tPoint.
+        # However, if tPoints is more than one-dimensional, np.outer flattens it.
         expTerms = np.outer(tPoints, expTerms)
         # Makes the terms actually exponential.
         expTerms = np.exp(expTerms, dtype=complex)
 
         # Takes the dot product of each row (each row has constant time, contains frequency exponentials)
         # with the coefficients. Results in an array of shape (tPoints.size,) with the value of the expansion at each time.
-        return np.dot(expTerms, self.coeffs)
+        result = np.dot(expTerms, self.coeffs)
+
+        # Result now has shape (tPoints.flatten().size,), so we have to reshape it back to the original shape
+        # for user convenience.
+        return result.reshape(tPoints.shape)
 
     @staticmethod
     def DetermineMaxN(x: np.ndarray[float], baseFreq: float) -> int:

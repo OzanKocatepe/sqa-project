@@ -500,11 +500,7 @@ class SSH:
         currentT = self.__currentData.currentFourierSeries.Evaluate(self.__axes.tAxisSec)
         # Calculates $\langle j(t + \tau) \rangle$, with shape (tAxis.size, tauAxis.size)
         currentTau = np.add.outer(self.__axes.tAxisSec, self.__axes.tauAxisSec)
-        originalShape = currentTau.shape
         currentTau = self.__currentData.currentFourierSeries.Evaluate(currentTau)
-        # Fourier.Evaluate uses np.outer, which flattens the input points, so we have to re-shape the output
-        # using the shape we saved earlier.
-        currentTau = currentTau.reshape(originalShape)
 
         # Multiplies the two together, calculating $\langle j(t) \rangle \langle j(t + \tau) \rangle$
         # with size (tAxis.size, tauAxis.size).
