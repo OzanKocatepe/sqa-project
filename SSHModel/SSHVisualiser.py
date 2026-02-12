@@ -313,10 +313,17 @@ class SSHVisualiser:
         """
 
         currentData = self.__sim.totalCurrent
+        positiveMask = currentData.freqDomainCurrent >= 0
 
-        plt.semilogy(self.__axes.freqAxis,
-                     currentData.freqDomainCurrent,
+        plt.semilogy(self.__axes.freqAxis[positiveMask],
+                     currentData.freqDomainCurrent[positiveMask],
+                     'o', ms=1,
                      color = 'black')
+
+        plt.semilogy(self.__axes.freqAxis[~positiveMask],
+                     -currentData.freqDomainCurrent[~positiveMask],
+                     'o', ms=1,
+                     color = 'red')
     
         plt.xlabel(self.__fLabel)
         plt.ylabel(fr"FFT of $\langle j(t) \rangle$")
@@ -354,10 +361,18 @@ class SSHVisualiser:
         labels = ['Magnitude', 'Real', 'Imag']
 
         for funcIndex in range(len(self.__plottingFunctions)):
-            plt.semilogy(self.__axes.freqAxis,
-                        self.__plottingFunctions[funcIndex](currentData.freqConnectedCorrelator),
+            positiveMask = self.__plottingFunctions[funcIndex](currentData.freqConnectedCorrelator) >= 0
+
+            plt.semilogy(self.__axes.freqAxis[positiveMask],
+                        self.__plottingFunctions[funcIndex](currentData.freqConnectedCorrelator)[positiveMask],
+                        'o', ms=1,
                         color = 'black')
     
+            plt.semilogy(self.__axes.freqAxis[~positiveMask],
+                        -self.__plottingFunctions[funcIndex](currentData.freqConnectedCorrelator)[~positiveMask],
+                        'o', ms=1,
+                        color = 'red')
+
             plt.xlabel(self.__fLabel)
             plt.ylabel(fr"{self.__plottingPrefixes[funcIndex]} FFT of $\int dt\, \langle j(t) j(t + \tau) \rangle - \langle j(t) \rangle \langle j(t + \tau) \rangle$")
             plt.xlim(fLim)
