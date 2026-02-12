@@ -31,6 +31,7 @@ class SSHVisualiser:
         self.__operatorSubscripts = ['-', '+', 'z']
         self.__tLabel = r"$t \gamma_-$"
         self.__tauLabel = r"$\tau \gamma_-$"
+        self.__fLabel = r"$f / \Omega$"
 
         plt.style.use('stylesheet.mplstyle')
 
@@ -176,17 +177,22 @@ class SSHVisualiser:
             if show:
                 plt.show()
 
-    def __GenerateTitle(self, k: float | np.ndarray[float] | None) -> str:
+    def __GenerateTitle(self, k: float | list[float] | np.ndarray[float] | None) -> str:
         """Generates the title of a plot based on the parameters and momentum values displayed.
         
         Parameters:
         -----------
-        k : float | ndarray[float] | None
+        k : float | list[float] | ndarray[float] | None
             The momentum values to put in the title. Can be a scalar or a vector. Will be
             omitted from the title if None.
+
+        Returns
+        -------
+        str:
+            The title string.
         """
 
-        title = fr"$t_1 = {self._sim.params.t1},\, t_2 = {self._sim.params.t2},\, A_0 = {self._sim.params.drivingAmplitude},\, \Omega \approx {self._sim.params.drivingFreq:.3f},\, \gamma_- = {self._sim.params.decayConstant}$"
+        title = fr"$t_1 = {self.__sim.params.t1},\, t_2 = {self.__sim.params.t2},\, A_0 = {self.__sim.params.drivingAmplitude},\, \Omega \approx {self.__sim.params.drivingFreq:.3f},\, \gamma_- = {self.__sim.params.decayConstant}$"
 
         # If there is no momentum, just return that title.
         if k is None:
@@ -208,3 +214,252 @@ class SSHVisualiser:
 
             # Appends this to the beginning of the title string.
             return kStr + " -- " + title
+        
+    def PlotCurrent(self, k: float | list[float] | np.ndarray[float] | None=None, saveFigs: bool=False, show: bool=True, overplotFourierSeries: bool=False) -> None:
+        r"""
+        Plots the expectation of the current operator, $\langle j(t) \rangle$, summed over the desired momentum values.
+        
+        Parameters
+        ----------
+        k : float | list[float] | ndarray[float]
+            The momentum or momentums to plot the total current for.
+        saveFigs : bool
+            Whether to save the figures.
+        show : bool
+            Whether to show the figures.
+        overplotFourierSeries : bool
+            Whether to overplot the Fourier series for the single-time correlations.
+        """
+
+        if k is not None:
+            extractedSimulation = self.__sim.ExtractModels(k)
+            currentData = extractedSimulation.totalCurrent
+        else:
+            currentData = self.__sim.totalCurrent
+            k = self.__sim.momentums
+
+        self.__PlotOneComplexFunction(
+            x = self.__axes.tauAxisDim,
+            y = currentData.timeDomainCurrent,
+            dataName = r"$\langle j(t) \rangle$",
+            title = plt.suptitle(self.__GenerateTitle(k)),
+            createFigure = True
+        )
+
+        if overplotFourierSeries:
+            self.__PlotOneComplexFunction(
+                x = self.__axes.tauAxisDim,
+                y = currentData.currentFourierSeries.Evaluate(self.__axes.tauAxisDim),
+                dataName = None,
+                title = None,
+                createFigure = False
+            )
+
+        if saveFigs:
+            plt.savefig(f"{self.__plotFolder}/Time-Domain Current.png", dpi=300)
+        if show:
+            plt.show()
+
+    def PlotIntegratedDoubleTimeCurrent(self, format: str='noise', saveFigs: bool=False, show: bool=True) -> None:
+        r"""
+        Plots the double-time current operator, integrated over a steady-state period w.r.t. $t$, so the data becomes a function of
+        just $\tau$.
+
+        Parameters:
+        -----------
+        format : str
+            'noise' if you want to plot the double-time current correlation.
+            'product' if you want to plot the product of the single-time current at two times.
+            'connected' if you want to plot the connected current correlator.
+        saveFigs : bool
+            Whether to save the figures.
+        show : bool
+            Whether to show the figures.
+
+        Raises
+        ------
+        ValueError
+            If the given format isn't 'noise', 'product', or 'connected'.
+        """
+
+        currentData = self.__sim.totalCurrent
+
+        format = format.lower()
+        if format == 'noise':
+            operatorName = r"$\int dt\, \langle j(t) j(t + \tau) \rangle$"
+            data = currentData.integratedDoubleTimeCurrent
+            fileName = "Double-Time Current"
+            
+        elif format == 'product':
+            operatorName = r"$\int dt\, \langle j(t) \rangle \langle j(t + \tau) \rangle$"
+            data = currentData.doubleTimeCurrentProduct
+            fileName = "Double-Time Current Product"
+
+        elif format == 'connected':
+            operatorName = r"$\int dt\, \langle j(t) j(t + \tau) \rangle - \langle j(t) \rangle \langle j(t + \tau) \rangle$"
+            data = currentData.timeConnectedCorrelator
+            fileName = "Connected Current Correlator"
+    
+        else:
+            raise ValueError(f"The value of format must be 'noise', 'product', or 'connected', not '{format}'.")
+        
+        self.__PlotOneComplexFunction(
+            x = self.__axes.tauAxisDim,
+            y = data,
+            dataName = operatorName,
+            title = self.__GenerateTitle(self.__sim.momentums)
+        )
+
+        if saveFigs:
+            plt.savefig(f"{self.__plotFolder}/{fileName}.png", dpi=300)
+        if show:
+            plt.show() 
+
+    def PlotCurrentFFT(self, saveFigs: bool=False, show: bool=True, overplotHarmonicLines: bool=True, fLim: tuple[float, float]=(-12.5, 12.5)) -> None:
+        """
+        Plots the FFT of the current operator.
+
+        Parameters
+        ----------
+        saveFigs : bool
+            Whether to save the figures.
+        show : bool
+            Whether to show the figures.
+        overplotHarmonicLines : bool
+            Whether to overplot vertical lines at the harmonic frequencies.
+        fLim : tuple[float, float]
+            A tuple containing the minimum and maximum frequency limits to plot.
+        """
+
+        currentData = self.__sim.totalCurrent
+        plt.semilogy(self.__axes.freqAxis,
+                     currentData.freqDomainCurrent,
+                     color = 'black')
+    
+        plt.xlabel(self.__fLabel)
+        plt.ylabel(fr"FFT of $\langle j(t) \rangle$")
+        plt.title(self.__GenerateTitle(self.__sim.momentums))
+        
+        if overplotHarmonicLines:
+            # Adds dashed lines at the harmonics.       
+            for n in range(np.ceil((fLim[0],)), np.floor((fLim[1],))):
+                plt.axvline(n, color='blue', linestyle='dashed')
+
+        if saveFigs:
+            plt.savefigs(f"{self.__plotFolder}/Current FFT.png", dpi=300)
+        if show:
+            plt.show()
+
+    def PlotConnectedCurrentFFT(self, saveFigs: bool=False, show: bool=True, overplotHarmonicLines: bool=True, fLim: tuple[float, float]=(-12.5, 12.5)) -> None:
+        """
+        Plots the FFT of the connected current correlator.
+
+        Parameters
+        ----------
+        saveFigs : bool
+            Whether to save the figures.
+        show : bool
+            Whether to show the figures.
+        overplotHarmonicLines : bool
+            Whether to overplot vertical lines at the harmonic frequencies.
+        fLim : tuple[float, float]
+            A tuple containing the minimum and maximum frequency limits to plot.
+        """
+
+        currentData = self.__sim.totalCurrent
+        plt.semilogy(self.__axes.freqAxis,
+                     currentData.freqConnectedCorrelator.real,
+                     color = 'black')
+    
+        plt.xlabel(self.__fLabel)
+        plt.ylabel(fr"Real Part of FFT of $\int dt\, \langle j(t) j(t + \tau) \rangle - \langle j(t) \rangle \langle j(t + \tau) \rangle$")
+        plt.title(self.__GenerateTitle(self.__sim.momentums))
+        
+        if overplotHarmonicLines:
+            # Adds dashed lines at the harmonics.       
+            for n in range(np.ceil((fLim[0],)), np.floor((fLim[1],))):
+                plt.axvline(n, color='blue', linestyle='dashed')
+
+        if saveFigs:
+            plt.savefigs(f"{self.__plotFolder}/Current Connected Correlator FFT.png", dpi=300)
+        if show:
+            plt.show()
+
+    def PlotHarmonics(self, saveFigs: bool=False, show: bool=True) -> None:
+        """
+        Plots the magnitude, real, and imaginary part of the numerically integrated Fourier transform at the harmonics
+        of the driving frequency on separate plots.
+
+        Parameters
+        ----------
+        saveFigs : bool
+            Whether to save the figures.
+        show : bool
+            Whether to show the figures.
+        """
+
+        currentData = self.__sim.totalCurrent
+        labels = ['Magnitude', 'Real', 'Imag']
+        
+        # Loops through all the plotting functions.
+        for funcIndex in range(len(self.__plottingFunctions)):
+            # Figures out how many harmonics we have.
+            n = (currentData.harmonics.size - 1) // 2
+
+            # Isolates the positive values.
+            data = self.__plottingFunctions[funcIndex](currentData.harmonics)
+            positiveMask = data >= 0
+
+            # Plots positive values in black.
+            plt.semilogy(np.arange(-n, n + 1),
+                        data[positiveMask],
+                        'o',
+                        color='black')
+
+            # Plots negative values in red.
+            plt.semilogy(np.arange(-n, n + 1),
+                         data[~positiveMask],
+                         'o',
+                         color='red')
+            
+            plt.xlabel(self.__fLabel)
+            plt.ylabel(rf"{self.__plottingPrefixes} FFT of $\int dt\, \langle j(t) j(t + \tau) \rangle - \langle j(t) \rangle \langle j(t + \tau) \rangle$")
+
+            if saveFigs:
+                plt.savefig(f"{self.__plotFolder}/[{labels[funcIndex]}] Current Connected Correlator FFT.png", dpi=300)
+            if show:
+                plt.show()
+
+    def __PlotOneComplexFunction(self, x: np.ndarray[float], y: np.ndarray[complex], dataName: str | None, title: str | None, createFigure: bool=False) -> None:
+        """
+        Plots a single, one-dimensional complex function. Forms a 3 row by 1 column subplot,
+        where the rows correspond to the magnitude, real part, and imaginary part of the function.
+
+        Doesn't save or show the figure - that is the job of the parent function.
+        
+        Parameters
+        ----------
+        x : ndarray[float]
+            The x-axis of the data.
+        y : ndarray[complex]
+            The complex data to plot.
+        dataName : str | None
+            The name or label to give the data on the y-axis. Not used if createFigure is false.
+        title : str | None
+            The title of the plot. Not used if createFigure is False.
+        createFigure : bool
+            Whether to create a new figure. If false, will just plot onto the current plot.
+        """
+
+        nrows, ncols = 3, 1
+        if createFigure:
+            fig, ax = plt.subplots(nrows, ncols)
+            plt.suptitle(title)
+
+        for row in range(nrows):
+            ax[row].plot(x,
+                         self.__plottingFunctions[row](y))
+            
+            if createFigure:
+                ax[row].set_xlabel(self.__tLabel)
+                ax[row].set_ylabel(rf"{self.__plottingPrefixes[row]} {dataName}")

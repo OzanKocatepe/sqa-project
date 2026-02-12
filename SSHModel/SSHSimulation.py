@@ -5,7 +5,7 @@ import os
 import pickle
 import gzip
 
-from .data import EnsembleParameters, ModelParameters, AxisData, CurrentData
+from .data import EnsembleParameters, ModelParameters, AxisData, CurrentData, CorrelationData
 from .SSH import SSH
 
 class SSHSimulation:
@@ -31,22 +31,35 @@ class SSHSimulation:
         # The axis information for our system, to be computed.
         self.__axes: AxisData = None
 
-    def __getitem__(self, k: float) -> SSH:
+    def __getitem__(self, kArr: float | list[float] | np.ndarray[float]) -> SSH | list[SSH]:
         """
         Returns the model with the given momentum.
         
         Parameters
         ----------
-        k : float
-            The momentum of the model.
+        k : float | list[float] | np.ndarray[float]
+            The momentum(s) of the models to extract.
             
         Returns
         -------
-        SSH
-            The model with momentum k, if it exists.
+        SSH | list[SSH]
+            The model(s) with the given momentum(s), if they exist. Returns an SSH object,
+            or a list of SSH objects, depending on how many are returned.
         """
 
-        return self.__models[k]
+        # Makes the object iterable, even if its a scalar.
+        kArr = np.atleast_1d(kArr)
+
+        # Saves the models to a list.
+        output = []
+        for k in kArr:
+            output.append(self.__models[k])
+
+        # if there is only one model, return the model without the wrapping list.
+        if len(output) == 1:
+            return output[0]
+        else:
+            return output
  
     def AddMomentum(self, kArr: list[float] | np.ndarray[float]) -> None:
         r"""Adds one or more momentum points to the simulation.
@@ -213,6 +226,51 @@ class SSHSimulation:
         with gzip.open(filePath, 'rb') as file:
             obj = pickle.load(file)
         return obj
+    
+    def ExtractModels(self, kArr: float | list[float] | np.ndarray[float]) -> SSHSimulation:
+        """
+        Copies a particular subset of the models stored in this SSHSimulation instance into
+        another instance.
+        
+        Parameters
+        ----------
+        kArr : float | list[float] | np.ndarray[float]
+            The momentum of the models to extract.
+
+        Returns
+        -------
+        SSHSimulation
+            An SSHSimulation instance containing those models.
+        """
+
+        # Makes the momentum values iterable.
+        kArr = np.atleast_1d(kArr)
+
+        # Creates the dictionary of the models
+        # we want to extract.
+        extractedModels = {}
+        for k in kArr:
+            extractedModels[k] = self.__models[k]
+
+        # Adds the models to a fresh SSHSimulation.
+        newSimulation = SSHSimulation(self.__params)
+        newSimulation.AppendModels(extractedModels)
+        newSimulation.axes = self.__axes
+        return newSimulation
+
+    def AppendModels(self, models: dict[float, SSH]) -> None:
+        """
+        Appends models to the internal dictionary.
+        Will override older models with the given models if they
+        share a momentmum.
+        
+        Parameters
+        ----------
+        models : dict[float, SSH]
+            A dictionary containing the SSH models.
+        """
+
+        self.__models |= models
 
     @property
     def momentums(self) -> np.ndarray[float]:
@@ -229,6 +287,20 @@ class SSHSimulation:
     @property
     def axes(self) -> AxisData:
         return self.__axes
+    
+    @axes.setter
+    def axes(self, axes: AxisData) -> None:
+        """
+        Only allows setting the axes if they don't exist yet. Used only
+        for when we are creating a new SSHSimulation system.
+        """
+        if self.__axes is None:
+            self.__axes = axes
+
+    @cached_property
+    def totalCorrelations(self) -> CorrelationData:
+        correlations = [model.correlationData for model in self.models]
+        return np.sum(correlations)
     
     @cached_property
     def totalCurrent(self) -> CurrentData:
