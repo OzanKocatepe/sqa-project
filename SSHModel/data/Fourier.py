@@ -173,19 +173,18 @@ class Fourier:
         current $n$th coefficient of the final fourier expansion if we return true.
         """
 
-        n1 = first.n
-        n2 = second.n
+        n1, n2 = first.n, second.n
 
         coefficients = np.zeros((2 * (n1 + n2) + 1), dtype=complex)
 
         # Looping through every possible value of the harmonic frequency.
-        for frequencySum in range(-n1 - n2, n1 + n2):
+        for frequencySum in range(-n1 - n2, n1 + n2 + 1):
             # Loops through every possible coefficient index, from -n1 to n1, of the first fourier series.
             for firstIndex in range(-n1, n1 + 1):
                 # Checks if the required second coefficient required to make the two indices sum to frequencySum exists
                 # in the second fourier series.
                 if np.abs(frequencySum - firstIndex) <= n2:
-                    coefficients[frequencySum + (n1 + n2)] += first[firstIndex] + second[frequencySum - firstIndex]
+                    coefficients[frequencySum + (n1 + n2)] += first[firstIndex] * second[frequencySum - firstIndex]
 
         return cls(
             baseFreq = first.baseFreq,

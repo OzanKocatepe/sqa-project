@@ -190,7 +190,7 @@ class SSHSimulation:
             tauAxisSec = tauAxisDim / self.__params.decayConstant,
             tAxisDim = tAxisDim,
             tAxisSec = tAxisDim / self.__params.decayConstant,
-            freqAxis = freqAxis,
+            freqAxis = freqAxis / self.__params.drivingFreq,
             steadyStateCutoff = steadyStateCutoff
         )
 
@@ -299,12 +299,12 @@ class SSHSimulation:
 
     @cached_property
     def totalCorrelations(self) -> CorrelationData:
-        correlations = [model.correlationData for model in self.models]
+        correlations = [model.correlationData for model in self.models.values()]
         return np.sum(correlations)
     
     @cached_property
     def totalCurrent(self) -> CurrentData:
-        currents = [model.currentData for model in self.models]
+        currents = [model.currentData for model in self.models.values()]
         return np.sum(currents)
     
     @property

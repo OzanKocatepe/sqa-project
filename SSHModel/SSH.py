@@ -432,14 +432,24 @@ class SSH:
 
         # Defines useful properties.
         theta = self.__params.k - self.__params.phiK
+        # Forms the driving samples for $A(t)$, with shape (tAxis.size)
         drivingSamplesT = self.__SinusoidalDrivingTerm(self.__axes.tAxisSec)
-        drivingSamplesTau = self.__SinusoidalDrivingTerm(self.__axes.tauAxisSec)
+        
+        # Forms a matrix of shape (tAxis.size, tauAxis.size) where each entry
+        # corresponds to the value $A(t + \tau)$.
+        drivingSamplesTau = np.add.outer(self.__axes.tAxisSec, self.__axes.tauAxisSec)
+        drivingSamplesTau = self.__SinusoidalDrivingTerm(drivingSamplesTau)
 
         # Calculates the coefficients, which each have shape (tAxis.size, tauAxis.size).
-        coeff1 = np.outer(np.sin(theta - drivingSamplesT), np.sin(theta - drivingSamplesTau))
-        coeff2 = np.outer(-np.cos(theta - drivingSamplesT), np.cos(theta - drivingSamplesTau))
-        coeff3 = np.outer(-1j * np.cos(theta - drivingSamplesT), np.sin(theta - drivingSamplesTau))
-        coeff4 = np.outer(-1j * np.sin(theta - drivingSamplesT), np.cos(theta - drivingSamplesTau))
+        # Since drivingSamplesT has shape (tAxis.size), but drivingSamplesTau has size (tAxis.size, tauAxis.size),
+        # we give drivingSamplesT a fake second axis, so that as we're iterating through the values of $\tau$ in $A(t + \tau)$,
+        # we are moving through the fake second axis of $A(t)$, and so each of the $A(t)$ terms are matched up with the $A(t + \tau)$ terms.
+
+        # Basically, we give drivingSamplesT a fake second axis to match their shapes.
+        coeff1 = np.sin(theta - drivingSamplesT[:, np.newaxis]) * np.sin(theta - drivingSamplesTau)
+        coeff2 = -np.cos(theta - drivingSamplesT[:, np.newaxis]) * np.cos(theta - drivingSamplesTau)
+        coeff3 = -1j * np.cos(theta - drivingSamplesT[:, np.newaxis]) * np.sin(theta - drivingSamplesTau)
+        coeff4 = -1j * np.sin(theta - drivingSamplesT[:, np.newaxis]) * np.cos(theta - drivingSamplesTau)
 
         # Calculates all of the operator terms that correspond to each coefficient, again with
         # shape (tAxis.size, tauAxis.size)
@@ -482,6 +492,31 @@ class SSH:
             baseFreq = self.__params.drivingFreq,
             coeffs = coeffs
         ).Evaluate(self.__axes.tauAxisSec)
+
+        # For debugging purposes, calculates the above term manually by numerically multiplying the
+        # current expectation fourier series together at each time $t$ and $t + \tau$.
+        
+        # Calculates $\langle j(t) \rangle$, with shape (tAxis.size)
+        currentT = self.__currentData.currentFourierSeries.Evaluate(self.__axes.tAxisSec)
+        # Calculates $\langle j(t + \tau) \rangle$, with shape (tAxis.size, tauAxis.size)
+        currentTau = np.add.outer(self.__axes.tAxisSec, self.__axes.tauAxisSec)
+        originalShape = currentTau.shape
+        currentTau = self.__currentData.currentFourierSeries.Evaluate(currentTau)
+        # Fourier.Evaluate uses np.outer, which flattens the input points, so we have to re-shape the output
+        # using the shape we saved earlier.
+        currentTau = currentTau.reshape(originalShape)
+
+        # Multiplies the two together, calculating $\langle j(t) \rangle \langle j(t + \tau) \rangle$
+        # with size (tAxis.size, tauAxis.size).
+        numericalTerm = currentT[:, np.newaxis] * currentTau
+        
+        # Numerically integrates the data. Sets the value in current data within the function since its
+        # just used for debugging, so its not worth returning.
+        self.__currentData._numericalDoubleTimeCurrentProduct = self.__params.drivingFreq * np.trapezoid(
+            y = numericalTerm,
+            x = self.__axes.tAxisSec,
+            axis = 0
+        )
 
         # Then, integrates the double-time current to average out over a steady-state period
         # and calculates the connected correlator.
