@@ -352,28 +352,28 @@ class SSHVisualiser:
         """
 
         currentData = self.__sim.totalCurrent
+        labels = ['Magnitude', 'Real', 'Imag']
 
-        # Isolates the positive part of the plot.
-
-        plt.semilogy(self.__axes.freqAxis,
-                     currentData.freqConnectedCorrelator.real,
-                     color = 'black')
+        for funcIndex in range(len(self.__plottingFunctions)):
+            plt.semilogy(self.__axes.freqAxis,
+                        self.__plottingFunctions[funcIndex](currentData.freqConnectedCorrelator),
+                        color = 'black')
     
-        plt.xlabel(self.__fLabel)
-        plt.ylabel(fr"Real Part of FFT of $\int dt\, \langle j(t) j(t + \tau) \rangle - \langle j(t) \rangle \langle j(t + \tau) \rangle$")
-        plt.xlim(fLim)
+            plt.xlabel(self.__fLabel)
+            plt.ylabel(fr"{self.__plottingPrefixes[funcIndex]} FFT of $\int dt\, \langle j(t) j(t + \tau) \rangle - \langle j(t) \rangle \langle j(t + \tau) \rangle$")
+            plt.xlim(fLim)
         
-        if overplotHarmonicLines:
-            # Adds dashed lines at the harmonics.       
-            for n in range(np.ceil((fLim[0])).astype(int), np.floor((fLim[1])).astype(int)):
-                plt.axvline(n, color='blue', linestyle='dashed')
+            if overplotHarmonicLines:
+                # Adds dashed lines at the harmonics.       
+                for n in range(np.ceil((fLim[0])).astype(int), np.floor((fLim[1])).astype(int)):
+                    plt.axvline(n, color='blue', linestyle='dashed')
 
-        plt.title(self.__GenerateTitle(self.__sim.momentums))
-        plt.tight_layout()
-        if saveFigs:
-            plt.savefig(f"{self.__plotFolder}/Current Connected Correlator FFT.png", dpi=300)
-        if show:
-            plt.show()
+            plt.title(self.__GenerateTitle(self.__sim.momentums))
+            plt.tight_layout()
+            if saveFigs:
+                plt.savefig(f"{self.__plotFolder}/[{labels[funcIndex]}] Current Connected Correlator FFT.png", dpi=300)
+            if show:
+                plt.show()
 
     def PlotHarmonics(self, saveFigs: bool=False, show: bool=True) -> None:
         """
@@ -418,7 +418,7 @@ class SSHVisualiser:
             plt.title(self.__GenerateTitle(self.__sim.momentums))
             plt.tight_layout()
             if saveFigs:
-                plt.savefig(f"{self.__plotFolder}/[{labels[funcIndex]}] Current Connected Correlator FFT.png", dpi=300)
+                plt.savefig(f"{self.__plotFolder}/[{labels[funcIndex]}] Harmonics.png", dpi=300)
             if show:
                 plt.show()
 

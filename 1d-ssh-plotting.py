@@ -23,11 +23,11 @@ vis = SSHVisualiser(sim, "plots/numK: 25, numT: 10")
 
 # $\int dt\, \langle j(t) \rangle \langle j(t + \tau) \rangle$
 
-vis.PlotIntegratedDoubleTimeCurrent(format='product',
-                                    saveFigs = True,
-                                    show = True,
-                                    overplotNumericalProduct = True
-                                    )
+# vis.PlotIntegratedDoubleTimeCurrent(format='product',
+#                                     saveFigs = True,
+#                                     show = True,
+#                                     overplotNumericalProduct = True
+#                                     )
 
 # $\int dt\, \langle j(t) j (t + \tau) \rangle - \langle j(t) \rangle \langle j(t + \tau) \rangle$
 
@@ -36,8 +36,8 @@ vis.PlotIntegratedDoubleTimeCurrent(format='product',
 #                                     show = True
 #                                     )
 
-# vis.PlotConnectedCurrentFFT(saveFigs = True,
-#                             show = True)
+vis.PlotConnectedCurrentFFT(saveFigs = True,
+                            show = True)
 
 # vis.PlotHarmonics(saveFigs = True,
 #                   show = True)
