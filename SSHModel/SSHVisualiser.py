@@ -70,7 +70,7 @@ class SSHVisualiser:
                 if overplotFourierSeries:
                     ax[row, col].plot(self.__axes.tauAxisDim,
                                       self.__plottingFunctions[col](correlationData.singleFourierSeries[row].Evaluate(self.__axes.tauAxisSec)),
-                                      color='black')
+                                      color='blue')
                     
                 # Overplots the t-axis.
                 if overplotTAxis: 
@@ -78,7 +78,7 @@ class SSHVisualiser:
                         ax[row, col].axvline(t, color='red', linestyle='dashed')
 
                 ax[row, col].set_xlabel(self.__tLabel)
-                ax[row, col].set_ylabel(fr"{self.__plottingSuffixes[col]} $\langle {self.__operators[row]} \rangle$")
+                ax[row, col].set_ylabel(fr"{self.__plottingPrefixes[col]} $\langle {self.__operators[row]} \rangle$")
 
         plt.suptitle(self.__GenerateTitle(k))
         plt.tight_layout()
@@ -119,7 +119,7 @@ class SSHVisualiser:
         # loop through all 9 double-time correlations.
         if slice is None:
             i, j = np.meshgrid(range(3), range(3))
-            iterable = zip((i.flatten(), j.flatten()))
+            iterable = list(zip(i.flatten(), j.flatten()))
         # Otherwise, only plots the specified ones.
         else:
             iterable = slice
@@ -138,9 +138,11 @@ class SSHVisualiser:
                 # Creates an array of shape (tAxis.size) where the values are $\sigma_i(t)$.
                 firstTerm = correlationData.singleFourierSeries[i].Evaluate(self.__axes.tAxisSec)
                 # Creates an array of shape (tAxis, tauAxis) where the values are t + tau.
-                secondTerm = correlationData.singleFourierSeries[j].Evaluate(np.sum.outer(self.__axes.tAxisSec, self.__axes.tauAxisSec))
+                secondTerm = correlationData.singleFourierSeries[j].Evaluate(
+                    np.add.outer(self.__axes.tAxisSec, self.__axes.tauAxisSec)
+                    )
                 # Creates a new imaginary axis on the first term to match the tau axis of the second term, and multiplies the two.
-                productData = firstTerm[:, np.newAxis] * secondTerm
+                productData = firstTerm[:, np.newaxis] * secondTerm
 
                 if format == 'product':
                     operatorName = rf"$\langle {self.__operators[i]}(t) \rangle \langle {self.__operators[j]}(t + \tau) \rangle$"
@@ -164,13 +166,13 @@ class SSHVisualiser:
             for col in range(ncols):
                 ax[col].pcolormesh(self.__axes.tauAxisDim,
                                    self.__axes.tAxisDim,
-                                   self.__plottingFunctions[col + 1](data),
+                                   self.__plottingFunctions[col + 1](data[i, j]),
                                    cmap = 'bwr',
                                    shading = 'nearest')
 
                 ax[col].set_title(f"{self.__plottingPrefixes[col]} Correlation")
                 ax[col].set_xlabel(self.__tauLabel)
-                ax[col].set_ylable(self.__tLabel)
+                ax[col].set_ylabel(self.__tLabel)
 
             plt.suptitle(title)
             plt.tight_layout()
@@ -451,8 +453,8 @@ class SSHVisualiser:
             # Checks if there are 3 or less k values.
             if k.size <= 3:
                 kStr = list(k / np.pi)
-                kStr = [fr"{j}$\pi$" for j in kStr]
-                kStr = "{" + kStr + "}"
+                kStr = [fr"{j}\pi" for j in kStr]
+                kStr = "{" + str(kStr) + "}"
             # Otherwise, assumes they're approximately evenly spaced and
             # writes them in the format of an np.linspace.
             else:

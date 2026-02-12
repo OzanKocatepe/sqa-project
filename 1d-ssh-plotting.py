@@ -4,6 +4,28 @@ from SSHModel import *
 sim = SSHSimulation.Load("simulation-instances/numK: 25, numT: 10.pkl.gz")
 vis = SSHVisualiser(sim, "plots/numK: 25, numT: 10")
 
+k = sim.momentums[2]
+# vis.PlotSingleTimeCorrelations(k,
+#                                saveFigs = True,
+#                                show = True,
+#                                overplotFourierSeries = True,
+#                                overplotTAxis = True)
+
+# vis.PlotDoubleTimeCorrelations(k,
+#                                format = 'noise',
+#                                saveFigs = True,
+#                                show = False)
+
+# vis.PlotDoubleTimeCorrelations(k,
+#                                format = 'product',
+#                                saveFigs = True,
+#                                show = False)
+
+vis.PlotDoubleTimeCorrelations(k,
+                               format = 'connected',
+                               saveFigs = True,
+                               show = False)
+
 # $\langle j(t) \rangle$.
 # vis.PlotCurrent(saveFigs = True,
 #                 show = True,
@@ -36,8 +58,8 @@ vis = SSHVisualiser(sim, "plots/numK: 25, numT: 10")
 #                                     show = True
 #                                     )
 
-vis.PlotConnectedCurrentFFT(saveFigs = True,
-                            show = True)
+# vis.PlotConnectedCurrentFFT(saveFigs = True,
+#                             show = True)
 
 # vis.PlotHarmonics(saveFigs = True,
 #                   show = True)

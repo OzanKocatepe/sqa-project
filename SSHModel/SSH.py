@@ -295,7 +295,7 @@ class SSH:
         inhomParts = np.zeros((3, self.__axes.tAxisSec.size), dtype=complex)
 
         for i in range(3):
-            inhomParts[i, :] = self.__correlationData.singleFourierSeries[i].Evaluate(self.__axes.tAxisSec)
+            inhomParts[i, :] = self.__correlationData.singleFourierSeries[i].Evaluate(self.__axes.tAxisSec) * -self.__params.decayConstant
 
         return inhomParts
     
@@ -342,7 +342,7 @@ class SSH:
         operator2 = self.__correlationData.singleTime[1] - self.__correlationData.singleTime[0]
 
         # Calculates the current operator in terms of the previously calculated expectation values.
-        timeData = self.__params.t2**2 * (coeff1 * operator1 + coeff2 * operator2)
+        timeData = self.__params.t2 * (coeff1 * operator1 + coeff2 * operator2)
 
         mask = self.__CalculateSteadyStateMask()
         freqData = np.fft.fftshift(np.fft.fft(timeData[mask]))
@@ -458,7 +458,7 @@ class SSH:
         operators3 = self.__correlationData.doubleTime[1, 2, :, :] - self.__correlationData.doubleTime[0, 2, :, :]
         operators4 = self.__correlationData.doubleTime[2, 1, :, :] - self.__correlationData.doubleTime[2, 0, :, :]
 
-        return coeff1 * operators1 + coeff2 * operators2 + coeff3 * operators3 + coeff4 * operators4
+        return self.__params.t2**2 * (coeff1 * operators1 + coeff2 * operators2 + coeff3 * operators3 + coeff4 * operators4)
     
     def __CalculateConnectedCurrentCorrelator(self) -> tuple[np.ndarray[complex], np.ndarray[complex], np.ndarray[complex]]:
         r"""
