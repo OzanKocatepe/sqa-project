@@ -515,7 +515,7 @@ class SSH:
         
         # Numerically integrates the data. Sets the value in current data within the function since its
         # just used for debugging, so its not worth returning.
-        self.__diagnosticData._numericalDoubleTimeCurrentProduct = self.__params.drivingFreq * np.trapezoid(
+        self.__diagnosticData.numericalDoubleTimeCurrentProduct = self.__params.drivingFreq * np.trapezoid(
             y = numericalTerm,
             x = self.__axes.tAxisSec,
             axis = 0

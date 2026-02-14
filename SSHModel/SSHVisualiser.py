@@ -437,6 +437,61 @@ class SSHVisualiser:
             if show:
                 plt.show()
 
+    def PlotConnectedCurrentTerms(self, saveFigs: bool=False, show: bool=True, yLim: tuple[float, float]=None) -> None:
+        """
+        Plots the individual terms which form the integrated connected current correlator.
+        
+        The terms each consist of a coefficient term, multiplied by some sum of the double-time connected
+        correlators, all integrated over a steady-state period w.r.t. t. There are four terms, which are too
+        long to be described here but can be found in the formula for the double-time current operator.
+
+        Parameters
+        ----------
+        saveFigs : bool
+            Whether to save the figures.
+        show : bool
+            Whether to show the figures.
+        yLim : tuple[float, float]
+            A tuple containing the y-limits of the plots.
+        """
+
+        diagData = self.__sim.totalDiagnostics
+        subFolder = "Current Connected Correlator Terms"
+
+        # Stores the means in a text file for non-visual analysis.
+        with open(f'{self.__plotFolder}/{subFolder}/Analysis.txt', 'w') as f:
+            mask = self.__axes.tauAxisDim >= self.__axes.steadyStateCutoff
+            f.write(f"Mean of Magnitude: {np.mean(np.abs(diagData.integratedConnectedCurrentTerms[:, mask]), axis=1)}\n")
+            f.write(f"Mean of Real: {np.mean(diagData.integratedConnectedCurrentTerms[:, mask].real, axis=1)}\n")
+            f.write(f"Mean of Imaginary: {np.mean(diagData.integratedConnectedCurrentTerms[:, mask].imag, axis=1)}\n")
+
+        # Loops through each term.
+        for termIndex in range(diagData.integratedConnectedCurrentTerms.shape[0]):
+            nrows, ncols = 3, 1
+            fig, ax = plt.subplots(nrows, ncols)
+
+            for row in range(nrows):
+                ax[row].plot(self.__axes.tauAxisDim,
+                                   self.__plottingFunctions[row](
+                                       diagData.integratedConnectedCurrentTerms[termIndex]
+                                   ),
+                                   color = 'black')
+                ax[row].set_xlabel(self.__tauLabel)
+                ax[row].set_ylabel(f"{self.__plottingPrefixes[row]} Term {termIndex + 1}")
+
+                if yLim is not None:
+                    ax[row].set_ylim(yLim)
+
+            # Sets the title of the plot.
+            title = fr"Connected Current Term {termIndex + 1} -- " + self.__GenerateTitle(self.__sim.momentums)
+            plt.suptitle(title)
+            plt.tight_layout()
+            if saveFigs:
+                os.makedirs(f"{self.__plotFolder}/{subFolder}", exist_ok=True)
+                plt.savefig(f"{self.__plotFolder}/{subFolder}/Term {termIndex + 1}.png", dpi=300)
+            if show:
+                plt.show()
+
     def __GenerateTitle(self, k: float | list[float] | np.ndarray[float] | None) -> str:
         """
         Generates the title of a plot based on the parameters and momentum values displayed.

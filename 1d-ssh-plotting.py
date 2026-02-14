@@ -11,20 +11,20 @@ k = sim.momentums[2]
 #                                overplotFourierSeries = True,
 #                                overplotTAxis = True)
 
-vis.PlotDoubleTimeCorrelations(k,
-                               format = 'noise',
-                               saveFigs = True,
-                               show = False)
+# vis.PlotDoubleTimeCorrelations(k,
+#                                format = 'noise',
+#                                saveFigs = True,
+#                                show = False)
 
-vis.PlotDoubleTimeCorrelations(k,
-                               format = 'product',
-                               saveFigs = True,
-                               show = False)
+# vis.PlotDoubleTimeCorrelations(k,
+#                                format = 'product',
+#                                saveFigs = True,
+#                                show = False)
 
-vis.PlotDoubleTimeCorrelations(k,
-                               format = 'connected',
-                               saveFigs = True,
-                               show = False)
+# vis.PlotDoubleTimeCorrelations(k,
+#                                format = 'connected',
+#                                saveFigs = True,
+#                                show = False)
 
 # $\langle j(t) \rangle$.
 # vis.PlotCurrent(saveFigs = True,
@@ -57,6 +57,10 @@ vis.PlotDoubleTimeCorrelations(k,
 #                                     saveFigs = True,
 #                                     show = True
 #                                     )
+
+vis.PlotConnectedCurrentTerms(saveFigs = True,
+                              show = True,
+                              yLim = None)
 
 # vis.PlotConnectedCurrentFFT(saveFigs = True,
 #                             show = True)

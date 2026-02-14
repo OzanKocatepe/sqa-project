@@ -51,7 +51,7 @@ class DiagnosticData:
         """
 
         return DiagnosticData(
-            numericalDoubleTimeCurrentProduct = self.numericalDoubleTimeCurrentProduct + other.numericalDoubleTimeCurrentProduct,
+            # numericalDoubleTimeCurrentProduct = self.numericalDoubleTimeCurrentProduct + other.numericalDoubleTimeCurrentProduct,
             integratedConnectedCurrentTerms = self.integratedConnectedCurrentTerms + other.integratedConnectedCurrentTerms
         )
     
