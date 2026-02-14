@@ -164,15 +164,16 @@ class SSHVisualiser:
             fig, ax = plt.subplots(nrows, ncols)
 
             for col in range(ncols):
-                ax[col].pcolormesh(self.__axes.tauAxisDim,
+                mesh = ax[col].pcolormesh(self.__axes.tauAxisDim,
                                    self.__axes.tAxisDim,
                                    self.__plottingFunctions[col + 1](data),
                                    cmap = 'bwr',
                                    shading = 'nearest')
 
-                ax[col].set_title(f"{self.__plottingPrefixes[col]} Correlation")
+                ax[col].set_title(f"{self.__plottingPrefixes[col + 1]} Correlation")
                 ax[col].set_xlabel(self.__tauLabel)
                 ax[col].set_ylabel(self.__tLabel)
+                plt.colorbar(mesh, ax=ax[col])
 
             plt.suptitle(title)
             plt.tight_layout()

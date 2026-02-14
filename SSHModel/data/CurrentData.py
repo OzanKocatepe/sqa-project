@@ -32,11 +32,6 @@ class CurrentData:
     # driving frequency.
     harmonics : np.ndarray[complex] = None
 
-    # The double-time current product (second half of the connected correlator) evaluated
-    # numerically using the timeDomainCurrent at multiple times, rather than using the fourier series
-    # derived analytically. Used to make the product term in the connected correlator is correct.
-    _numericalDoubleTimeCurrentProduct: np.ndarray[float] = None
-
     def __add__(self, other: CurrentData) -> CurrentData:
         """
         Adds another CurrentData instance to itself to create a new CurrentData instance.
@@ -61,6 +56,5 @@ class CurrentData:
             doubleTimeCurrentProduct = self.doubleTimeCurrentProduct + other.doubleTimeCurrentProduct,
             timeConnectedCorrelator = self.timeConnectedCorrelator + other.timeConnectedCorrelator,
             freqConnectedCorrelator = self.freqConnectedCorrelator + other.freqConnectedCorrelator,
-            harmonics = self.harmonics + other.harmonics,
-            _numericalDoubleTimeCurrentProduct = self._numericalDoubleTimeCurrentProduct + other._numericalDoubleTimeCurrentProduct
+            harmonics = self.harmonics + other.harmonics
         )

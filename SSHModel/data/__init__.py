@@ -3,6 +3,7 @@ from .CorrelationData import CorrelationData
 from .CurrentData import CurrentData
 from .SSHParameters import ModelParameters, EnsembleParameters
 from .Fourier import Fourier
+from .DiagnosticData import DiagnosticData
 
 __all__ = [
     'AxisData',
@@ -10,5 +11,6 @@ __all__ = [
     'CurrentData',
     'ModelParameters',
     'EnsembleParameters',
-    'Fourier'
+    'Fourier',
+    'DiagnosticData'
 ]

@@ -2,7 +2,7 @@ import numpy as np
 import scipy.integrate as integrate
 import scipy.special as special
 
-from .data import ModelParameters, CorrelationData, CurrentData, AxisData, Fourier
+from .data import *
 
 class SSH:
     """
@@ -26,6 +26,7 @@ class SSH:
         self.__correlationData: CorrelationData = CorrelationData()
         self.__currentData: CurrentData = CurrentData()
         self.__axes: AxisData = None
+        self.__diagnosticData = DiagnosticData()
 
     def __SinusoidalDrivingTerm(self, t: float | np.ndarray[float]) -> float | np.ndarray[float]:
         """A classical, sinusoidal driving term for the system.
@@ -451,6 +452,12 @@ class SSH:
         coeff3 = -1j * np.cos(theta - drivingSamplesT[:, np.newaxis]) * np.sin(theta - drivingSamplesTau)
         coeff4 = -1j * np.sin(theta - drivingSamplesT[:, np.newaxis]) * np.cos(theta - drivingSamplesTau)
 
+        # Passes the coefficients along to the diagnostic data for debugging use.
+        self.__diagnosticData.CalculateConnectedCorrelatorTerms(self.__axes,
+                                                                self.__params,
+                                                                np.array([coeff1, coeff2, coeff3, coeff4]),
+                                                                self.__correlationData)
+
         # Calculates all of the operator terms that correspond to each coefficient, again with
         # shape (tAxis.size, tauAxis.size)
         operators1 = self.__correlationData.doubleTime[2, 2, :, :]
@@ -508,7 +515,7 @@ class SSH:
         
         # Numerically integrates the data. Sets the value in current data within the function since its
         # just used for debugging, so its not worth returning.
-        self.__currentData._numericalDoubleTimeCurrentProduct = self.__params.drivingFreq * np.trapezoid(
+        self.__diagnosticData._numericalDoubleTimeCurrentProduct = self.__params.drivingFreq * np.trapezoid(
             y = numericalTerm,
             x = self.__axes.tAxisSec,
             axis = 0
@@ -577,3 +584,7 @@ class SSH:
     @property
     def correlationData(self) -> CorrelationData:
         return self.__correlationData
+    
+    @property
+    def diagnosticData(self) -> DiagnosticData:
+        return self.__diagnosticData

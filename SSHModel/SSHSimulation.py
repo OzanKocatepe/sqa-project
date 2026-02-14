@@ -5,7 +5,7 @@ import os
 import pickle
 import gzip
 
-from .data import EnsembleParameters, ModelParameters, AxisData, CurrentData, CorrelationData
+from .data import *
 from .SSH import SSH
 
 class SSHSimulation:
@@ -306,6 +306,11 @@ class SSHSimulation:
     def totalCurrent(self) -> CurrentData:
         currents = [model.currentData for model in self.models.values()]
         return np.sum(currents)
+    
+    @cached_property
+    def totalDiagnostics(self) -> DiagnosticData:
+        diagnostics = [model.diagnosticData for model in self.models.values()]
+        return np.sum(diagnostics)
     
     @property
     def params(self) -> EnsembleParameters:
