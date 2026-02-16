@@ -460,10 +460,10 @@ class SSH:
 
         # Calculates all of the operator terms that correspond to each coefficient, again with
         # shape (tAxis.size, tauAxis.size)
-        operators1 = self.__correlationData.doubleTime[2, 2, :, :]
-        operators2 = self.__correlationData.doubleTime[1, 1, :, :] - self.__correlationData.doubleTime[1, 0, :, :] - self.__correlationData.doubleTime[0, 1, :, :] + self.__correlationData.doubleTime[0, 0, :, :]
-        operators3 = self.__correlationData.doubleTime[1, 2, :, :] - self.__correlationData.doubleTime[0, 2, :, :]
-        operators4 = self.__correlationData.doubleTime[2, 1, :, :] - self.__correlationData.doubleTime[2, 0, :, :]
+        operators1 = self.__correlationData.doubleTime[2, 2]
+        operators2 = self.__correlationData.doubleTime[1, 1] - self.__correlationData.doubleTime[1, 0] - self.__correlationData.doubleTime[0, 1] + self.__correlationData.doubleTime[0, 0]
+        operators3 = self.__correlationData.doubleTime[1, 2] - self.__correlationData.doubleTime[0, 2]
+        operators4 = self.__correlationData.doubleTime[2, 1] - self.__correlationData.doubleTime[2, 0]
 
         return self.__params.t2**2 * (coeff1 * operators1 + coeff2 * operators2 + coeff3 * operators3 + coeff4 * operators4)
     

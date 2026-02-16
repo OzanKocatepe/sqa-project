@@ -75,24 +75,24 @@ class DiagnosticData:
 
         # The required double-time operators.
         operatorTerms = np.array([
-            corr.doubleTime[2, 2, :, :],
-            corr.doubleTime[1, 1, :, :] - corr.doubleTime[1, 0, :, :] - corr.doubleTime[0, 1, :, :] + corr.doubleTime[0, 0, :, :],
-            corr.doubleTime[1, 2, :, :] - corr.doubleTime[0, 2, :, :],
-            corr.doubleTime[2, 1, :, :] - corr.doubleTime[2, 0, :, :]
+            corr.doubleTime[2, 2],
+            corr.doubleTime[1, 1] - corr.doubleTime[1, 0] - corr.doubleTime[0, 1] + corr.doubleTime[0, 0],
+            corr.doubleTime[1, 2] - corr.doubleTime[0, 2],
+            corr.doubleTime[2, 1] - corr.doubleTime[2, 0]
         ])
 
         # Calculates the $\langle \sigma_i (t) \rangle \langle \sigma_j(t + \tau) \rangle$ values at times t and tau for all i, j.
         productTerms = np.zeros((3, 3, axes.tAxisSec.size, axes.tauAxisSec.size), dtype=complex)
         for i in range(3):
             for j in range(3):
-                productTerms[i, j, :, :] = corr.singleFourierSeries[i].Evaluate(axes.tAxisSec)[:, np.newaxis] * corr.singleFourierSeries[j].Evaluate(np.add.outer(axes.tAxisSec, axes.tauAxisSec))
+                productTerms[i, j] = corr.singleFourierSeries[i].Evaluate(axes.tAxisSec)[:, np.newaxis] * corr.singleFourierSeries[j].Evaluate(np.add.outer(axes.tAxisSec, axes.tauAxisSec))
 
         # Calculates the required connected correlator terms for each i, j.
         connectedOperatorTerms = operatorTerms - np.array([
-            productTerms[2, 2, :, :],
-            productTerms[1, 1, :, :] - productTerms[1, 0, :, :] - productTerms[0, 1, :, :] + productTerms[0, 0, :, :],
-            productTerms[1, 2, :, :] - productTerms[0, 2, :, :],
-            productTerms[2, 1, :, :] - productTerms[2, 0, :, :]
+            productTerms[2, 2],
+            productTerms[1, 1] - productTerms[1, 0] - productTerms[0, 1] + productTerms[0, 0],
+            productTerms[1, 2] - productTerms[0, 2],
+            productTerms[2, 1] - productTerms[2, 0]
         ])
 
         # Multiplies by the required coefficient for each term.
