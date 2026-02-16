@@ -3,6 +3,8 @@ import scipy.integrate as integrate
 import scipy.special as special
 
 from .data import *
+from .Profiler import SSHProfiler
+from SSHModel import Profiler
 
 class SSH:
     """
@@ -26,7 +28,8 @@ class SSH:
         self.__correlationData: CorrelationData = CorrelationData()
         self.__currentData: CurrentData = CurrentData()
         self.__axes: AxisData = None
-        self.__diagnosticData = DiagnosticData()
+        self.__diagnosticData: DiagnosticData = DiagnosticData()
+        self.profiler: SSHProfiler = SSHProfiler(self.__params.k)
 
     def __SinusoidalDrivingTerm(self, t: float | np.ndarray[float]) -> float | np.ndarray[float]:
         """A classical, sinusoidal driving term for the system.
