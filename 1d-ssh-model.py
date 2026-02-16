@@ -1,11 +1,19 @@
 import numpy as np
+import pandas as pd
 from SSHModel import *
 
 # k = np.pi / 4
 if __name__ == "__main__":
-    numK = 25
-    numT = 10
-    tauAxis = np.linspace(0, 100, 40000)
+    # numK = 25
+    # numT = 10
+    # tauAxis = np.linspace(0, 100, 40000)
+    # steadyStateCutoff = 60
+
+    numK = 5
+    numT = 3
+    tauAxis = np.linspace(0, 60, 40000)
+    steadyStateCutoff = 40
+
     initialConditions = np.array([-0.5, -0.5, 0], dtype=complex)
 
     params = data.EnsembleParameters(
@@ -22,9 +30,11 @@ if __name__ == "__main__":
     sim.Run(
         initialConditions = initialConditions,
         tauAxisDim = tauAxis,
-        steadyStateCutoff = 60,
+        steadyStateCutoff = steadyStateCutoff,
         numT = numT,
-        numProcesses = 6
+        numProcesses = 5
     )
 
-    sim.Save("simulation-instances")
+    # sim.Save("simulation-instances")
+    sim.ExportAllRecords('simulation-instances')
+    sim.ExportRecordSummary('simulation-instances')

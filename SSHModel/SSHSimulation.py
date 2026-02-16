@@ -4,6 +4,7 @@ from functools import cached_property
 import os
 import pickle
 import gzip
+import pandas as pd
 
 from .data import *
 from .SSH import SSH
@@ -194,7 +195,7 @@ class SSHSimulation:
             steadyStateCutoff = steadyStateCutoff
         )
 
-    def Save(self, fileDir: str) -> None:
+    def Save(self, fileDir: str='simulation-instances') -> None:
         """
         Saves the current simulation instance into a pickle file.
         
@@ -272,6 +273,41 @@ class SSHSimulation:
 
         self.__models |= models
 
+    def ExportAllRecords(self, fileDir: str='simulation-instances') -> None:
+        """
+        Exports all the profiler records to a csv.
+
+        Parameters
+        ----------
+        fileDir : str
+            The folder to save the records to.
+        """
+
+        self.allProfilerRecords.to_csv(f'{fileDir}/numK: {self.numModels}, numT: {self.__axes.tAxisSec.size}.csv', index=False)
+
+    def ExportRecordSummary(self, fileDir: str='simulation-instances') -> None:
+        """
+        Exports a summary of the time taken by each function, in seconds,
+        to a csv file. This time is the total time taken over all calls in all instances.
+        """
+
+        # Groups rows by function name, then sums all of the elapsed time for that function.
+        # Ignored processID and momentum.
+        dfSummary = self.allProfilerRecords.groupby('functionName', as_index=False)[['elapsedTime', 'numCalls']].sum()
+        # Sorts by descending elapsed time.
+        dfSummary.sort_values('elapsedTime', ascending=False, inplace=True)
+
+        # Calculates the total time.
+        totalTime = dfSummary['elapsedTime'].sum()
+        # Adds this as a percentage column.
+        dfSummary['percentage'] = (dfSummary['elapsedTime'] / totalTime * 100).round(2)
+
+        # Adds the average time per call.
+        dfSummary['avgTime'] = dfSummary['elapsedTime'] / dfSummary['numCalls']
+
+        # Exports to CSV.
+        dfSummary.to_csv(f'{fileDir}/[Summary] numK: {self.numModels}, numT: {self.__axes.tAxisSec.size}.csv', index=False)
+
     @property
     def momentums(self) -> np.ndarray[float]:
         return np.array( list( self.__models.keys() ) )
@@ -315,3 +351,8 @@ class SSHSimulation:
     @property
     def params(self) -> EnsembleParameters:
         return self.__params
+    
+    @property
+    def allProfilerRecords(self) -> pd.DataFrame:
+        records = [model.profilerRecords for model in self.models.values()]
+        return pd.concat(records)

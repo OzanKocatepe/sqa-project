@@ -1,10 +1,10 @@
 import numpy as np
 import scipy.integrate as integrate
 import scipy.special as special
+import pandas as pd
 
 from .data import *
 from .Profiler import SSHProfiler
-from SSHModel import Profiler
 
 class SSH:
     """
@@ -31,6 +31,7 @@ class SSH:
         self.__diagnosticData: DiagnosticData = DiagnosticData()
         self.profiler: SSHProfiler = SSHProfiler(self.__params.k)
 
+    @SSHProfiler.profile
     def __SinusoidalDrivingTerm(self, t: float | np.ndarray[float]) -> float | np.ndarray[float]:
         """A classical, sinusoidal driving term for the system.
         
@@ -47,6 +48,7 @@ class SSH:
 
         return self.__params.drivingAmplitude * np.sin(2 * np.pi * self.__params.drivingFreq * t)
 
+    @SSHProfiler.profile
     def __ClassicallyDrivenSSHEquations(self, t: float, c: np.ndarray[complex], inhomPart: float) -> np.ndarray[float]:
         r"""
         The ODE (equations of motion) for the single-time expectations of $\sigma_-(t)$, $\sigma_+(t)$, and $\sigma_z(t)$. 
@@ -96,6 +98,7 @@ class SSH:
     
         return B @ c + d
     
+    @SSHProfiler.profile
     def SolveCorrelations(self, axes: AxisData, initialConditions: np.ndarray[complex]) -> None:
         r"""
         Solves the system of ODEs for the expectations of our two-level system operators $(\langle \sigma_i(t) \rangle$,
@@ -130,6 +133,7 @@ class SSH:
 
         self.__correlationData.doubleTime = self.__CalculateDoubleTimeCorrelations(odeParams)
 
+    @SSHProfiler.profile
     def __CalculateSteadyStateMask(self, numPeriods: int=None) -> np.ndarray[bool]:
         """
         Calculates a mask for the tau-axis to isolate the steady state part. Can also isolate a specific number
@@ -153,7 +157,8 @@ class SSH:
         else:
             dimPeriod = self.__params.decayConstant / self.__params.drivingFreq
             return (self.__axes.steadyStateCutoff <= self.__axes.tauAxisDim) & (self.__axes.tauAxisDim <= self.__axes.steadyStateCutoff + dimPeriod * numPeriods)
-
+    
+    @SSHProfiler.profile
     def __CalculateSingleTimeCorrelations(self, initialConditions: np.ndarray[complex], odeParams: dict) -> np.ndarray[complex]:
         r"""
         Calculates the single-time correlation functions.
@@ -183,6 +188,7 @@ class SSH:
             **odeParams
         ).y
     
+    @SSHProfiler.profile
     def __CalculateSingleTimeFourierSeries(self, numPeriods: int=10) -> list[Fourier]:
         """
         Calculates the fourier series of the single-time correlation functions in the steady state.
@@ -211,6 +217,7 @@ class SSH:
 
         return fourierSeries
     
+    @SSHProfiler.profile
     def __CalculateDoubleTimeCorrelations(self, odeParams: dict) -> np.ndarray[complex]:
         r"""
         Calculates the double-time correlation functions.
@@ -251,6 +258,7 @@ class SSH:
 
         return doubleTime
 
+    @SSHProfiler.profile
     def __CalculateDoubleTimeInitialConditions(self) -> np.ndarray[complex]:
         """
         Calculates the double-time initial conditions for all 9 double-time correlators, at each time t.
@@ -284,6 +292,7 @@ class SSH:
             ]], dtype=complex
         )
     
+    @SSHProfiler.profile
     def __CalculateDoubleTimeInhomogeousParts(self) -> np.ndarray[complex]:
         """
         Calculates the inhomogenous parts for all 3 possible operators that we left-multiply by
@@ -303,6 +312,7 @@ class SSH:
 
         return inhomParts
     
+    @SSHProfiler.profile
     def CalculateCurrent(self) -> None:
         """Calculates all of the relevant attributes for the current."""
 
@@ -325,6 +335,7 @@ class SSH:
         # Calculates the Fourier transform of the connected correlator at the harmonics of the driving frequency.
         self.__currentData.harmonics = self.__CalculateCurrentHarmonics()
 
+    @SSHProfiler.profile
     def __CalculateCurrentExpectation(self) -> tuple[np.ndarray[complex], np.ndarray[complex]]:
         """Calculates the expectation of the current operator in the time- and frequency-domains.
         
@@ -353,6 +364,7 @@ class SSH:
 
         return timeData, freqData
     
+    @SSHProfiler.profile
     def __CalculateCurrentFourier(self) -> Fourier:
         """
         Calculates the fourier series of the current operator.
@@ -423,6 +435,7 @@ class SSH:
         # for the expectation of the current.
         return np.sum(coefficientFourierSeries)
     
+    @SSHProfiler.profile
     def __CalculateDoubleTimeCurrent(self) -> np.ndarray[complex]:
         r"""
         Calculates the double-time current expectation.
@@ -470,6 +483,7 @@ class SSH:
 
         return self.__params.t2**2 * (coeff1 * operators1 + coeff2 * operators2 + coeff3 * operators3 + coeff4 * operators4)
     
+    @SSHProfiler.profile
     def __CalculateConnectedCurrentCorrelator(self) -> tuple[np.ndarray[complex], np.ndarray[complex], np.ndarray[complex]]:
         r"""
         Calculates the connected current correlator, integrated over a steady state period
@@ -536,6 +550,7 @@ class SSH:
 
         return integratedDoubleTimeData, doubleTimeCurrentProduct, connectedCorrelator
     
+    @SSHProfiler.profile
     def __CalculateCurrentHarmonics(self, maxHarmonic: int=12) -> np.ndarray[complex]:
         r"""
         Calculates the Fourier transform of the integrated, connected double-current conected correlator
@@ -591,3 +606,7 @@ class SSH:
     @property
     def diagnosticData(self) -> DiagnosticData:
         return self.__diagnosticData
+
+    @property
+    def profilerRecords(self) -> pd.DataFrame:
+        return self.profiler.ExportToDataframe()
