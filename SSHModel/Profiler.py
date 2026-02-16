@@ -1,7 +1,6 @@
 from dataclasses import dataclass, field
 import time
 import os
-import threading
 
 # Global variable determining whether the process is enabled.
 PROFILING_ENABLED = True
@@ -19,34 +18,30 @@ class SSHProfiler:
     """
     A profiler for the SSH class. Used to optimise the simulation.
     """
-
-    # We use a singleton instance for every process.
-    _instance: SSHProfiler = None
-
-    def __new__(cls):
+ 
+    def __init__(self, k: float):
         """
-        When creating an instance, returns the singleton instance
-        if it already exists.
+        Initialises the singleton instance if it has just been created.
+        
+        k : float
+            The momentum of the SSH object that this profiler is
+            attached to.
         """
 
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-            # Tells the initialiser that this is a newly constructed instance.
-            cls._instance.initialised = False
-        return cls._instance
-    
-    def __init__(self):
-        """Initialises the singleton instance if it has just been created."""
+        self.__k = k
+        self.__records: list[ProfileRecord] = []
 
-        if not self.initialised:
-            self.__records: list[ProfileRecord] = []
-            # Only allows one thread at a time to write to the records.
-            self.__lock = threading.Lock()
-            self.__currentMomentum: float = None
-            self.__initialised = True
+    def profile(f):
+        """
+        Measures the execution time of a function and stores it to a dataset
+        for analysis.
+        """
 
-    def SetMomentum(self, momentum: float) -> None:
-        """
-        Allows the SSH process to set the momentum, since each process controls one SSH model,
-        which has a fixed momentum.
-        """
+        def wrap(*args, **kwargs):
+            initialTime = time.perf_counter()
+            result = f(*args, **kwargs)
+            elapsedTime = time.perf_counter() - initialTime
+            print(f"{elapsedTime:.2f}s")
+            return result
+
+        return wrap
