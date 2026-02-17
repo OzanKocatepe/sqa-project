@@ -5,11 +5,11 @@ sim = SSHSimulation.Load("simulation-instances/numK: 25, numT: 10.pkl.gz")
 vis = SSHVisualiser(sim, "plots/numK: 25, numT: 10")
 
 k = sim.momentums[2]
-# vis.PlotSingleTimeCorrelations(k,
-#                                saveFigs = True,
-#                                show = True,
-#                                overplotFourierSeries = True,
-#                                overplotTAxis = True)
+vis.PlotSingleTimeCorrelations(k,
+                               saveFigs = True,
+                               show = True,
+                               overplotFourierSeries = True,
+                               overplotTAxis = True)
 
 # vis.PlotDoubleTimeCorrelations(k,
 #                                format = 'noise',
@@ -58,9 +58,9 @@ k = sim.momentums[2]
 #                                     show = True
 #                                     )
 
-vis.PlotConnectedCurrentTerms(saveFigs = True,
-                              show = True,
-                              yLim = None)
+# vis.PlotConnectedCurrentTerms(saveFigs = True,
+#                               show = True,
+#                               yLim = None)
 
 # vis.PlotConnectedCurrentFFT(saveFigs = True,
 #                             show = True)

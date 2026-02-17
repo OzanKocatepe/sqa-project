@@ -4,15 +4,15 @@ from SSHModel import *
 
 # k = np.pi / 4
 if __name__ == "__main__":
-    # numK = 25
-    # numT = 10
-    # tauAxis = np.linspace(0, 100, 40000)
-    # steadyStateCutoff = 60
+    numK = 25
+    numT = 10
+    tauAxis = np.linspace(0, 100, 40000)
+    steadyStateCutoff = 60
 
-    numK = 5
-    numT = 3
-    tauAxis = np.linspace(0, 60, 40000)
-    steadyStateCutoff = 40
+    # numK = 5
+    # numT = 3
+    # tauAxis = np.linspace(0, 60, 400000)
+    # steadyStateCutoff = 40
 
     initialConditions = np.array([-0.5, -0.5, 0], dtype=complex)
 
@@ -32,9 +32,9 @@ if __name__ == "__main__":
         tauAxisDim = tauAxis,
         steadyStateCutoff = steadyStateCutoff,
         numT = numT,
-        numProcesses = 5
+        numProcesses = 6
     )
 
-    # sim.Save("simulation-instances")
+    sim.Save("simulation-instances")
     sim.ExportAllRecords('simulation-instances')
     sim.ExportRecordSummary('simulation-instances')
