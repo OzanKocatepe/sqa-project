@@ -32,7 +32,7 @@ if __name__ == "__main__":
         tauAxisDim = tauAxis,
         steadyStateCutoff = steadyStateCutoff,
         numT = numT,
-        numProcesses = 6
+        numProcesses = 4
     )
 
     sim.Save("simulation-instances")
