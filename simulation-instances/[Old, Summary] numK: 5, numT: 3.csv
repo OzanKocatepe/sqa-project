@@ -1,0 +1,16 @@
+functionName                          , elapsedTime          , numCalls, percentage, avgTime
+SolveCorrelations                     , 172.13188820809592   ,        5,      36.95, 34.42637764161918
+__CalculateDoubleTimeCorrelations     , 152.34036770905368   ,        5,      32.7 , 30.468073541810735
+__ClassicallyDrivenSSHEquations       , 98.52010870841332    , 15911254,      21.15, 6.191850667987157e-06
+__SinusoidalDrivingTerm               , 20.334726665751077   , 63645031,       4.37, 3.1950218809306697e-07
+__CalculateSingleTimeCorrelations     , 19.78542804310564    ,        5,       4.25, 3.957085608621128
+CalculateCurrent                      , 1.3663058331003413   ,        5,       0.29, 0.2732611666200683
+__CalculateDoubleTimeCurrent          , 1.0267821670277044   ,        5,       0.22, 0.20535643340554088
+__CalculateConnectedCurrentCorrelator , 0.3093269991222769   ,        5,       0.07, 0.06186539982445538
+__CalculateCurrentHarmonics           , 0.020231543108820915 ,        5,       0.0 , 0.004046308621764183
+__CalculateSingleTimeFourierSeries    , 0.005968500045128167 ,        5,       0.0 , 0.0011937000090256333
+__CalculateCurrentExpectation         , 0.004849916091188788 ,        5,       0.0 , 0.0009699832182377577
+__CalculateCurrentFourier             , 0.002437290968373418 ,        5,       0.0 , 0.00048745819367468357
+__CalculateSteadyStateMask            , 0.0004029994597658515,       20,       0.0 , 2.0149972988292576e-05
+__CalculateDoubleTimeInitialConditions, 0.0002809580182656646,        5,       0.0 , 5.619160365313292e-05
+__CalculateDoubleTimeInhomogeousParts , 9.008287452161312e-05,        5,       0.0 , 1.8016574904322626e-05

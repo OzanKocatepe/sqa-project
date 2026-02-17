@@ -49,7 +49,7 @@ class SSH:
         return self.__params.drivingAmplitude * np.sin(2 * np.pi * self.__params.drivingFreq * t)
 
     @SSHProfiler.profile
-    def __ClassicallyDrivenSSHEquations(self, t: float, c: np.ndarray[complex], inhomPart: float) -> np.ndarray[float]:
+    def __ClassicallyDrivenSSHEquations(self, t: float, c: np.ndarray[complex], inhomPart: np.ndarray[complex]) -> np.ndarray[float]:
         r"""
         The ODE (equations of motion) for the single-time expectations of $\sigma_-(t)$, $\sigma_+(t)$, and $\sigma_z(t)$. 
 
@@ -58,11 +58,12 @@ class SSH:
         t : float
             The time t, in seconds.
         c : ndarray[float]
-            The 3-component single-time correlation array.
+            The 3-row single-time correlation array, or a matrix where the columns are
+            the desired correlation functions.
         inhomPart : float
             The inhomogenous part of the system, which changes depending on the
             order of the correlation function. The correct inhomogenous parts are determined
-            outside of this function.
+            outside of this function. Should match the shape of c.
 
         Returns:
         --------
@@ -72,8 +73,9 @@ class SSH:
 
         # Defines the useful parameters.
         A = self.__SinusoidalDrivingTerm
-        vZ = 2 * self.__params.t2 * np.sin(self.__params.k - self.__params.phiK - 0.5 * A(t)) * np.sin(0.5 * A(t))
-        vPm = 2j * self.__params.t2 * np.cos(self.__params.k - self.__params.phiK - 0.5 * A(t)) * np.sin(0.5 * A(t))
+        drivingSamples = A(t)
+        vZ = 2 * self.__params.t2 * np.sin(self.__params.k - self.__params.phiK - 0.5 * drivingSamples) * np.sin(0.5 * drivingSamples)
+        vPm = 2j * self.__params.t2 * np.cos(self.__params.k - self.__params.phiK - 0.5 * drivingSamples) * np.sin(0.5 * drivingSamples)
 
         # Defines the coefficient matrix.
         B = np.array([
@@ -93,9 +95,12 @@ class SSH:
                 -self.__params.decayConstant
             ]], dtype=complex)
     
-        # Inhomogenous part.
-        d = np.array([0, 0, inhomPart], dtype=complex)
-    
+        # Stacks the inhomogenous part to match the second dimension of c, which may be
+        # >1 since we have vectorized set to true.
+        # Since the value of t will be the same for all the columns of y, the inhomogenous
+        # term will also be the same, so it is fine to just stack.
+        d = np.stack((inhomPart,) * c.shape[1], axis=1)
+
         return B @ c + d
     
     @SSHProfiler.profile
@@ -124,7 +129,8 @@ class SSH:
             'fun' : self.__ClassicallyDrivenSSHEquations,
             'rtol' : 1e-10,
             'atol' : 1e-12,
-            'max_step' : 0.01 / self.__params.decayConstant
+            'max_step' : 0.01 / self.__params.decayConstant,
+            'vectorized' : True
         }
 
         self.__correlationData.singleTime = self.__CalculateSingleTimeCorrelations(initialConditions, odeParams)
@@ -178,7 +184,7 @@ class SSH:
         """
  
         # Solves the single time solutions.
-        inhomPart = -self.__params.decayConstant
+        inhomPart = np.array([0, 0, -self.__params.decayConstant], dtype=complex)
 
         return integrate.solve_ivp(
             t_span = np.array([0, np.max(self.__axes.tauAxisSec)]),
@@ -245,16 +251,15 @@ class SSH:
 
         # Loops through each initial condition time t.
         for tIndex, t in enumerate(self.__axes.tAxisSec):
-            # Loops through all 3 operators that we can left-multiply by.
-            for i in range(3):
-                # Solves system.
-                doubleTime[i, :, tIndex, :] = integrate.solve_ivp(
-                    t_span = t + np.array([0, np.max(self.__axes.tauAxisSec)]),
-                    t_eval = t + self.__axes.tauAxisSec,
-                    y0 = doubleTimeInitialConditions[i, :, tIndex],
-                    args = (doubleTimeInhomParts[i, tIndex],),
-                    **odeParams
-                ).y
+                # Solves system for each left-operator.
+                for i in range(3):
+                    doubleTime[i, :, tIndex, :] = integrate.solve_ivp(
+                        t_span = t + np.array([0, np.max(self.__axes.tauAxisSec)]),
+                        t_eval = t + self.__axes.tauAxisSec,
+                        y0 = doubleTimeInitialConditions[i, :, tIndex],
+                        args = (doubleTimeInhomParts[i, :, tIndex],),
+                        **odeParams
+                    ).y
 
         return doubleTime
 
@@ -301,14 +306,16 @@ class SSH:
         Returns
         -------
         ndarray[complex]
-            An array of shape (3, tAxis.size) corresponding to the operator that we are left-multiplying
-            by (axis 0) at the time on the t-axis that we have chosen as our initial condition (axis 1).
+            An array of shape (3, 3, tAxis.size) corresponding to the operator that we are left-multiplying
+            by (axis 0) and right-multiplying by (axis 1) at the time on the
+            t-axis that we have chosen as our initial condition (axis 2).
         """
 
-        inhomParts = np.zeros((3, self.__axes.tAxisSec.size), dtype=complex)
+        inhomParts = np.zeros((3, 3, self.__axes.tAxisSec.size), dtype=complex)
 
+        # Sets the inhomogenous parts when right operator is $\sigma_z$. For other operators, inhomogeous part is zero.
         for i in range(3):
-            inhomParts[i, :] = self.__correlationData.singleFourierSeries[i].Evaluate(self.__axes.tAxisSec) * -self.__params.decayConstant
+            inhomParts[i, 2] = self.__correlationData.singleFourierSeries[i].Evaluate(self.__axes.tAxisSec) * -self.__params.decayConstant
 
         return inhomParts
     
