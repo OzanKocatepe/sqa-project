@@ -6,6 +6,7 @@ import pickle
 import gzip
 import pandas as pd
 import psutil
+import tracemalloc
 
 from .data import *
 from .SSH import SSH
@@ -152,9 +153,12 @@ class SSHSimulation:
         k, kIndex, model, initialConditions = args
 
         print(f"Solving for momentum {k / np.pi:.2f}pi ({kIndex + 1}/{self.numModels})...")
+        tracemalloc.start()
         model.SolveCorrelations(self.__axes, initialConditions)
         model.CalculateCurrent()
-        print(f"Memory used for momentum {k / np.pi:.2f}pi ({kIndex + 1}/{self.numModels}): {psutil.Process().memory_info().rss / 1024 / 1024:.2f} MB")
+        current, peak = tracemalloc.get_traced_memory()
+        tracemalloc.stop()
+        print(f"Peak memory used for momentum {k / np.pi:.2f}pi ({kIndex + 1}/{self.numModels}): {peak / 1024 / 1024:.2f} MB")
         return model
 
     def __CalculateAxisData(self, tauAxisDim: np.ndarray[float], steadyStateCutoff: float, numT: float) -> None:
