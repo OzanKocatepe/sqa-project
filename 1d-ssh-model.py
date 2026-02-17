@@ -32,9 +32,9 @@ if __name__ == "__main__":
         tauAxisDim = tauAxis,
         steadyStateCutoff = steadyStateCutoff,
         numT = numT,
-        numProcesses = 4
+        numProcesses = 5
     )
 
-    sim.Save("simulation-instances")
+    # sim.Save("simulation-instances")
     # sim.ExportAllRecords('simulation-instances')
-    sim.ExportRecordSummary('simulation-instances')
+    # sim.ExportRecordSummary('simulation-instances')
