@@ -130,12 +130,13 @@ class SSH:
             'rtol' : 1e-10,
             'atol' : 1e-12,
             'max_step' : 0.01 / self.__params.decayConstant,
-            'vectorized' : True
+            'vectorized' : True,
+            'dense_output' : True
         }
 
         self.__correlationData.singleTime = self.__CalculateSingleTimeCorrelations(initialConditions, odeParams)
 
-        self.__correlationData.singleFourierSeries = self.__CalculateSingleTimeFourierSeries(numPeriods = 10)
+        # self.__correlationData.singleFourierSeries = self.__CalculateSingleTimeFourierSeries(numPeriods = 10)
 
         self.__correlationData.doubleTime = self.__CalculateDoubleTimeCorrelations(odeParams)
 
@@ -165,7 +166,7 @@ class SSH:
             return (self.__axes.steadyStateCutoff <= self.__axes.tauAxisDim) & (self.__axes.tauAxisDim <= self.__axes.steadyStateCutoff + dimPeriod * numPeriods)
     
     @SSHProfiler.profile
-    def __CalculateSingleTimeCorrelations(self, initialConditions: np.ndarray[complex], odeParams: dict) -> np.ndarray[complex]:
+    def __CalculateSingleTimeCorrelations(self, initialConditions: np.ndarray[complex], odeParams: dict) -> integrate.OdeSolution:
         r"""
         Calculates the single-time correlation functions.
 
@@ -192,7 +193,7 @@ class SSH:
             y0 = initialConditions,
             args = (inhomPart,),
             **odeParams
-        ).y
+        ).sol
     
     @SSHProfiler.profile
     def __CalculateSingleTimeFourierSeries(self, numPeriods: int=10) -> list[Fourier]:
@@ -224,7 +225,7 @@ class SSH:
         return fourierSeries
     
     @SSHProfiler.profile
-    def __CalculateDoubleTimeCorrelations(self, odeParams: dict) -> np.ndarray[complex]:
+    def __CalculateDoubleTimeCorrelations(self, odeParams: dict) -> integrate.OdeSolution:
         r"""
         Calculates the double-time correlation functions.
 
@@ -259,7 +260,7 @@ class SSH:
                         y0 = doubleTimeInitialConditions[i, :, tIndex],
                         args = (doubleTimeInhomParts[i, :, tIndex],),
                         **odeParams
-                    ).y
+                    ).sol
 
         return doubleTime
 
@@ -280,19 +281,19 @@ class SSH:
             # When left-multiplying by $\sigma_-(t)$
             [
                 np.zeros(self.__axes.tAxisSec.size, dtype=complex),
-                -0.5 * (self.__correlationData.singleFourierSeries[2].Evaluate(self.__axes.tAxisSec) - 1),
-                self.__correlationData.singleFourierSeries[0].Evaluate(self.__axes.tAxisSec)
+                -0.5 * (self.__correlationData.singleTime(self.__axes.tAxisSec)[2] - 1),
+                self.__correlationData.singleTime(self.__axes.tAxisSec)[0]
             ],
             # When left-multiplying by $\sigma_+(t)$
             [
-                0.5 * (self.__correlationData.singleFourierSeries[2].Evaluate(self.__axes.tAxisSec) + 1),
+                0.5 * (self.__correlationData.singleTime(self.__axes.tAxisSec)[2] + 1),
                 np.zeros(self.__axes.tAxisSec.size, dtype=complex),
-                -self.__correlationData.singleFourierSeries[1].Evaluate(self.__axes.tAxisSec)
+                -self.__correlationData.singleTime(self.__axes.tAxisSec)[1]
             ],
             # When left-multiplying by $\sigma_z(t)$
             [
-                -self.__correlationData.singleFourierSeries[0].Evaluate(self.__axes.tAxisSec),
-                self.__correlationData.singleFourierSeries[1].Evaluate(self.__axes.tAxisSec),
+                -self.__correlationData.singleTime(self.__axes.tAxisSec)[0],
+                self.__correlationData.singleTime(self.__axes.tAxisSec)[1],
                 np.ones(self.__axes.tAxisSec.size, dtype=complex),
             ]], dtype=complex
         )
@@ -315,7 +316,7 @@ class SSH:
 
         # Sets the inhomogenous parts when right operator is $\sigma_z$. For other operators, inhomogeous part is zero.
         for i in range(3):
-            inhomParts[i, 2] = self.__correlationData.singleFourierSeries[i].Evaluate(self.__axes.tAxisSec) * -self.__params.decayConstant
+            inhomParts[i, 2] = self.__correlationData.singleTime(self.__axes.tAxisSec)[i] * -self.__params.decayConstant
 
         return inhomParts
     
@@ -327,20 +328,20 @@ class SSH:
         self.__currentData.timeDomainCurrent, self.__currentData.freqDomainCurrent = self.__CalculateCurrentExpectation()
 
         # Calculates fourier series for time-domain current operator.
-        self.__currentData.currentFourierSeries = self.__CalculateCurrentFourier()
+        # self.__currentData.currentFourierSeries = self.__CalculateCurrentFourier()
 
         # Calculates double-time current operator.
         self.__currentData.doubleTimeCurrent = self.__CalculateDoubleTimeCurrent()
 
         # Calculates the integrated, connected double-time current operator, plus its components (which are also integrated).
-        self.__currentData.integratedDoubleTimeCurrent, self.__currentData.doubleTimeCurrentProduct, self.__currentData.timeConnectedCorrelator = self.__CalculateConnectedCurrentCorrelator()
+        # self.__currentData.integratedDoubleTimeCurrent, self.__currentData.doubleTimeCurrentProduct, self.__currentData.timeConnectedCorrelator = self.__CalculateConnectedCurrentCorrelator()
 
         # Calculates the FFT of the integrated connected double-time current correlator in steady state.
         mask = self.__CalculateSteadyStateMask()
-        self.__currentData.freqConnectedCorrelator = np.fft.fftshift(np.fft.fft(self.__currentData.timeConnectedCorrelator[mask]))
+        # self.__currentData.freqConnectedCorrelator = np.fft.fftshift(np.fft.fft(self.__currentData.timeConnectedCorrelator[mask]))
 
         # Calculates the Fourier transform of the connected correlator at the harmonics of the driving frequency.
-        self.__currentData.harmonics = self.__CalculateCurrentHarmonics()
+        # self.__currentData.harmonics = self.__CalculateCurrentHarmonics()
 
     @SSHProfiler.profile
     def __CalculateCurrentExpectation(self) -> tuple[np.ndarray[complex], np.ndarray[complex]]:

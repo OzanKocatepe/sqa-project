@@ -11,7 +11,7 @@ if __name__ == "__main__":
 
     numK = 5
     numT = 3
-    tauAxis = np.linspace(0, 60, 40000)
+    tauAxis = np.linspace(0, 60, 1000)
     steadyStateCutoff = 40
 
     initialConditions = np.array([-0.5, -0.5, 0], dtype=complex)

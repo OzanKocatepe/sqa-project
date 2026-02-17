@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import numpy as np
+from scipy.integrate import OdeSolution
 
 from .Fourier import Fourier
 
@@ -7,8 +8,8 @@ from .Fourier import Fourier
 class CorrelationData:
     """Contains all of the data relating to the single- and double-time correlations."""
 
-    singleTime: np.ndarray[complex] = None
-    doubleTime: np.ndarray[complex] = None
+    singleTime: OdeSolution = None
+    doubleTime: OdeSolution = None
     singleFourierSeries: list[Fourier] = None
 
     def __add__(self, other: CorrelationData) -> CorrelationData:
