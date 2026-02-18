@@ -14,6 +14,7 @@ class Fourier:
     def __post_init__(self):
         """Defines any derived terms after initialisation."""
 
+        self.coeffs = np.array(self.coeffs, dtype=complex)
         self.angularFreq = 2 * np.pi * self.baseFreq
         self.n = (self.coeffs.size - 1) // 2
 
@@ -45,7 +46,7 @@ class Fourier:
             coeffs = self.coeffs + other.coeffs
         ) 
 
-    def __getitem__(self, k: int) -> complex:
+    def __getitem__(self, k: int | slice) -> complex | np.ndarray[complex]:
         """
         Returns the 'k'th coefficient. A convenience function
         so that we don't need to do the index shifting if we are only interested
@@ -53,19 +54,59 @@ class Fourier:
 
         Parameters
         ----------
-        k : int
-            The index of the coefficient that we want.
+        k : int | slice
+            The index or slice. Using this, it is impossible to use negative integers
+            to reference values from the end of the list, since negative integers refer
+            to the coefficients with negative indices. Hence, all slices will just be interpreted as
+            a:b:c -> from a (incl.), to b (excl.), in steps of c.
+
+        Returns
+        -------
+        complex | np.ndarray[complex]
+            The indices stored at the desired position.
         
         Raises
         ------
         IndexError
-            If the given index is out of bounds (not within -n to n).
+            If any of the given indices are out of bounds (not within -n to n).
         """
 
-        if np.abs(k) > self.n:
-            raise IndexError("Index out of bounds.")
+        # If k is an integer,
+        if isinstance(k, int):
+            # Check if its in bounds.
+            if np.abs(k) > self.n:
+                raise IndexError("Index out of bounds.")
+            
+            # If so, return the relevant coefficient.
+            return self.coeffs[k + self.n]
         
-        return self.coeffs[k + self.n]
+        # If k is a slice.
+        elif isinstance(k, slice):
+            # Replaces None values with default values.
+            start = k.start if k.start is not None else -self.n
+            stop = k.stop if k.stop is not None else self.n + 1
+            step = k.step if k.step is not None else 1
+
+            # If start is less than the first coefficient, just start at the beginning of the list.
+            if start < -self.n:
+                start = -self.n
+            # If we are trying to start past the end of the list, choose the last element.           
+            elif start > self.n:
+                start = self.n
+
+            # If we are trying to stop before the list starts, just stop at the first element (exclusive).
+            if stop < -self.n:
+                stop = -self.n
+            # If we are trying to stop after we have already finished all the elements, just stop after finishing all the
+            # elements.
+            elif stop > self.n + 1:
+                stop = self.n + 1
+
+            # Shifts the indices for use in the coeffs array.
+            start += self.n
+            stop += self.n
+
+            return self.coeffs[range(start, stop, step)]
 
     def Evaluate(self, tPoints: float | np.ndarray[float]) -> float | np.ndarray[float]:
         """
@@ -129,6 +170,40 @@ class Fourier:
 
         dx = np.mean(np.diff(x))
         return np.floor(1 / (4 * dx * np.pi * baseFreq)).astype(int)
+    
+    def BuildConvolutionMatrix(self) -> np.ndarray[complex]:
+        """
+        Creates a convolution matrix from the coefficients of this Fourier series.
+        The matrix is such that if it is left-multiplied onto a vector
+        containing the coefficients of another Fourier series, the resulting vector
+        will be the coefficients of the convolution of the two Fourier series,
+        truncated to -N to N.
+
+        Returns
+        -------
+        np.ndarray[complex]
+            The (2n + 1, 2n + 1) convolution matrix.
+        """
+
+        # Creates the empty matrix.
+        M = 2 * self.n + 1
+        convMatrix = np.zeros((M, M), dtype=complex)
+
+        # Loops through each element in the coefficient array.
+        for index in np.arange(-self.__n, self.__n + 1):
+            # Calculates the size of the diagonal. For every unit
+            # that we are above or below the diagonal, the size of the diagonal
+            # is reduced by 1 from its starting size of 2n + 1.
+            diagonalSize = M - np.abs(index)
+
+            # Creates a tuple of the current coefficient of the right size
+            # for the diagonal.
+            arr = (self[index],) * diagonalSize
+
+            # Adds the diagonal to the convolution matrix.
+            convMatrix += np.diag(arr, k = -index)
+
+        return convMatrix
 
     @classmethod
     def Convolve(cls, first: Fourier, second: Fourier) -> Fourier:
@@ -146,7 +221,8 @@ class Fourier:
         Returns
         -------
         Fourier
-            The product of the two given fourier series.
+            The product of the two given fourier series, truncated or padded to have the same
+            number of coefficients as the first fourier series.
 
         Raises
         ------
@@ -155,46 +231,27 @@ class Fourier:
         """
 
         if np.abs(first.baseFreq - second.baseFreq) > 1e-3:
-            raise ValueError("Arguments must have the same base frequency.")
-
-        r"""
-        The following code is slightly convoluted, so a better explanation is given here. We have two fourier expansions.
-        
-        $\sum_{n = -N_1}^{N_1} a_n e^{in \omega t}, \quad \sum_{m = -N_2}^{N_2} b_m e^{im \omega t}$
-
-        We want to multiply these together. Clearly, this is just
-
-        $\sum_{n = -N_1}^{N_1} \sum_{m = -N_2}^{N_2} a_n b_m e^{i(n + m) \omega t}$
-
-        However, we want this as a single sum in the basis of $e^{in\omega t}$ so that we can express the entire thing as a
-        fourier expansion. To do this, we will consider that the only possible values of $n + m$ are $\in [-N_1 - N_2, N_1 + N_2] \subseteq \mathbb{Z}$.
-        We also know that for any fixed $c := n + m$, the two coefficients that form a coefficient of $e^{ic\omega t}$ are $a_n b_{c - n}$
-        for every possible value of $n$ that we can achieve. Hence, the final form of the system is
-
-        $\sum_{n = -N_1 - N_2}^{N_1 + N_2} \left( \sum_{m} a_m b_{n - m} \right) e^{in \omega t}$
-
-        where we sum over all the possible values of $m$ that allow both coefficients to exist. So, for each fixed $n$,
-        we will sum over all the $m$ such that $m \in [-N_1, N_1]$ and $n - m \in [-N_2, N_2]$. Hence, in code, we can loop over all the values
-        of $m \in [-N_1, N_1]$ and manually check if $n - m \in [-N_2, N_2]$ for the current values of $m$ and $n$, and only add that term to the
-        current $n$th coefficient of the final fourier expansion if we return true.
-        """
+            raise ValueError("Arguments must have the same base frequency.") 
 
         n1, n2 = first.n, second.n
 
-        coefficients = np.zeros((2 * (n1 + n2) + 1), dtype=complex)
+        # If the second series is too large, truncate it to have coefficients from -n1 to n1.
+        if n2 > n1:
+            newCoeffs = second[-n1:n1 + 1]
+        # If the second series is too small, pad it with zeros to match the first.
+        if n2 < n1:
+            # Determines the padding on each side of the coefficient array.
+            padding = np.zeros((n1 - n2), dtype=complex)
+            newCoeffs = np.concat([padding,
+                                  second.coeffs,
+                                  padding])
 
-        # Looping through every possible value of the harmonic frequency.
-        for frequencySum in range(-n1 - n2, n1 + n2 + 1):
-            # Loops through every possible coefficient index, from -n1 to n1, of the first fourier series.
-            for firstIndex in range(-n1, n1 + 1):
-                # Checks if the required second coefficient required to make the two indices sum to frequencySum exists
-                # in the second fourier series.
-                if np.abs(frequencySum - firstIndex) <= n2:
-                    coefficients[frequencySum + (n1 + n2)] += first[firstIndex] * second[frequencySum - firstIndex]
-
+        # Now that the second Fourier is the same size as the first, calculate the convolution.
+        convolvedCoeffs = first.BuildConvolutionMatrix() @ second.coeffs
+        
         return cls(
             baseFreq = first.baseFreq,
-            coeffs = coefficients
+            coeffs = convolvedCoeffs
         )
     
     @classmethod
