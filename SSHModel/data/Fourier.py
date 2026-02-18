@@ -77,7 +77,7 @@ class Fourier:
             if np.abs(k) > self.n:
                 raise IndexError("Index out of bounds.")
             
-            # If so, return the relevant coefficient.
+            # Otherwise, return the relevant coefficient.
             return self.coeffs[k + self.n]
         
         # If k is a slice.
@@ -190,7 +190,7 @@ class Fourier:
         convMatrix = np.zeros((M, M), dtype=complex)
 
         # Loops through each element in the coefficient array.
-        for index in np.arange(-self.__n, self.__n + 1):
+        for index in np.arange(-self.n, self.n + 1, dtype=int):
             # Calculates the size of the diagonal. For every unit
             # that we are above or below the diagonal, the size of the diagonal
             # is reduced by 1 from its starting size of 2n + 1.
@@ -198,8 +198,8 @@ class Fourier:
 
             # Creates a tuple of the current coefficient of the right size
             # for the diagonal.
-            arr = (self[index],) * diagonalSize
-
+            arr = (self[int(index)],) * diagonalSize
+            
             # Adds the diagonal to the convolution matrix.
             convMatrix += np.diag(arr, k = -index)
 
@@ -247,7 +247,7 @@ class Fourier:
                                   padding])
 
         # Now that the second Fourier is the same size as the first, calculate the convolution.
-        convolvedCoeffs = first.BuildConvolutionMatrix() @ second.coeffs
+        convolvedCoeffs = first.BuildConvolutionMatrix() @ newCoeffs
         
         return cls(
             baseFreq = first.baseFreq,

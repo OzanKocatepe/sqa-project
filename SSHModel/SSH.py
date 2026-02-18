@@ -197,7 +197,7 @@ class SSH:
     
     @SSHProfiler.profile
     def __CalculateSingleTimeFourierSeries(self) -> tuple[Fourier, Fourier, Fourier]:
-        """
+        r"""
         Calculates the fourier series of the single-time correlation functions in the steady-state analytically.
 
         Returns
@@ -224,7 +224,7 @@ class SSH:
         vPmCoeffs = np.zeros((M), dtype=complex)
 
         vZCoeffs[self.__params.maxN] = self.__params.t2 * np.cos(theta) * (special.jv(0, self.__params.drivingAmplitude) - 1)
-        vPmCoeffs[self.__params.maxN] = 1j * self.__params.t2 * np.sin(theta) (1 - special.jv(0, self.__params.drivingAmplitude))
+        vPmCoeffs[self.__params.maxN] = 1j * self.__params.t2 * np.sin(theta) * (1 - special.jv(0, self.__params.drivingAmplitude))
 
         for k in range(1, self.__params.maxN + 1):
             # Useful terms calculated at beginning.
@@ -265,8 +265,8 @@ class SSH:
 
         # Third equation.
         V[2*M:, 0:M] = -2j * vPmConv
-        V[2*M: M:2*M] = -2j * vPmConv
-        V[2*M: 2*M:] = np.diag(derivativeDiagonal) + self.__params.decayConstant * np.eye(M)
+        V[2*M:, M:2*M] = -2j * vPmConv
+        V[2*M:, 2*M:] = np.diag(derivativeDiagonal) + self.__params.decayConstant * np.eye(M)
 
         # Solve the system $\mathcal{M}x = b$.
         eigenvalues, U = np.linalg.eig(V)

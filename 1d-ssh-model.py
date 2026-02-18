@@ -20,7 +20,8 @@ if __name__ == "__main__":
         t2 = 1,
         decayConstant = 0.1,
         drivingAmplitude = 0.2, # 0.2
-        drivingFreq = 2 / 3.01
+        drivingFreq = 2 / 3.01,
+        maxN = 30
     )
 
     sim = SSHSimulation(params)
@@ -34,6 +35,6 @@ if __name__ == "__main__":
         numProcesses = 5
     )
 
-    # sim.Save("simulation-instances")
+    sim.Save("simulation-instances")
     # sim.ExportAllRecords('simulation-instances')
     # sim.ExportRecordSummary('simulation-instances')
