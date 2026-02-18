@@ -9,6 +9,7 @@ class EnsembleParameters:
     decayConstant: float
     drivingAmplitude: float
     drivingFreq: float
+    maxN: int
 
 @dataclass
 class ModelParameters(EnsembleParameters):
@@ -48,5 +49,6 @@ class ModelParameters(EnsembleParameters):
             t2 = ensemble.t2,
             decayConstant = ensemble.decayConstant,
             drivingAmplitude = ensemble.drivingAmplitude,
-            drivingFreq = ensemble.drivingFreq
+            drivingFreq = ensemble.drivingFreq,
+            maxN = ensemble.maxN
         )

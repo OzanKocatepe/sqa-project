@@ -135,7 +135,8 @@ class SSH:
 
         self.__correlationData.singleTime = self.__CalculateSingleTimeCorrelations(initialConditions, odeParams)
 
-        self.__correlationData.singleFourierSeries = self.__CalculateSingleTimeFourierSeries(numPeriods = 10)
+        plusSeries, minusSeries, zSeries = self.__CalculateSingleTimeFourierSeries()
+        self.__correlationData.singleFourierSeries = [plusSeries, minusSeries, zSeries]
 
         self.__correlationData.doubleTime = self.__CalculateDoubleTimeCorrelations(odeParams)
 
@@ -195,33 +196,90 @@ class SSH:
         ).y
     
     @SSHProfiler.profile
-    def __CalculateSingleTimeFourierSeries(self, numPeriods: int=10) -> list[Fourier]:
+    def __CalculateSingleTimeFourierSeries(self) -> tuple[Fourier, Fourier, Fourier]:
         """
-        Calculates the fourier series of the single-time correlation functions in the steady state.
-
-        Parameters
-        ----------
-        numPeriods : int
-            The number of steady-state periods to use when calculating the Fourier series.
+        Calculates the fourier series of the single-time correlation functions in the steady-state analytically.
 
         Returns
         -------
-        list[Fourier]
-            A list of the fourier series for each correlation function, where the indices 0, 1, and 2 correspond
-            to the operators with subscripts -, +, and z respectively.
+        Fourier:
+            The Fourier object for $\langle \sigma_- (t) \rangle$.
+        Fourier:
+            The Fourier object for $\langle \sigma_+ (t) \rangle$.
+        Fourier:
+            The Fourier object for $\langle \sigma_z (t) \rangle$.
         """
 
-        fourierMask = self.__CalculateSteadyStateMask(numPeriods)
-        fourierSeries = []
-        for i in range(3):
-            fourierSeries.append(Fourier.FromSamples(
-                baseFreq = self.__params.drivingFreq,
-                y = self.__correlationData.singleTime[i, fourierMask],
-                x = self.__axes.tauAxisSec[fourierMask],
-                numPeriods = numPeriods
-            ))
+        # Defines useful terms.
+        theta = self.__params.k - self.__params.phiK
 
-        return fourierSeries
+        # Creates the right hand side of the equation.
+        # b contains the fourier coefficients for 0, 0, -$\gamma_-$ respectively.
+        M = 2 * self.__params.maxN + 1
+        b = np.zeros((3 * M), dtype=complex)
+        b[2 * M + self.__params.maxN] = -self.__params.decayConstant
+
+        # Calculates the Fourier series for vZ and vPm.
+        vZCoeffs = np.zeros((M), dtype=complex)
+        vPmCoeffs = np.zeros((M), dtype=complex)
+
+        vZCoeffs[self.__params.maxN] = self.__params.t2 * np.cos(theta) * (special.jv(0, self.__params.drivingAmplitude) - 1)
+        vPmCoeffs[self.__params.maxN] = 1j * self.__params.t2 * np.sin(theta) (1 - special.jv(0, self.__params.drivingAmplitude))
+
+        for k in range(1, self.__params.maxN + 1):
+            # Useful terms calculated at beginning.
+            vZTerm = self.__params.t2 * special.jv(k, self.__params.drivingAmplitude)
+            vPmTerm = 1j * self.__params.t2 * special.jv(k, self.__params.drivingAmplitude)
+
+            # Even terms.
+            if k % 2 == 0:
+                vZCoeffs[self.__params.maxN + k] = vZCoeffs[self.__params.maxN - k] = vZTerm * np.cos(theta) 
+                vPmCoeffs[self.__params.maxN + k] = vPmCoeffs[self.__params.maxN - k] = -vPmTerm * np.sin(theta)
+
+            # Odd terms.
+            else:
+                vZCoeffs[self.__params.maxN + k] = -1j * vZTerm * np.sin(theta)
+                vZCoeffs[self.__params.maxN - k] = -vZCoeffs[self.__params.maxN + k]
+
+                vPmCoeffs[self.__params.maxN + k] = vPmTerm * np.cos(theta)
+                vPmCoeffs[self.__params.maxN - k] = -vPmCoeffs[self.__params.maxN + k]
+
+        vZ = Fourier(self.__params.drivingFreq, vZCoeffs)
+        vPm = Fourier(self.__params.drivingFreq, vPmCoeffs)
+
+        # Creates the convolution matrices for each term.
+        vZConv = vZ.BuildConvolutionMatrix()
+        vPmConv = vPm.BuildConvolutionMatrix()
+
+        # Now, we can build up our matrix $\mathcal{M}$, called V in the code.
+        V = np.zeros((3 * M, 3 * M), dtype=complex)
+        derivativeDiagonal = np.array([2j * np.pi * n * self.__params.drivingFreq for n in np.arange(-self.__params.maxN, self.__params.maxN + 1)])
+        
+        # First equation.
+        V[0:M, 0:M] = np.diag(derivativeDiagonal) + 2j * (np.abs(self.__params.Ek) * np.eye(M) + vZConv) + 0.5 * self.__params.decayConstant * np.eye(M)
+        V[0:M, 2*M:] = 1j * vPmConv
+        
+        # Second equation.
+        V[M:2*M, M:2*M] = np.diag(derivativeDiagonal) - 2j * (np.abs(self.__params.Ek) * np.eye(M) + vZConv) + 0.5 * self.__params.decayConstant * np.eye(M)
+        V[M:2*M, 2*M:] = 1j * vPmConv
+
+        # Third equation.
+        V[2*M:, 0:M] = -2j * vPmConv
+        V[2*M: M:2*M] = -2j * vPmConv
+        V[2*M: 2*M:] = np.diag(derivativeDiagonal) + self.__params.decayConstant * np.eye(M)
+
+        # Solve the system $\mathcal{M}x = b$.
+        eigenvalues, U = np.linalg.eig(V)
+        D_inv = np.diag(1 / eigenvalues)
+        U_inv = np.linalg.inv(U)
+        sigmaCoeffs = U @ D_inv @ U_inv @ b
+
+        plusCoeffs = sigmaCoeffs[0:M]
+        minusCoeffs = sigmaCoeffs[M:2*M]
+        zCoeffs = sigmaCoeffs[2*M:]
+
+        return Fourier(self.__params.drivingFreq, plusCoeffs), Fourier(self.__params.drivingFreq, minusCoeffs), Fourier(self.__params.drivingFreq, zCoeffs)
+        
     
     @SSHProfiler.profile
     def __CalculateDoubleTimeCorrelations(self, odeParams: dict) -> np.ndarray[complex]:
