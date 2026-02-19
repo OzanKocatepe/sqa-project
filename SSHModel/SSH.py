@@ -216,71 +216,136 @@ class SSH:
         # Creates the right hand side of the equation.
         # b contains the fourier coefficients for 0, 0, -$\gamma_-$ respectively.
         M = 2 * self.__params.maxN + 1
+
         b = np.zeros((3 * M), dtype=complex)
         b[2 * M + self.__params.maxN] = -self.__params.decayConstant
 
-        # Calculates the Fourier series for vZ and vPm.
+        # Creates the convolution matrices for each term.
+        vZConv = self.__CalculateVzFourier().BuildConvolutionMatrix()
+        vPmConv = self.__CalculateVpmFourier().BuildConvolutionMatrix()
+
+        # Creates the matrix $\mathcal M$
+        V = self.__CreateFourierMatrix(vZConv, vPmConv)
+
+        # Solve the system $\mathcal{M}x = b$ by diagonalising $\mathcal M$.
+        eigenvalues, U = np.linalg.eig(V)
+        D_inv = np.diag(1 / eigenvalues)
+        U_inv = np.linalg.inv(U)
+        sigmaCoeffs = U @ D_inv @ U_inv @ b
+
+        # Extracts the coefficients for each individual Fourier series.
+        plusCoeffs = sigmaCoeffs[0:M]
+        minusCoeffs = sigmaCoeffs[M:2*M]
+        zCoeffs = sigmaCoeffs[2*M:]
+
+        return Fourier(self.__params.drivingFreq, plusCoeffs), Fourier(self.__params.drivingFreq, minusCoeffs), Fourier(self.__params.drivingFreq, zCoeffs)
+
+    @SSHProfiler.profile 
+    def __CalculateVzFourier(self) -> Fourier:
+        """
+        Calculates the Fourier series of the $v_z$ term in the ODE.
+
+        Returns
+        -------
+        Fourier:
+            The Fourier object containing the series.
+        """
+
+        M = 2 * self.__maxN + 1
+        theta = self.__params.k - self.__params.phiK
         vZCoeffs = np.zeros((M), dtype=complex)
-        vPmCoeffs = np.zeros((M), dtype=complex)
 
         vZCoeffs[self.__params.maxN] = self.__params.t2 * np.cos(theta) * (special.jv(0, self.__params.drivingAmplitude) - 1)
-        vPmCoeffs[self.__params.maxN] = 1j * self.__params.t2 * np.sin(theta) * (1 - special.jv(0, self.__params.drivingAmplitude))
 
         for k in range(1, self.__params.maxN + 1):
             # Useful terms calculated at beginning.
             vZTerm = self.__params.t2 * special.jv(k, self.__params.drivingAmplitude)
-            vPmTerm = 1j * self.__params.t2 * special.jv(k, self.__params.drivingAmplitude)
 
             # Even terms.
             if k % 2 == 0:
                 vZCoeffs[self.__params.maxN + k] = vZCoeffs[self.__params.maxN - k] = vZTerm * np.cos(theta) 
-                vPmCoeffs[self.__params.maxN + k] = vPmCoeffs[self.__params.maxN - k] = -vPmTerm * np.sin(theta)
 
             # Odd terms.
             else:
                 vZCoeffs[self.__params.maxN + k] = -1j * vZTerm * np.sin(theta)
                 vZCoeffs[self.__params.maxN - k] = -vZCoeffs[self.__params.maxN + k]
 
+        return Fourier(self.__params.drivingFreq, vZCoeffs)
+
+    @SSHProfiler.profile
+    def __CalculateVpmFourier(self) -> Fourier:
+        """
+        Calculates the Fourier series of the $v_\pm$ term in the ODE.
+
+        Returns
+        -------
+        Fourier:
+            The Fourier object containing the series.
+        """
+
+        M = 2 * self.__maxN + 1
+        theta = self.__params.k - self.__params.phiK
+        vPmCoeffs = np.zeros((M), dtype=complex)
+
+        vPmCoeffs[self.__params.maxN] = 1j * self.__params.t2 * np.sin(theta) * (1 - special.jv(0, self.__params.drivingAmplitude))
+
+        for k in range(1, self.__params.maxN + 1):
+            # Useful terms calculated at beginning.
+            vPmTerm = 1j * self.__params.t2 * special.jv(k, self.__params.drivingAmplitude)
+
+            # Even terms.
+            if k % 2 == 0:
+                vPmCoeffs[self.__params.maxN + k] = vPmCoeffs[self.__params.maxN - k] = -vPmTerm * np.sin(theta)
+
+            # Odd terms.
+            else:
                 vPmCoeffs[self.__params.maxN + k] = vPmTerm * np.cos(theta)
                 vPmCoeffs[self.__params.maxN - k] = -vPmCoeffs[self.__params.maxN + k]
+        
+        return Fourier(self.__params.drivingFreq, vPmCoeffs)
 
-        vZ = Fourier(self.__params.drivingFreq, vZCoeffs)
-        vPm = Fourier(self.__params.drivingFreq, vPmCoeffs)
+    @SSHProfiler.profile
+    def __CreateFourierMatrix(self, vZConv: np.ndarray[complex], vPmConv: np.ndarray[complex]) -> np.ndarray[complex]:
+        """
+        Creates the matrix that solves the ODE system $\mathcal{M} x = b$.
+        Solving for $x$ finds the analytical coefficients for the Fourier coefficients of the
+        singel time-correlations in the steady state.
 
-        # Creates the convolution matrices for each term.
-        vZConv = vZ.BuildConvolutionMatrix()
-        vPmConv = vPm.BuildConvolutionMatrix()
+        Parameters
+        ----------
+        vZConv: ndarray[complex]
+            The convolution matrix for the vZ Fourier series.
+        vPmConv: ndarray[complex]
+            The convolution matrix for the vPm Fourier series.
 
-        # Now, we can build up our matrix $\mathcal{M}$, called V in the code.
+        Returns
+        -------
+        ndarray[complex]
+            The matrix described.
+        """
+
+        M = 2 * self.__params.maxN + 1
         V = np.zeros((3 * M, 3 * M), dtype=complex)
+        # Creates the array for the diagonal matrix containing
+        # $in\omega$, where $\omega = 2\pi f$, such that it turns the coefficients of a Fourier series
+        # into the coefficients of its derivative.
         derivativeDiagonal = np.array([2j * np.pi * n * self.__params.drivingFreq for n in np.arange(-self.__params.maxN, self.__params.maxN + 1)])
         
-        # First equation.
+        # Equation for $\sigma_-$.
         V[0:M, 0:M] = np.diag(derivativeDiagonal) + 2j * (np.abs(self.__params.Ek) * np.eye(M) + vZConv) + 0.5 * self.__params.decayConstant * np.eye(M)
         V[0:M, 2*M:] = 1j * vPmConv
-        
-        # Second equation.
+         
+        # Equation for $\sigma_+$.
         V[M:2*M, M:2*M] = np.diag(derivativeDiagonal) - 2j * (np.abs(self.__params.Ek) * np.eye(M) + vZConv) + 0.5 * self.__params.decayConstant * np.eye(M)
         V[M:2*M, 2*M:] = 1j * vPmConv
-
-        # Third equation.
+ 
+        # Equation for $\sigma_z$.
         V[2*M:, 0:M] = -2j * vPmConv
         V[2*M:, M:2*M] = -2j * vPmConv
         V[2*M:, 2*M:] = np.diag(derivativeDiagonal) + self.__params.decayConstant * np.eye(M)
 
-        # Solve the system $\mathcal{M}x = b$.
-        eigenvalues, U = np.linalg.eig(V)
-        D_inv = np.diag(1 / eigenvalues)
-        U_inv = np.linalg.inv(U)
-        sigmaCoeffs = U @ D_inv @ U_inv @ b
+        return V
 
-        plusCoeffs = sigmaCoeffs[0:M]
-        minusCoeffs = sigmaCoeffs[M:2*M]
-        zCoeffs = sigmaCoeffs[2*M:]
-
-        return Fourier(self.__params.drivingFreq, plusCoeffs), Fourier(self.__params.drivingFreq, minusCoeffs), Fourier(self.__params.drivingFreq, zCoeffs)
-        
-    
     @SSHProfiler.profile
     def __CalculateDoubleTimeCorrelations(self, odeParams: dict) -> np.ndarray[complex]:
         r"""
