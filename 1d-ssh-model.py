@@ -21,7 +21,7 @@ if __name__ == "__main__":
         decayConstant = 0.1,
         drivingAmplitude = 0.2, # 0.2
         drivingFreq = 2 / 3.01,
-        maxN = 30
+        maxN = 11
     )
 
     sim = SSHSimulation(params)

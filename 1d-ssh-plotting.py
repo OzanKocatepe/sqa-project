@@ -1,7 +1,7 @@
 import numpy as np
 from SSHModel import *
 
-sim = SSHSimulation.Load("simulation-instances/numK: 25, numT: 10.pkl.gz")
+sim = SSHSimulation.Load("simulation-instances/numK: 5, numT: 3.pkl.gz")
 vis = SSHVisualiser(sim, "plots/numK: 25, numT: 10")
 
 k = sim.momentums[2]
@@ -53,10 +53,10 @@ vis.PlotSingleTimeCorrelations(k,
 
 # # $\int dt\, \langle j(t) j (t + \tau) \rangle - \langle j(t) \rangle \langle j(t + \tau) \rangle$
 
-# vis.PlotIntegratedDoubleTimeCurrent(format='connected',
-#                                     saveFigs = True,
-#                                     show = True
-#                                     )
+vis.PlotIntegratedDoubleTimeCurrent(format='connected',
+                                    saveFigs = True,
+                                    show = True
+                                    )
 
 # vis.PlotConnectedCurrentTerms(saveFigs = True,
 #                               show = True,

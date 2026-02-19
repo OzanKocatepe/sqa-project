@@ -251,7 +251,7 @@ class SSH:
             The Fourier object containing the series.
         """
 
-        M = 2 * self.__maxN + 1
+        M = 2 * self.__params.maxN + 1
         theta = self.__params.k - self.__params.phiK
         vZCoeffs = np.zeros((M), dtype=complex)
 
@@ -274,7 +274,7 @@ class SSH:
 
     @SSHProfiler.profile
     def __CalculateVpmFourier(self) -> Fourier:
-        """
+        r"""
         Calculates the Fourier series of the $v_\pm$ term in the ODE.
 
         Returns
@@ -283,7 +283,7 @@ class SSH:
             The Fourier object containing the series.
         """
 
-        M = 2 * self.__maxN + 1
+        M = 2 * self.__params.maxN + 1
         theta = self.__params.k - self.__params.phiK
         vPmCoeffs = np.zeros((M), dtype=complex)
 
@@ -306,7 +306,7 @@ class SSH:
 
     @SSHProfiler.profile
     def __CreateFourierMatrix(self, vZConv: np.ndarray[complex], vPmConv: np.ndarray[complex]) -> np.ndarray[complex]:
-        """
+        r"""
         Creates the matrix that solves the ODE system $\mathcal{M} x = b$.
         Solving for $x$ finds the analytical coefficients for the Fourier coefficients of the
         singel time-correlations in the steady state.
@@ -521,19 +521,18 @@ class SSH:
         # Calculates the analytically derived Fourier series for each
         # of the coefficients of the current operator, when its expectation is written out
         # in terms of the pauli matrices.
-        n = Fourier.DetermineMaxN(self.__axes.tauAxisSec, self.__params.drivingFreq)
-        coefficients = np.zeros((3, 2 * n + 1), dtype=complex)
+        coefficients = np.zeros((3, 2 * self.__params.maxN + 1), dtype=complex) 
 
         # Defines a useful constant.
         theta = self.__params.k - self.__params.phiK
 
         # Calculates each of the coefficients for the fourier series.
-        for i in np.arange(-n, n + 1):
+        for i in np.arange(-self.__params.maxN, self.__params.maxN + 1):
             # Coefficient for $j_-(t)$.
-            coefficients[0, i + n] = -0.5j * self.__params.t2 * special.jv(i, self.__params.drivingAmplitude) * (float(-1)**i * np.exp(1j * theta) + np.exp(-1j * theta))
+            coefficients[0, i + self.__params.maxN] = -0.5j * self.__params.t2 * special.jv(i, self.__params.drivingAmplitude) * (float(-1)**i * np.exp(1j * theta) + np.exp(-1j * theta))
             
             # Coefficient for $j_z(t)$.
-            coefficients[2, i + n] = 0.5j * self.__params.t2 * special.jv(i, self.__params.drivingAmplitude) * (float(-1)**i * np.exp(1j * theta) - np.exp(-1j * theta))
+            coefficients[2, i + self.__params.maxN] = 0.5j * self.__params.t2 * special.jv(i, self.__params.drivingAmplitude) * (float(-1)**i * np.exp(1j * theta) - np.exp(-1j * theta))
 
         # Using $j_+(t) = -j_-(t)$, we can calculate the remaining coefficients.
         coefficients[1, :] = -coefficients[0, :]

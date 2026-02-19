@@ -239,12 +239,14 @@ class Fourier:
         if n2 > n1:
             newCoeffs = second[-n1:n1 + 1]
         # If the second series is too small, pad it with zeros to match the first.
-        if n2 < n1:
+        elif n2 < n1:
             # Determines the padding on each side of the coefficient array.
             padding = np.zeros((n1 - n2), dtype=complex)
             newCoeffs = np.concat([padding,
                                   second.coeffs,
                                   padding])
+        else:
+            newCoeffs = second.coeffs
 
         # Now that the second Fourier is the same size as the first, calculate the convolution.
         convolvedCoeffs = first.BuildConvolutionMatrix() @ newCoeffs
