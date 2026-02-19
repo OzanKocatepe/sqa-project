@@ -8,7 +8,7 @@ if __name__ == "__main__":
     # tauAxis = np.linspace(0, 100, 40000)
     # steadyStateCutoff = 60
 
-    numK = 5
+    numK = 1
     numT = 3
     tauAxis = np.linspace(0, 60, 40000)
     steadyStateCutoff = 40

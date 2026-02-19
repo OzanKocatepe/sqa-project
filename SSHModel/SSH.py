@@ -138,6 +138,23 @@ class SSH:
         minusSeries, plusSeries, zSeries = self.__CalculateSingleTimeFourierSeries()
         self.__correlationData.singleFourierSeries = [minusSeries, plusSeries, zSeries]
 
+        # Calculates numerical fourier series.
+        fourierMask = self.__CalculateSteadyStateMask(10)
+        fourierSeries = []
+        for i in range(3):
+            fourierSeries.append(Fourier.FromSamples(
+                baseFreq = self.__params.drivingFreq,
+                y = self.__correlationData.singleTime[i, fourierMask],
+                x = self.__axes.tauAxisSec[fourierMask],
+                numPeriods = 10
+            ))
+
+        # Find relative phase between coefficients for debugging purposes.
+        for i in range(3):
+            print(f"Analytical: {np.angle(self.__correlationData.singleFourierSeries[i][-5:6])}")
+            print(f"Numerical: {np.angle(fourierSeries[i][-5:6])}")
+            print(f"Analytical / Numerical: {np.angle(self.__correlationData.singleFourierSeries[i][-5:6] / fourierSeries[i][-5:6])}\n")
+
         self.__correlationData.doubleTime = self.__CalculateDoubleTimeCorrelations(odeParams)
 
     @SSHProfiler.profile
