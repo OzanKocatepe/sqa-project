@@ -53,10 +53,10 @@ vis.PlotSingleTimeCorrelations(k,
 
 # # $\int dt\, \langle j(t) j (t + \tau) \rangle - \langle j(t) \rangle \langle j(t + \tau) \rangle$
 
-vis.PlotIntegratedDoubleTimeCurrent(format='connected',
-                                    saveFigs = True,
-                                    show = True
-                                    )
+# vis.PlotIntegratedDoubleTimeCurrent(format='connected',
+#                                     saveFigs = True,
+#                                     show = True
+#                                     )
 
 # vis.PlotConnectedCurrentTerms(saveFigs = True,
 #                               show = True,

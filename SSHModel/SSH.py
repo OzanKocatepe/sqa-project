@@ -312,8 +312,8 @@ class SSH:
 
             # Odd terms.
             else:
-                vPmCoeffs[self.__params.maxN + k] = 1j * self.__params.t2 * special.jv(k, self.__params.drivingAmplitude) * np.cos(theta)
-                vPmCoeffs[self.__params.maxN - k] = -1j * self.__params.t2 * special.jv(-k, self.__params.drivingAmplitude) * np.cos(theta)
+                vPmCoeffs[self.__params.maxN + k] = self.__params.t2 * special.jv(k, self.__params.drivingAmplitude) * np.cos(theta)
+                vPmCoeffs[self.__params.maxN - k] = -self.__params.t2 * special.jv(-k, self.__params.drivingAmplitude) * np.cos(theta)
         
         return Fourier(self.__params.drivingFreq, vPmCoeffs)
 
