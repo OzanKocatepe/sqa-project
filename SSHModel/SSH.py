@@ -135,8 +135,8 @@ class SSH:
 
         self.__correlationData.singleTime = self.__CalculateSingleTimeCorrelations(initialConditions, odeParams)
 
-        plusSeries, minusSeries, zSeries = self.__CalculateSingleTimeFourierSeries()
-        self.__correlationData.singleFourierSeries = [plusSeries, minusSeries, zSeries]
+        minusSeries, plusSeries, zSeries = self.__CalculateSingleTimeFourierSeries()
+        self.__correlationData.singleFourierSeries = [minusSeries, plusSeries, zSeries]
 
         self.__correlationData.doubleTime = self.__CalculateDoubleTimeCorrelations(odeParams)
 
@@ -229,16 +229,16 @@ class SSH:
 
         # Solve the system $\mathcal{M}x = b$ by diagonalising $\mathcal M$.
         eigenvalues, U = np.linalg.eig(V)
-        D_inv = np.diag(1 / eigenvalues)
+        D_inv = np.diag(1.0 / eigenvalues)
         U_inv = np.linalg.inv(U)
         sigmaCoeffs = U @ D_inv @ U_inv @ b
 
         # Extracts the coefficients for each individual Fourier series.
-        plusCoeffs = sigmaCoeffs[0:M]
-        minusCoeffs = sigmaCoeffs[M:2*M]
+        minusCoeffs = sigmaCoeffs[0:M]
+        plusCoeffs = sigmaCoeffs[M:2*M]
         zCoeffs = sigmaCoeffs[2*M:]
 
-        return Fourier(self.__params.drivingFreq, plusCoeffs), Fourier(self.__params.drivingFreq, minusCoeffs), Fourier(self.__params.drivingFreq, zCoeffs)
+        return Fourier(self.__params.drivingFreq, minusCoeffs), Fourier(self.__params.drivingFreq, plusCoeffs), Fourier(self.__params.drivingFreq, zCoeffs)
 
     @SSHProfiler.profile 
     def __CalculateVzFourier(self) -> Fourier:
@@ -258,17 +258,15 @@ class SSH:
         vZCoeffs[self.__params.maxN] = self.__params.t2 * np.cos(theta) * (special.jv(0, self.__params.drivingAmplitude) - 1)
 
         for k in range(1, self.__params.maxN + 1):
-            # Useful terms calculated at beginning.
-            vZTerm = self.__params.t2 * special.jv(k, self.__params.drivingAmplitude)
-
             # Even terms.
             if k % 2 == 0:
-                vZCoeffs[self.__params.maxN + k] = vZCoeffs[self.__params.maxN - k] = vZTerm * np.cos(theta) 
+                vZCoeffs[self.__params.maxN + k] = self.__params.t2 * special.jv(k, self.__params.drivingAmplitude) * np.cos(theta)
+                vZCoeffs[self.__params.maxN - k] = self.__params.t2 * special.jv(-k, self.__params.drivingAmplitude) * np.cos(theta)
 
             # Odd terms.
             else:
-                vZCoeffs[self.__params.maxN + k] = -1j * vZTerm * np.sin(theta)
-                vZCoeffs[self.__params.maxN - k] = -vZCoeffs[self.__params.maxN + k]
+                vZCoeffs[self.__params.maxN + k] = -1j * self.__params.t2 * special.jv(k, self.__params.drivingAmplitude) * np.sin(theta)
+                vZCoeffs[self.__params.maxN - k] = 1j * self.__params.t2 * special.jv(-k, self.__params.drivingAmplitude) * np.sin(theta)
 
         return Fourier(self.__params.drivingFreq, vZCoeffs)
 
@@ -290,17 +288,15 @@ class SSH:
         vPmCoeffs[self.__params.maxN] = 1j * self.__params.t2 * np.sin(theta) * (1 - special.jv(0, self.__params.drivingAmplitude))
 
         for k in range(1, self.__params.maxN + 1):
-            # Useful terms calculated at beginning.
-            vPmTerm = 1j * self.__params.t2 * special.jv(k, self.__params.drivingAmplitude)
-
             # Even terms.
             if k % 2 == 0:
-                vPmCoeffs[self.__params.maxN + k] = vPmCoeffs[self.__params.maxN - k] = -vPmTerm * np.sin(theta)
+                vPmCoeffs[self.__params.maxN + k] = -1j * self.__params.t2 * special.jv(k, self.__params.drivingAmplitude) * np.sin(theta)
+                vPmCoeffs[self.__params.maxN - k] = -1j * self.__params.t2 * special.jv(-k, self.__params.drivingAmplitude) * np.sin(theta)
 
             # Odd terms.
             else:
-                vPmCoeffs[self.__params.maxN + k] = vPmTerm * np.cos(theta)
-                vPmCoeffs[self.__params.maxN - k] = -vPmCoeffs[self.__params.maxN + k]
+                vPmCoeffs[self.__params.maxN + k] = 1j * self.__params.t2 * special.jv(k, self.__params.drivingAmplitude) * np.cos(theta)
+                vPmCoeffs[self.__params.maxN - k] = -1j * self.__params.t2 * special.jv(-k, self.__params.drivingAmplitude) * np.cos(theta)
         
         return Fourier(self.__params.drivingFreq, vPmCoeffs)
 

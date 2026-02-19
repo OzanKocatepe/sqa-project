@@ -200,7 +200,7 @@ class One_D_SSH_Model:
         # Used to somehow calculate coefficients of fourier series
         # for sigma operators.
         b = np.zeros(3 * M, dtype=complex)
-        # Sets n = 0 coefficient for sigma_z to -2$\gamma$?
+        # Sets the third fourier series to represent -2$\gamma$.
         b[2 * M + num] -= 2.0 * self.gamma
         eig, U, invU = self.quasi_energy(k)
         # Takes inverse of the diagonal eigenvalue matrix
@@ -315,7 +315,7 @@ class One_D_SSH_Model:
         # Axis along which we are solving.
         time = self.time
         # First dimension is number of points in driving period, the other is number of points
-        # in time axis.
+        # in time axis (tAxis, tauAxis).
         correlation = np.zeros((len(self.time_inf), len(time)), dtype=complex)
         # Gets the values of our single-time expectations (in steady state, since these
         # are calculated using fourier series).

@@ -207,8 +207,10 @@ class SSHSimulation:
             The directory to save the file to.     
         """
 
-        with gzip.open(f"{fileDir}/numK: {self.numModels}, numT: {self.__axes.tAxisDim.size}.pkl.gz", 'wb') as file:
+        fileName = f"{fileDir}/numK: {self.numModels}, numT: {self.__axes.tAxisDim.size}.pkl.gz"
+        with gzip.open(fileName, 'wb') as file:
             pickle.dump(self, file)
+        print(f"Saved instance to {fileName}.")
 
     @classmethod
     def Load(cls, filePath: str) -> SSHSimulation:
@@ -228,6 +230,7 @@ class SSHSimulation:
         
         with gzip.open(filePath, 'rb') as file:
             obj = pickle.load(file)
+        print(f"Loading instance from {filePath}.")
         return obj
     
     def ExtractModels(self, kArr: float | list[float] | np.ndarray[float]) -> SSHSimulation:
