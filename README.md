@@ -92,7 +92,7 @@ v_\pm (t) = 2it_2 \cos \left(k - \phi_k - \frac{1}{2} A(t) \right) \sin \left(\f
 $$
 
 This system is solved in __CalculateSingleTimeCorrelations() in SSHModel/SSH.py. Lines 198-212 are shown below.
-```
+```python
 # Solves the single time solutions.
 inhomPart = -self.__params.decayConstant
 args = (inhomPart,)
@@ -154,7 +154,7 @@ $$
 
 Hence, we can calculate the double-time initial conditions from the single-time correlations, $\langle \sigma_i(t) \rangle which we have already calculated. Since we are intentionally sampling at a large enough sampling frequency, we can construct the Fourier series of each of our single-time correlations. We do this in lines 161-172 of SSHModel/SSH.py.
 
-```
+```python
 # Calculates the single-time fourier expansions.
 self.__correlationData.singleTimeFourier = []
 numPeriods = 10
@@ -173,7 +173,7 @@ We use 10 periods, and we calculate the length of one period to be $\frac{1}{\Om
 
 Now, we have attained Fourier series of our single-time correlations. This means we have these correlations at essentially arbitrary accuracy. So, for every point t within one steady state period that we choose to use as an initial condition, we can calculate the double-time initial conditions in lines 298-317.
 
-```
+```python
 return np.array([
   # When left-multiplying by $\sigma_-(t)$
   [
@@ -200,7 +200,7 @@ We calculate the initial conditions by evaluating the fourier series of each sin
 
 Now that we have changed the inhomogenous part and the initial conditions, we can solve our new system of ODEs by the QRT. In lines 231-265, we have
 
-```
+```python
 self.__CalculateTAxis(steadyStateCutoff, numT)
 
 # Defines the double time solutions. The first dimension corresponds to the left-hand operator,
@@ -295,7 +295,7 @@ $$
 
 for a fixed momentum $k$, where $\omega$ is in $s^{-1}$ and we restrict the domain to be the domain of $\tau$ where it is in the steady state (typically the steady state is everything past 25 decay periods). Once this is calculated in lines 396-421 of SSHModel/SSH.py,
 
-```
+```python
 angularFreq = 2 * np.pi * self.__params.drivingFreq
 # Array to store the fourier transforms.
 harmonics = np.zeros((2 * maxHarmonic + 1,), dtype=complex)
