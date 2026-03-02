@@ -1,15 +1,15 @@
 import numpy as np
 from SSHModel import *
 
-sim = SSHSimulation.Load("simulation-instances/numK: 5, numT: 3.pkl.gz")
+sim = SSHSimulation.Load("simulation-instances/numK: 25, numT: 10.pkl.gz")
 vis = SSHVisualiser(sim, "plots/numK: 25, numT: 10")
 
 k = sim.momentums[2]
-vis.PlotSingleTimeCorrelations(k,
-                               saveFigs = True,
-                               show = True,
-                               overplotFourierSeries = True,
-                               overplotTAxis = True)
+# vis.PlotSingleTimeCorrelations(k,
+#                                saveFigs = True,
+#                                show = True,
+#                                overplotFourierSeries = True,
+#                                overplotTAxis = True)
 
 # vis.PlotDoubleTimeCorrelations(k,
 #                                format = 'noise',
@@ -62,8 +62,8 @@ vis.PlotSingleTimeCorrelations(k,
 #                               show = True,
 #                               yLim = None)
 
-# vis.PlotConnectedCurrentFFT(saveFigs = True,
-#                             show = True)
+vis.PlotConnectedCurrentFFT(saveFigs = True,
+                            show = True)
 
 # vis.PlotHarmonics(saveFigs = True,
 #                   show = True)
