@@ -228,7 +228,7 @@ class SSHVisualiser:
         if show:
             plt.show()
 
-    def PlotIntegratedDoubleTimeCurrent(self, format: str='noise', saveFigs: bool=False, show: bool=True, overplotNumericalProduct: bool=False) -> None:
+    def PlotIntegratedDoubleTimeCurrent(self, format: str='noise', saveFigs: bool=False, show: bool=True, overplotNumericalProduct: bool=False, xLim: tuple[float, float]=None, yLim: tuple[float, float]=None) -> None:
         r"""
         Plots the double-time current operator, integrated over a steady-state period w.r.t. $t$, so the data becomes a function of
         just $\tau$.
@@ -246,6 +246,10 @@ class SSHVisualiser:
         overplotNumericalProduct : bool
             Whether to overplot the value of the integrated current product calculated manually, rather than
             using the analytically derived Fourier series. Useful for checking that the product term is actually correct.
+        xLim : tuple[float, float]
+            The x-limits of the plots.
+        yLim : tuple[float, float]
+            The y-limits of the plots.
 
         Raises
         ------
@@ -289,6 +293,10 @@ class SSHVisualiser:
  
             ax[row].set_xlabel(self.__tLabel)
             ax[row].set_ylabel(rf"{self.__plottingPrefixes[row]} {operatorName}")
+            if xLim:
+                ax[row].set_xlim(xLim)
+            if yLim:
+                ax[row].set_ylim(yLim)
 
         plt.suptitle(self.__GenerateTitle(self.__sim.momentums))
         plt.tight_layout()

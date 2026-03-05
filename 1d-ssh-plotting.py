@@ -1,8 +1,9 @@
 import numpy as np
 from SSHModel import *
 
-sim = SSHSimulation.Load("simulation-instances/numK: 25, numT: 10.pkl.gz")
-vis = SSHVisualiser(sim, "plots/numK: 25, numT: 10")
+numK, numT = 75, 10
+sim = SSHSimulation.Load(f"simulation-instances/numK: {numK}, numT: {numT}.pkl.gz")
+vis = SSHVisualiser(sim, f"plots/numK: {numK}, numT: {numT}")
 
 k = sim.momentums[2]
 # vis.PlotSingleTimeCorrelations(k,
@@ -55,7 +56,9 @@ k = sim.momentums[2]
 
 vis.PlotIntegratedDoubleTimeCurrent(format='connected',
                                     saveFigs = True,
-                                    show = True
+                                    show = True,
+                                    xLim = (95, 100),
+                                    yLim = (-5e-9, 5e-9)
                                     )
 
 # vis.PlotConnectedCurrentTerms(saveFigs = True,
