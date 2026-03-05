@@ -5,28 +5,32 @@ numK, numT = 75, 10
 sim = SSHSimulation.Load(f"simulation-instances/numK: {numK}, numT: {numT}.pkl.gz")
 vis = SSHVisualiser(sim, f"plots/numK: {numK}, numT: {numT}")
 
-# k = sim.momentums[2]
+k = sim.momentums[2]
 # for k in sim.momentums:
-#     vis.PlotSingleTimeCorrelations(k,
-#                                 saveFigs = True,
-#                                 show = False,
-#                                 overplotFourierSeries = True,
-#                                 overplotTAxis = True)
+# vis.PlotSingleTimeCorrelations(k,
+#                             saveFigs = True,
+#                             show = False,
+#                             overplotFourierSeries = True,
+#                             overplotTAxis = True)
 
-#     vis.PlotDoubleTimeCorrelations(k,
-#                                 format = 'noise',
-#                                 saveFigs = True,
-#                                 show = False)
+vis.PlotSingleTimeCorrelationFourierDifference(k,
+                                               saveFigs = True,
+                                               show = True)
 
-#     vis.PlotDoubleTimeCorrelations(k,
-#                                 format = 'product',
-#                                 saveFigs = True,
-#                                 show = False)
+# vis.PlotDoubleTimeCorrelations(k,
+#                             format = 'noise',
+#                             saveFigs = True,
+#                             show = False)
 
-#     vis.PlotDoubleTimeCorrelations(k,
-#                                 format = 'connected',
-#                                 saveFigs = True,
-#                                 show = False)
+# vis.PlotDoubleTimeCorrelations(k,
+#                             format = 'product',
+#                             saveFigs = True,
+#                             show = False)
+
+# vis.PlotDoubleTimeCorrelations(k,
+#                             format = 'connected',
+#                             saveFigs = True,
+#                             show = False)
 
 # $\langle j(t) \rangle$
 # vis.PlotCurrent(saveFigs = True,
@@ -34,9 +38,9 @@ vis = SSHVisualiser(sim, f"plots/numK: {numK}, numT: {numT}")
 #                 overplotFourierSeries = True
 #                 )
 
-vis.PlotCurrentFFT(saveFigs = True,
-                   show = False
-                   )
+# vis.PlotCurrentFFT(saveFigs = True,
+#                    show = False
+#                    )
 
 # $\int dt\, \langle j(t) j(t + \tau) \rangle$
 
@@ -52,6 +56,10 @@ vis.PlotCurrentFFT(saveFigs = True,
 #                                     show = False,
 #                                     overplotNumericalProduct = True
                                     # )
+
+# vis.PlotCurrentProductDifference(saveFigs = True,
+#                                  show = True
+#                                  )
 
 # # $\int dt\, \langle j(t) j (t + \tau) \rangle - \langle j(t) \rangle \langle j(t + \tau) \rangle$
 

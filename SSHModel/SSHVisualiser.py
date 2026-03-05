@@ -87,6 +87,43 @@ class SSHVisualiser:
         if show:
             plt.show()
 
+    def PlotSingleTimeCorrelationFourierDifference(self, k: float, saveFigs: bool=False, show: bool=True) -> None:
+        r"""Plots the difference between the single-time correlations and their Fourier series.
+        
+        Parameters
+        ----------
+        k : float
+            The momentum of the model.
+        saveFigs : bool
+            Whether to save the figures.
+        show : bool
+            Whether to show the figures.
+        """
+
+        nrows, ncols = 3, 3
+        fig, ax = plt.subplots(nrows, ncols)
+
+
+        for row in range(nrows):
+            # Calculates the difference between the fourier series and the numerical solution.
+            difference = self.__sim[k].correlationData.singleFourierSeries[row].Evaluate(self.__axes.tauAxisSec) - self.__sim[k].correlationData.singleTime[row]
+
+            for col in range(ncols):
+                # Plots the difference between the single-time correlation and its Fourier series.
+                ax[row, col].semilogy(self.__axes.tauAxisDim,
+                                  self.__plottingFunctions[col](difference),
+                                  color='black')
+
+                ax[row, col].set_xlabel(self.__tLabel)
+                ax[row, col].set_ylabel(fr"{self.__plottingPrefixes[col]} Difference")
+
+        plt.suptitle(self.__GenerateTitle(self.__sim.momentums))
+        plt.tight_layout()
+        if saveFigs:
+            plt.savefig(f"{self.__plotFolder}/Single-Time Correlation Fourier Difference.png", dpi=300)
+        if show:
+            plt.show()
+
     def PlotDoubleTimeCorrelations(self, k: float, format: str='noise', saveFigs: bool=False, show: bool=True, slice: list[tuple[int]]=None) -> None:
         r"""
         Plots the double-time correlations.
@@ -305,6 +342,43 @@ class SSHVisualiser:
             plt.savefig(f"{self.__plotFolder}/{fileName}.png", dpi=300)
         if show:
             plt.show() 
+
+    def PlotCurrentProductDifference(self, saveFigs: bool=False, show: bool=True, xLim: tuple[float, float]=None, yLim: tuple[float, float]=None) -> None:
+        """
+        Plots the difference between the integrated double-time current product calculated using the Fourier series, and the same quantity calculated using a numerical integration of the single-time current.
+
+        Parameters
+        ----------
+        saveFigs : bool
+            Whether to save the figures.
+        show : bool
+            Whether to show the figures.
+        xLim : tuple[float, float]
+            The x-limits of the plot.
+        yLim : tuple[float, float]
+            The y-limits of the plot.
+        """
+
+        currentData = self.__sim.totalCurrent
+        diagnosticData = self.__sim.totalDiagnostics
+
+        plt.figure()
+        plt.plot(self.__axes.tauAxisDim,
+                 diagnosticData.numericalDoubleTimeCurrentProduct - currentData.doubleTimeCurrentProduct,
+                 color = 'black')
+
+        plt.xlabel(self.__tauLabel)
+        plt.ylabel(r"Numerical Product - Fourier Series Product")
+        if xLim:
+            plt.xlim(xLim)
+        if yLim:
+            plt.ylim(yLim)
+        plt.title(self.__GenerateTitle(self.__sim.momentums))
+        plt.tight_layout()
+        if saveFigs:
+            plt.savefig(f"{self.__plotFolder}/Current Product Difference.png", dpi=300)
+        if show:
+            plt.show()
 
     def PlotCurrentFFT(self, saveFigs: bool=False, show: bool=True, overplotHarmonicLines: bool=True, fLim: tuple[float, float]=(-12.5, 12.5)) -> None:
         """
