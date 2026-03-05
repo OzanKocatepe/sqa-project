@@ -258,6 +258,7 @@ class SSHVisualiser:
         """
 
         currentData = self.__sim.totalCurrent
+        diagnosticData = self.__sim.totalDiagnostics
 
         format = format.lower()
         if format == 'noise':
@@ -288,7 +289,7 @@ class SSHVisualiser:
              
             if format == 'product' and overplotNumericalProduct:
                 ax[row].plot(self.__axes.tauAxisDim,
-                             self.__plottingFunctions[row](currentData._numericalDoubleTimeCurrentProduct),
+                             self.__plottingFunctions[row](diagnosticData.numericalDoubleTimeCurrentProduct),
                              color = 'blue')
  
             ax[row].set_xlabel(self.__tLabel)
@@ -322,17 +323,23 @@ class SSHVisualiser:
         """
 
         currentData = self.__sim.totalCurrent
-        positiveMask = currentData.freqDomainCurrent >= 0
+        # positiveMask = currentData.freqDomainCurrent >= 0
+        plt.figure()
 
-        plt.semilogy(self.__axes.freqAxis[positiveMask],
-                     currentData.freqDomainCurrent[positiveMask],
-                     'o', ms=1,
+
+        # plt.semilogy(self.__axes.freqAxis[positiveMask],
+        #              currentData.freqDomainCurrent[positiveMask],
+        #              'o', ms=1,
+        #              color = 'black')
+
+        # plt.semilogy(self.__axes.freqAxis[~positiveMask],
+        #              -currentData.freqDomainCurrent[~positiveMask],
+        #              'o', ms=1,
+        #              color = 'red')
+
+        plt.semilogy(self.__axes.freqAxis,
+                     np.abs(currentData.freqDomainCurrent)**2,
                      color = 'black')
-
-        plt.semilogy(self.__axes.freqAxis[~positiveMask],
-                     -currentData.freqDomainCurrent[~positiveMask],
-                     'o', ms=1,
-                     color = 'red')
     
         plt.xlabel(self.__fLabel)
         plt.ylabel(fr"FFT of $\langle j(t) \rangle$")
