@@ -13,7 +13,7 @@ matplotlib.use('macosx')
 
 
 class One_D_SSH_Model:
-    def __init__(self, omega=2.0 / 3.01, amp=0.2, nc=9, number_points_k=251, t1=2.0, t2=1.0, dt=0.010122):
+    def __init__(self, omega=2.0 / 3.01, amp=0.2, nc=9, number_points_k=251, t1=2.0, t2=1.0, dt=0.010122, t_points=21):
         self.t1 = t1  # t_1 parameter of 1D SSH
         self.t2 = t2  # t_2 parameter of 1D SSH
         self.omega = omega  # \omega carrying frequency of pumping
@@ -33,7 +33,7 @@ class One_D_SSH_Model:
         self.time = np.linspace(0.0, self.t_max, int(self.t_max / self.dt), endpoint=True)
 
         # Generates 21 points within the first pumping period.
-        self.time_inf = np.linspace(0.0, 2.0 * pi / omega, 21, endpoint=True)
+        self.time_inf = np.linspace(0.0, 2.0 * pi / omega, t_points, endpoint=True)
         # Multiplies fftfreq frequencies by the period in (s), so divides by the frequency in Hz.
         # Hence, normalises the frequencies to units of harmonics of the driving frequency.
         self.freq = pi * 2.0 * fft.fftfreq(self.time.size, self.dt) / self.omega  # normalized Fourier frequency#
@@ -383,4 +383,4 @@ class One_D_SSH_Model:
 
     def integration_over_period(self, func):
         """Integrated over the steady state period and divides by the period."""
-        return self.omega * simpson(func, self.time_inf, axis=0) / (2 * pi)  # simpson integration 
+        return self.omega * simpson(func, self.time_inf, axis=0) / (2 * pi)  # simpson integration

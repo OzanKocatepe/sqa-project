@@ -32,7 +32,8 @@ if __name__ == "__main__":
                 print("Invalid mode.")
                 quit()
 
-    initialConditions = np.array([-0.5, -0.5, 0], dtype=complex)
+    # initialConditions = np.array([-0.5, -0.5, 0], dtype=complex)
+    initialConditions = np.array([0, 0, -1], dtype=complex)
 
     params = data.EnsembleParameters(
         t1 = 2,
@@ -44,8 +45,13 @@ if __name__ == "__main__":
     )
 
     sim = SSHSimulation(params)
-    sim.AddMomentum(np.linspace(-np.pi, np.pi, numK))
+    sim.AddMomentum(np.linspace(-np.pi, np.pi, 25))
+
     # sim.AddMomentum(np.pi / 4)
+    numT = 21
+    tauAxis = np.linspace(0, 100, 5000)
+    steadyStateCutoff = 60
+
     sim.Run(
         initialConditions = initialConditions,
         tauAxisDim = tauAxis,

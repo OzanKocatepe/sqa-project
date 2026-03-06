@@ -1,11 +1,11 @@
 import numpy as np
 from SSHModel import *
 
-numK, numT = 75, 10
+numK, numT = 25, 10
 sim = SSHSimulation.Load(f"simulation-instances/numK: {numK}, numT: {numT}.pkl.gz")
 vis = SSHVisualiser(sim, f"plots/numK: {numK}, numT: {numT}")
 
-k = sim.momentums[2]
+# k = sim.momentums[2]
 # for k in sim.momentums:
 # vis.PlotSingleTimeCorrelations(k,
 #                             saveFigs = True,
@@ -13,9 +13,9 @@ k = sim.momentums[2]
 #                             overplotFourierSeries = True,
 #                             overplotTAxis = True)
 
-vis.PlotSingleTimeCorrelationFourierDifference(k,
-                                               saveFigs = True,
-                                               show = True)
+# vis.PlotSingleTimeCorrelationFourierDifference(k,
+#                                                saveFigs = True,
+#                                                show = True)
 
 # vis.PlotDoubleTimeCorrelations(k,
 #                             format = 'noise',
@@ -63,21 +63,21 @@ vis.PlotSingleTimeCorrelationFourierDifference(k,
 
 # # $\int dt\, \langle j(t) j (t + \tau) \rangle - \langle j(t) \rangle \langle j(t + \tau) \rangle$
 
-# vis.PlotIntegratedDoubleTimeCurrent(format='connected',
-#                                     saveFigs = True,
-#                                     show = True,
-#                                     xLim = (95, 100),
-#                                     yLim = (-5e-9, 5e-9)
-#                                     )
+vis.PlotIntegratedDoubleTimeCurrent(format='connected',
+                                    saveFigs = True,
+                                    show = True
+                                    # xLim = (95, 100),
+                                    # yLim = (-5e-9, 5e-9)
+                                    )
 
 # vis.PlotConnectedCurrentTerms(saveFigs = True,
 #                               show = False,
 #                               yLim = None
 #                               )
 
-# vis.PlotConnectedCurrentFFT(saveFigs = True,
-#                             show = True
-#                             )
+vis.PlotConnectedCurrentFFT(saveFigs = True,
+                            show = True
+                            )
 
 # vis.PlotHarmonics(saveFigs = True,
 #                   show = True
