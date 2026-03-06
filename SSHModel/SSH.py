@@ -133,9 +133,7 @@ class SSH:
             'vectorized' : True
         }
 
-        print("Solving single-time...")
         self.__correlationData.singleTime = self.__CalculateSingleTimeCorrelations(initialConditions, odeParams)
-        print("Solved.")
 
         minusSeries, plusSeries, zSeries = self.__CalculateSingleTimeFourierSeries()
         self.__correlationData.singleFourierSeries = [minusSeries, plusSeries, zSeries]
@@ -151,9 +149,7 @@ class SSH:
                 numPeriods = 10
             ))
 
-        print("Solving double-time...")
         self.__correlationData.doubleTime = self.__CalculateDoubleTimeCorrelations(odeParams)
-        print("Solved.")
 
     @SSHProfiler.profile
     def __CalculateSteadyStateMask(self, numPeriods: int=None) -> np.ndarray[bool]:
@@ -385,7 +381,6 @@ class SSH:
 
         # Loops through each initial condition time t.
         for tIndex, t in enumerate(self.__axes.tAxisSec):
-                print(f"Solving {tIndex + 1}/{self.__axes.tAxisSec.size}...")
                 # Solves system for each left-operator.
                 for i in range(3):
                     doubleTime[i, :, tIndex, :] = integrate.solve_ivp(
