@@ -127,7 +127,7 @@ class SSH:
         # Stores parameters to be shared amongst the single- and double-time correlations by the ODE solver.
         odeParams = {
             'fun' : self.__ClassicallyDrivenSSHEquations,
-            'rtol' : 1e-10,
+            'rtol' : 1e-11,
             'atol' : 1e-12,
             'max_step' : 0.01 / self.__params.decayConstant,
             'vectorized' : True
