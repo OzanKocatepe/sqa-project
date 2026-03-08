@@ -12,7 +12,7 @@ if __name__ == "__main__":
         match mode:
             case "full":
                 numK = 75
-                numT = 10
+                numT = 21
                 tauAxis = np.linspace(0, 100, 40000)
                 steadyStateCutoff = 60
 
