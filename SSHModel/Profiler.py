@@ -4,7 +4,7 @@ import os
 import pandas as pd
 
 # Global variable determining whether the process is enabled.
-PROFILING_ENABLED = True
+PROFILING_ENABLED = False
 
 @dataclass
 class ProfileRecord:
@@ -83,6 +83,9 @@ class SSHProfiler:
         Measures the execution time of a function and stores it to a dataset
         for analysis.
         """
+
+        if not PROFILING_ENABLED:
+            return f
 
         # Wrapping function takes self as an argument, since we only call
         # profiler on instance methods.
