@@ -31,8 +31,8 @@ if __name__ == "__main__":
             case "test":
                 numK = 25
                 numT = 21
-                tauAxis = np.linspace(0, 40, 40000)
-                steadyStateCutoff = 35
+                tauAxis = np.linspace(0, 17, 40000)
+                steadyStateCutoff = 12
 
             case _:
                 print("Invalid mode. Valid options are \'full\', \'med\' or \'min\'.")
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     params = data.EnsembleParameters(
         t1 = 2,
         t2 = 1,
-        decayConstant = 0.1,
+        decayConstant = 0.2,
         drivingAmplitude = 0.2, # 0.2
         drivingFreq = 2 / 3.01,
         maxN = 50

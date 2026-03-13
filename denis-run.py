@@ -6,7 +6,6 @@ import pickle
 
 numK, numT = 25, 21
 
-
 ssh = One_D_SSH_Model(t_points = numT)
 final_corr = np.zeros((len(ssh.time_inf), len(ssh.time)), dtype=complex)
 
