@@ -81,7 +81,7 @@ class One_D_SSH_Model:
         dwdk = self.dwdk(k)
         dA12 = 2.0 * self.energy(k) * self.A12(k)
         At = self.Ax(t)
-        return -(dwdk * (1.0 - cos(At)) + dA12 * sin(At))
+        return dwdk * (1.0 - cos(At)) + dA12 * sin(At)
 
     def hzn(self, n: int, k: float):
         """Fourier coefficient $h_{z, n}$ for momentum k."""
