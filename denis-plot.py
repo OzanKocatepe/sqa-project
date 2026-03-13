@@ -39,7 +39,7 @@ plt.close()
 plt.figure()
 mask = ssh.time >= 60
 masked_time = ssh.time[mask]
-freqAxis = 2*np.pi * np.fft.fftshift(np.fft.fftfreq(masked_time.size, d=np.mean(np.diff(masked_time)))) / ssh.omega
+freqAxis = np.fft.fftshift(np.fft.fftfreq(masked_time.size, d=np.mean(np.diff(masked_time)))) / ssh.omega
 plt.semilogy(freqAxis, np.abs(np.fft.fftshift(np.fft.fft(integratedcorr[mask]))), color='black')
 plt.xlabel(r"$2\pi f / \Omega$")
 
