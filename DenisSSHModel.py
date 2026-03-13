@@ -109,6 +109,7 @@ class One_D_SSH_Model:
 
     def jz(self, k: float, t: float):
         """Value of j_z at momentum k, time t."""
+        # Form is correct, not sure about signs.
         dwdk = self.dwdk(k)
         At = self.Ax(t)
         ener = self.energy(k)
@@ -117,6 +118,7 @@ class One_D_SSH_Model:
 
     def jy(self, k: float, t: float):
         """Value of $j_y$ at momentum k, time t."""
+        # Form is correct, not sure about signs.
         dwdk = self.dwdk(k)
         dA12 = 2.0 * self.energy(k) * self.A12(k)
         At = self.Ax(t)
@@ -326,10 +328,10 @@ class One_D_SSH_Model:
             # every product of current coefficients at times t and t + tau.
             # The functions jz and jy, which are the current coefficients,
             # use the values of the single-time expectations in the steady state.
-            jz_jz = self.jz(k, time + t_inf) * self.jz(k, t_inf)
-            jy_jy = self.jy(k, time + t_inf) * self.jy(k, t_inf)
-            jy_jz = self.jy(k, time + t_inf) * self.jz(k, t_inf)
-            jz_jy = self.jz(k, time + t_inf) * self.jy(k, t_inf)
+            jz_jz = self.jz(k, time + t_inf) * self.jz(k, t_inf) # $j_z (t + \tau) j_z (t)$
+            jy_jy = self.jy(k, time + t_inf) * self.jy(k, t_inf) # $j_y(t + \tau) j_y (t)$
+            jy_jz = self.jy(k, time + t_inf) * self.jz(k, t_inf) # $j_y(t + \tau) j_z(t)$
+            jz_jy = self.jz(k, time + t_inf) * self.jy(k, t_inf) # $j_z(t + \tau) j_y(t)$
 
             # First part finds percentile of the last driving cycle, multiplied by
             # length of time points to find approximate time index that
@@ -340,6 +342,7 @@ class One_D_SSH_Model:
             # how many indices in time array we have to move forward to get to *current* steady-state index.
 
             # Hence, finds the index in the time array corresponding to the current steady-state initial condition.
+            # So, the index for the value of $t$ that we are using.
             index0 = (self.nc - 1) * len(self.time) // self.nc + ind * len(self.time) // (self.nc * len(self.time_inf))
 
             if order == 'direct':  # <j(t+dt)j(t)>
@@ -363,17 +366,30 @@ class One_D_SSH_Model:
             # and inhomogenous part -2 $\gamma$ times the value of the left-hand operator at the initial conditions.
 
             # Labels assume right multiplication, but we are only considering left multiplication, so swap
-            # the labels in your mind,.
-            sm_sm, sp_sm, sz_sm = self.evolution(k, sigmam, sm0[index0])
-            sm_sp, sp_sp, sz_sp = self.evolution(k, sigmap, sp0[index0])
-            sm_sz, sp_sz, sz_sz = self.evolution(k, sigmaz, sz0[index0])
+            # the labels in your mind. When we use the relevant initial conditions, these return the terms we expect.
+            
+            # Initial conditions are $\langle \sigma_i(t) \sigma_j (t) \rangle$ with inhomogenous part $\langle \sigma_i(t) \rangle$.
+            sm_sm, sp_sm, sz_sm = self.evolution(k, sigmam, sm0[index0]) # $\sigma_-(t) \sigma_-(t + \tau)$, $\sigma_-(t) \sigma_+(t + \tau)$, $\sigma_-(t) \sigma_z(t + \tau)$
+            sm_sp, sp_sp, sz_sp = self.evolution(k, sigmap, sp0[index0]) # $\sigma_+(t) \sigma_-(t + \tau)$, $\sigma_+(t) \sigma_+(t + \tau)$, $\sigma_+(t) \sigma_z(t + \tau)$
+            sm_sz, sp_sz, sz_sz = self.evolution(k, sigmaz, sz0[index0]) # $\sigma_z(t) \sigma_-(t + \tau)$, $\sigma_z(t) \sigma_+(t + \tau)$, $\sigma_z(t) \sigma_z(t + \tau)$
 
-            correlation[ind] = jz_jz * (sz_sz - sz0[index0] * sz0)
+            correlation[ind] = jz_jz * (sz_sz - sz0[index0] * sz0) # $j_z(t) j_z(t + \tau) \left( \langle \sigma_z(t) \sigma_z(t + \tau) \rangle - \langle \sigma_z(t) \rangle \langle \sigma_z(\tau) \rangle \right)$
             correlation[ind] += jy_jy * (
-                    (sm_sp - sp0[index0] * sm0) + (sp_sm - sm0[index0] * sp0) - (sm_sm - sm0[index0] * sm0) - (
-                    sp_sp - sp0[index0] * sp0))
-            correlation[ind] -= 1.0j * jz_jy * (sz_sm - sm0[index0] * sz0 - (sz_sp - sp0[index0] * sz0))
-            correlation[ind] -= 1.0j * jy_jz * (sm_sz - sz0[index0] * sm0 - (sp_sz - sz0[index0] * sp0))
+                      (sm_sp - sp0[index0] * sm0) # $\langle \sigma_+(t) \sigma_-(t + \tau) \rangle - \langle \sigma_+(t) \rangle \langle \sigma_-(\tau) \rangle$
+                    + (sp_sm - sm0[index0] * sp0) # $\langle \sigma_-(t) \sigma_+(t + \tau) \rangle - \langle \sigma_-(t) \rangle \langle \sigma_+(\tau) \rangle$
+                    - (sm_sm - sm0[index0] * sm0) # $\langle \sigma_-(t) \sigma_-(t + \tau) \rangle - \langle \sigma_-(t) \rangle \langle \sigma_-(\tau) \rangle$
+                    - (sp_sp - sp0[index0] * sp0) # $\langle \sigma_+(t) \sigma_+(t + \tau) \rangle - \langle \sigma_+(t) \rangle \langle \sigma_+(\tau) \rangle$
+                )
+            correlation[ind] -= 1.0j * jz_jy * (sz_sm - sm0[index0] * sz0       # $\langle \sigma_-(t) \sigma_z(t + \tau) \rangle - \langle \sigma_-(t) \rangle \langle \sigma_z(\tau) \rangle$
+                                                - (sz_sp - sp0[index0] * sz0))  # $\langle \sigma_+(t) \sigma_z(t + \tau) \rangle - \langle \sigma_+(t) \rangle \langle \sigma_z(\tau) \rangle$
+            correlation[ind] -= 1.0j * jy_jz * (sm_sz - sz0[index0] * sm0       # $\langle \sigma_z(t) \sigma_-(t + \tau) \rangle - \langle \sigma_z(t) \rangle \langle \sigma_-(\tau) \rangle$
+                                                - (sp_sz - sz0[index0] * sp0))  # $\langle \sigma_z(t) \sigma_+(t + \tau) \rangle - \langle \sigma_z(t) \rangle \langle \sigma_+(\tau) \rangle$
+            
+            # Grouping of operators seems correct, need to justify why they use just $\tau$ instead of $t + \tau$, but I think it makes sense
+            # since single-time correlations are just using the Fourier series, so its equivalent? And changes within one steady state period
+            # should be negligible? Though we're going through a steady-state period, so the whole point is that that product term
+            # should go through its entire range of starting and ending points for a period, so the difference in values may actually be
+            # significant?
 
         return correlation
 
