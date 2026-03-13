@@ -63,12 +63,12 @@ k = sim.momentums[2]
 
 # # $\int dt\, \langle j(t) j (t + \tau) \rangle - \langle j(t) \rangle \langle j(t + \tau) \rangle$
 
-# vis.PlotIntegratedDoubleTimeCurrent(format='connected',
-#                                     saveFigs = True,
-#                                     show = True,
-#                                     xLim = (95, 100),
-#                                     yLim = (-2e-10, 2e-10)
-#                                     )
+vis.PlotIntegratedDoubleTimeCurrent(format='connected',
+                                    saveFigs = True,
+                                    show = True
+                                    # xLim = (95, 100),
+                                    # yLim = (-2e-10, 2e-10)
+                                    )
 
 # vis.PlotConnectedCurrentTerms(saveFigs = True,
 #                               show = False,

@@ -18,9 +18,9 @@ if __name__ == "__main__":
 
             case "med":
                 numK = 25
-                numT = 10
-                tauAxis = np.linspace(0, 100, 40000)
-                steadyStateCutoff = 60
+                numT = 21
+                tauAxis = np.linspace(0, 40, 40000)
+                steadyStateCutoff = 20
 
             case "min":
                 numK = 5

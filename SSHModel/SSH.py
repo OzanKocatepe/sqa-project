@@ -682,7 +682,45 @@ class SSH:
             axis = 0
         )
 
-        connectedCorrelator = integratedDoubleTimeData - doubleTimeCurrentProduct
+        # connectedCorrelator = integratedDoubleTimeData - doubleTimeCurrentProduct
+        # Calculates the connected correlator numerically all at once using entirely numerical methods, and then integrates.
+        # If this works, I should rewrite this to be modular and remove deprecated code parts, but this is
+        # just a quick test. 
+        theta = self.__params.k - self.__params.phiK
+        t = self.__axes.tAxisSec
+        tau = np.add.outer(self.__axes.tAxisSec, self.__axes.tauAxisSec) # Actually an array of (t, tau) of values t + tau.
+        drivingSamplesT = self.__SinusoidalDrivingTerm(t)
+        drivingSamplesTau = self.__SinusoidalDrivingTerm(tau)        
+
+        coeff1 = np.sin(theta - drivingSamplesT[:, np.newaxis]) * np.sin(theta - drivingSamplesTau)
+        coeff2 = -np.cos(theta - drivingSamplesT[:, np.newaxis]) * np.cos(theta - drivingSamplesTau)
+        coeff3 = -1j * np.cos(theta - drivingSamplesT[:, np.newaxis]) * np.sin(theta - drivingSamplesTau)
+        coeff4 = -1j * np.sin(theta - drivingSamplesT[:, np.newaxis]) * np.cos(theta - drivingSamplesTau)
+
+        doubleTime = self.__correlationData.doubleTime
+        singleTimeFourier = self.__correlationData.singleFourierSeries
+
+        # Function to calculate $\sigma_i (t) \sigma_j (t + \tau)$ with shape (tAxis.size, tauAxis.size).
+        singleTimeProduct = lambda i, j: singleTimeFourier[i].Evaluate(t)[:, np.newaxis] * singleTimeFourier[j].Evaluate(tau)
+
+        # Calculates all of the operator terms that correspond to each coefficient, again with
+        # shape (tAxis.size, tauAxis.size)
+        operators1 = doubleTime[2, 2] - singleTimeProduct(2, 2)
+        operators2 = (doubleTime[1, 1] - singleTimeProduct(1, 1)) \
+                    - (doubleTime[1, 0] - singleTimeProduct(1, 0)) \
+                    - (doubleTime[0, 1] - singleTimeProduct(0, 1)) \
+                    + (doubleTime[0, 0] - singleTimeProduct(0, 0))
+        operators3 = (doubleTime[1, 2] - singleTimeProduct(1, 2)) \
+                    - (doubleTime[0, 2] - singleTimeProduct(0, 2))
+        operators4 = (doubleTime[2, 1] - singleTimeProduct(2, 1)) \
+                    - (doubleTime[2, 0] - singleTimeProduct(2, 0))
+
+        connectedCorrelator = self.__params.t2**2 * (coeff1 * operators1 + coeff2 * operators2 + coeff3 * operators3 + coeff4 * operators4)
+        connectedCorrelator = self.__params.drivingFreq * np.trapezoid(
+            y = connectedCorrelator,
+            x = self.__axes.tAxisSec,
+            axis = 0
+        )
 
         return integratedDoubleTimeData, doubleTimeCurrentProduct, connectedCorrelator
     
