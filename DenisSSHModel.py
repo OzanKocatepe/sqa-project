@@ -81,7 +81,7 @@ class One_D_SSH_Model:
         dwdk = self.dwdk(k)
         dA12 = 2.0 * self.energy(k) * self.A12(k)
         At = self.Ax(t)
-        return dwdk * (1.0 - cos(At)) + dA12 * sin(At)
+        return -(dwdk * (1.0 - cos(At)) + dA12 * sin(At))
 
     def hzn(self, n: int, k: float):
         """Fourier coefficient $h_{z, n}$ for momentum k."""
@@ -380,9 +380,10 @@ class One_D_SSH_Model:
                     - (sm_sm - sm0[index0] * sm0) # $\langle \sigma_-(t) \sigma_-(t + \tau) \rangle - \langle \sigma_-(t) \rangle \langle \sigma_-(\tau) \rangle$
                     - (sp_sp - sp0[index0] * sp0) # $\langle \sigma_+(t) \sigma_+(t + \tau) \rangle - \langle \sigma_+(t) \rangle \langle \sigma_+(\tau) \rangle$
                 )
-            correlation[ind] -= 1.0j * jz_jy * (sz_sm - sm0[index0] * sz0       # $\langle \sigma_-(t) \sigma_z(t + \tau) \rangle - \langle \sigma_-(t) \rangle \langle \sigma_z(\tau) \rangle$
+
+            correlation[ind] += 1.0j * jz_jy * (sz_sm - sm0[index0] * sz0       # $\langle \sigma_-(t) \sigma_z(t + \tau) \rangle - \langle \sigma_-(t) \rangle \langle \sigma_z(\tau) \rangle$
                                                 - (sz_sp - sp0[index0] * sz0))  # $\langle \sigma_+(t) \sigma_z(t + \tau) \rangle - \langle \sigma_+(t) \rangle \langle \sigma_z(\tau) \rangle$
-            correlation[ind] -= 1.0j * jy_jz * (sm_sz - sz0[index0] * sm0       # $\langle \sigma_z(t) \sigma_-(t + \tau) \rangle - \langle \sigma_z(t) \rangle \langle \sigma_-(\tau) \rangle$
+            correlation[ind] += 1.0j * jy_jz * (sm_sz - sz0[index0] * sm0       # $\langle \sigma_z(t) \sigma_-(t + \tau) \rangle - \langle \sigma_z(t) \rangle \langle \sigma_-(\tau) \rangle$
                                                 - (sp_sz - sz0[index0] * sp0))  # $\langle \sigma_z(t) \sigma_+(t + \tau) \rangle - \langle \sigma_z(t) \rangle \langle \sigma_+(\tau) \rangle$
             
             # Grouping of operators seems correct, need to justify why they use just $\tau$ instead of $t + \tau$, but I think it makes sense
