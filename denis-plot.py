@@ -1,0 +1,53 @@
+import gzip
+import pickle
+import numpy as np
+import matplotlib.pyplot as plt
+from DenisSSHModel import One_D_SSH_Model
+
+numK, numT = 25, 21
+
+# Loads the integrated correlator from the file.
+filePath = f"simulation-instances/[Denis] numK: {numK}, numT: {numT}.pkl.gz"
+with gzip.open(filePath, 'rb') as file:
+    integratedcorr = pickle.load(file)
+print(f"Loading integrated correlator from {filePath}.")
+
+plt.style.use('stylesheet.mplstyle')
+plt.rcParams['text.usetex'] = False
+plottingFunctions = [lambda x: np.abs(x), lambda x: x.real, lambda x: x.imag]
+plottingPrefixes = ['Magnitude of', 'Real part of', 'Imaginary part of']
+
+# Creates empty ssh model just to access the time axis for plotting.
+ssh = One_D_SSH_Model(t_points = numT)
+
+nrows, ncols = 3, 1
+fig, ax = plt.subplots(nrows, ncols)
+
+for row in range(nrows):
+    ax[row].plot(ssh.time,
+                 plottingFunctions[row](integratedcorr),
+                 color = 'black')
+    ax[row].set_xlabel("tau")
+    ax[row].set_ylabel(f"{plottingPrefixes[row]} Connected Current Correlator")
+
+plt.plot(ssh.time, integratedcorr.imag, color='black')
+plt.tight_layout()
+plt.savefig(f"plots/numK: {numK}, numT: {numT}/Denis Connected Correlator.png", dpi=300)
+plt.show()
+plt.close()
+
+plt.figure()
+mask = ssh.time >= 60
+masked_time = ssh.time[mask]
+freqAxis = 2*np.pi * np.fft.fftshift(np.fft.fftfreq(masked_time.size, d=np.mean(np.diff(masked_time)))) / ssh.omega
+plt.semilogy(freqAxis, np.abs(np.fft.fftshift(np.fft.fft(integratedcorr[mask]))), color='black')
+plt.xlabel(r"$2\pi f / \Omega$")
+
+# Adds dashed lines at the harmonics.       
+for n in range(-12, 13):
+    plt.axvline(n, color='blue', linestyle='dashed')
+
+plt.xlim(-12.5, 12.5)
+plt.savefig(f"plots/numK: {numK}, numT: {numT}/Denis FFT Connected Correlator.png", dpi=300)
+plt.show()
+plt.close()
