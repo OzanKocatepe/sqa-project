@@ -1,7 +1,7 @@
 import numpy as np
 from SSHModel import *
 
-numK, numT = 25, 10
+numK, numT = 25, 21
 sim = SSHSimulation.Load(f"simulation-instances/numK: {numK}, numT: {numT}.pkl.gz")
 vis = SSHVisualiser(sim, f"plots/numK: {numK}, numT: {numT}")
 
@@ -75,10 +75,10 @@ vis.PlotIntegratedDoubleTimeCurrent(format='connected',
 #                               yLim = None
 #                               )
 
-# vis.PlotConnectedCurrentFFT(saveFigs = True,
-#                             show = True
-#                             )
+vis.PlotConnectedCurrentFFT(saveFigs = True,
+                            show = True
+                            )
 
-# vis.PlotHarmonics(saveFigs = True,
-#                   show = True
-#                   )
+vis.PlotHarmonics(saveFigs = True,
+                  show = True
+                  )

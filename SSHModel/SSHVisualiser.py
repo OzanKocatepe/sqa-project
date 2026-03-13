@@ -570,10 +570,11 @@ class SSHVisualiser:
 
             for row in range(nrows):
                 ax[row].plot(self.__axes.tauAxisDim,
-                                   self.__plottingFunctions[row](
-                                       diagData.integratedConnectedCurrentTerms[termIndex]
-                                   ),
-                                   color = 'black')
+                             self.__plottingFunctions[row](
+                                 diagData.integratedConnectedCurrentTerms[termIndex]
+                             ),
+                             ms = 2,
+                             color = 'black')
                 ax[row].set_xlabel(self.__tauLabel)
                 ax[row].set_ylabel(f"{self.__plottingPrefixes[row]} Term {termIndex + 1}")
 

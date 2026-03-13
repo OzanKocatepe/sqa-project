@@ -18,15 +18,21 @@ if __name__ == "__main__":
 
             case "med":
                 numK = 25
-                numT = 21
-                tauAxis = np.linspace(0, 40, 40000)
-                steadyStateCutoff = 20
+                numT = 10
+                tauAxis = np.linspace(0, 100, 40000)
+                steadyStateCutoff = 60
 
             case "min":
                 numK = 5
                 numT = 3
                 tauAxis = np.linspace(0, 60, 40000)
                 steadyStateCutoff = 40
+
+            case "test":
+                numK = 25
+                numT = 21
+                tauAxis = np.linspace(0, 40, 40000)
+                steadyStateCutoff = 35
 
             case _:
                 print("Invalid mode. Valid options are \'full\', \'med\' or \'min\'.")

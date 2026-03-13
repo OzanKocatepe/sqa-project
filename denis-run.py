@@ -2,7 +2,7 @@ from DenisSSHModel import One_D_SSH_Model
 import matplotlib.pyplot as plt
 import numpy as np
 
-numK, numT = 25, 10
+numK, numT = 25, 21
 
 plt.style.use('stylesheet.mplstyle')
 plt.rcParams['text.usetex'] = False
@@ -47,8 +47,9 @@ for row in range(nrows):
     ax[row].set_xlabel("tau")
     ax[row].set_ylabel(f"{plottingPrefixes[row]} Connected Current Correlator")
 
-plt.plot(ssh.time, integratedcorr.imag)
+plt.plot(ssh.time, integratedcorr.imag, color='black')
 plt.tight_layout()
+plt.savefig(f"plots/numK: {numK}, numT: {numT}/Denis Connected Correlator.png", dpi=300)
 plt.show()
 plt.close()
 
@@ -56,12 +57,13 @@ plt.figure()
 mask = ssh.time >= 60
 masked_time = ssh.time[mask]
 freqAxis = np.fft.fftshift(np.fft.fftfreq(masked_time.size, d=np.mean(np.diff(masked_time)))) / ssh.omega
-plt.semilogy(freqAxis, np.abs(np.fft.fftshift(np.fft.fft(integratedcorr[mask]))))
+plt.semilogy(freqAxis, np.abs(np.fft.fftshift(np.fft.fft(integratedcorr[mask]))), color='black')
 
 # Adds dashed lines at the harmonics.       
 for n in range(-12, 13):
     plt.axvline(n, color='blue', linestyle='dashed')
 
 plt.xlim(-12.5, 12.5)
+plt.savefig(f"plots/numK: {numK}, numT: {numT}/Denis FFT Connected Correlator.png", dpi=300)
 plt.show()
 plt.close()
