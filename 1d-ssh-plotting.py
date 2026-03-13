@@ -65,9 +65,9 @@ k = sim.momentums[2]
 
 vis.PlotIntegratedDoubleTimeCurrent(format='connected',
                                     saveFigs = True,
+                                    xLim = (-1, 8.5),
+                                    # yLim = (-2e-10, 2e-10),
                                     show = True
-                                    # xLim = (95, 100),
-                                    # yLim = (-2e-10, 2e-10)
                                     )
 
 # vis.PlotConnectedCurrentTerms(saveFigs = True,
@@ -75,10 +75,10 @@ vis.PlotIntegratedDoubleTimeCurrent(format='connected',
 #                               yLim = None
 #                               )
 
-vis.PlotConnectedCurrentFFT(saveFigs = True,
-                            show = True
-                            )
+# vis.PlotConnectedCurrentFFT(saveFigs = True,
+#                             show = True
+#                             )
 
-vis.PlotHarmonics(saveFigs = True,
-                  show = True
-                  )
+# vis.PlotHarmonics(saveFigs = True,
+#                   show = True
+#                   )
