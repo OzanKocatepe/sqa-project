@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+# Unsure if this import works since I reorganised the file structure, fix if needed.
 from SSHModel import SSH, ModelParameters, CorrelationData, CurrentData
 
 # Defines the irrelevant parameters to be zero.
