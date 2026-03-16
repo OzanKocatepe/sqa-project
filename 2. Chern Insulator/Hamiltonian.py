@@ -371,7 +371,7 @@ class Hamiltonian:
 
         # Returns the array as a float if it has size 1.
         if coeffs.size == 1:
-            return float(coeffs)
+            return coeffs[0]
 
         return coeffs
 
@@ -405,6 +405,10 @@ class Hamiltonian:
                     + np.cos(self.__params.ky)
         coeffs[evenMask] = special.jv(np.abs(n[evenMask]), self.__params.drivingAmplitude) * np.cos(self.__params.kx)
         coeffs[oddMask] = -1j * special.jv(np.abs(n[oddMask]), self.__params.drivingAmplitude) * np.sin(self.__params.kx)
+
+        # Returns the array as a float if it has size 1.
+        if coeffs.size == 1:
+            return coeffs[0]
 
         return coeffs
     
