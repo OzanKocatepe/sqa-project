@@ -412,6 +412,10 @@ class Hamiltonian:
 
         return coeffs
     
+    def Hmn(self, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
+        """
+        Calculates the nth Fourier coefficient for Hm(t)."""
+    
     def EquationsOfMotion(self, t: float | np.ndarray[float],
                           c: np.ndarray[complex]
                           ) -> np.ndarray[complex]:

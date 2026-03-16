@@ -60,6 +60,41 @@ class Fourier:
             freq = self.freq,
             coeffs = self.coeffs + other.coeffs
         ) 
+    
+    def __mul__(self, scalar: complex) -> Fourier:
+        """
+        Defines right-multiplication by a scalar.
+        
+        Parameters
+        ----------
+        scalar : complex
+            The scalar to multiply by.
+            
+        Returns
+        -------
+        Fourier:
+            A new Fourier series with multiplication calculated componentwise.
+        """
+
+        return Fourier(
+            freq = self.freq,
+            coeffs = self.coeffs * scalar
+        )
+    
+    def __rmul__(self, scalar: complex) -> Fourier:
+        """
+        Defines left-multiplication by a scalar.
+        
+        scalar : complex
+            The scalar to multiply by.
+            
+        Returns
+        -------
+        Fourier:
+            A new Fourier series with multiplication calculated componentwise.
+        """
+
+        return self * scalar
 
     def __getitem__(self, k: int | slice) -> complex | np.ndarray[complex]:
         """
