@@ -16,16 +16,20 @@ class EnsembleParameters:
         The amplitude of the driving field in the x-direction.
     drivingFrequency : float
         The frequency of the driving field in the x-direction, in Hz.
-    angularFreq : float
-        The angular frequency of the driving field, in radians per second.
     decayConstant : float
         The decay constant for the system, in s^-1.
+    maxN : int
+        The maximum harmonic that we will calculate Fourier series up to. For
+        maxN = n, we will calculate the coefficients c_{-n} to c_n.
+    angularFreq : float
+        The angular frequency of the driving field, in radians per second.
     """
 
     delta: float
     drivingAmplitude: float
     drivingFrequency: float
     decayConstant: float
+    maxN: int
     angularFreq: float = field(init=False)
 
     def __post_init__(self) -> None:
