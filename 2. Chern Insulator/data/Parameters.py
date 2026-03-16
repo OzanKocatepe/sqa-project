@@ -13,16 +13,19 @@ class EnsembleParameters:
         The mass term in the Chern insulator Hamiltonian.
         Controls the topological phase of the system.
     drivingAmplitude : float
-        The amplitude of the driving field.
+        The amplitude of the driving field in the x-direction.
     drivingFrequency : float
-        The frequency of the driving field, in Hz.
+        The frequency of the driving field in the x-direction, in Hz.
     angularFreq : float
         The angular frequency of the driving field, in radians per second.
+    decayConstant : float
+        The decay constant for the system, in s^-1.
     """
 
     delta: float
     drivingAmplitude: float
     drivingFrequency: float
+    decayConstant: float
     angularFreq: float = field(init=False)
 
     def __post_init__(self) -> None:
