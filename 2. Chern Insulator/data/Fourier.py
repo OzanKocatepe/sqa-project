@@ -3,7 +3,22 @@ from dataclasses import dataclass, field
 
 @dataclass(slots=True)
 class Fourier:
-    r"""Stores a Fourier series $\sum_{n = -N}^N c_n e^{i n \omega t}$, where $\omega = 2\pi f$ and $f$ is the base frequency given to the system, in Hz."""
+    r"""
+    Stores the coefficients of a Fourier series and relevant functions.
+
+    Parameters
+    ----------
+    freq : float
+        The base frequency of the series. The exponentials in the series
+        will oscillate at harmonics of this frequency.
+    coeffs : float
+        The coefficients of the Fourier series.
+    angularFreq : float
+        The angular frequency calculated from freq.
+    n : int
+        The maximum harmonic that the Fourier series calculates.
+        The coefficients range from c_{-n} to c_n.
+    """
 
     freq: float
     coeffs: np.ndarray[complex]
@@ -107,6 +122,25 @@ class Fourier:
             stop += self.n
 
             return self.coeffs[range(start, stop, step)]
+        
+    def __matmul__(self, other: Fourier) -> Fourier:
+        """
+        Wrapper for the Convolve function - multiplies two Fourier series and returns
+        the resulting Fourier series.
+
+        Parameters
+        ----------
+        other : Fourier
+            The other Fourier series to convolve with.
+            Must have the same frequency as this instance.
+
+        Returns
+        -------
+        Fourier:
+            The Fourier series obtained by multiplying this and other.
+        """
+
+        return Fourier.Convolve(self, other)
 
     def Evaluate(self, tPoints: float | np.ndarray[float]) -> float | np.ndarray[float]:
         """
@@ -121,6 +155,7 @@ class Fourier:
         -------
         float | ndarray[float]
             The value of the fourier expansion at each given point.
+            Same type as tPoints.
         """
 
         # Makes sure we can apply vectorised operations.
@@ -193,7 +228,7 @@ class Fourier:
         first : Fourier
             The first fourier series.
         second : Fourier
-            The second fourier series.
+            The second fourier series, with same freq as the first.
 
         Returns
         -------
