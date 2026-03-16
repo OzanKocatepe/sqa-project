@@ -1,5 +1,6 @@
 import numpy as np
 from functools import cache, cached_property
+from scipy import special
 
 from data import ModelParameters
 
@@ -24,13 +25,13 @@ class Hamiltonian:
 
         Parameters
         ----------
-        t : float | np.ndarray[float]
+        t : float | ndarray[float]
             The time, in seconds, at which to evaluate the Hamiltonian.
             Accepts vectorised inputs.
 
         Returns
         -------
-        float | np.ndarray[float]:
+        float | ndarray[float]:
             The value of the driving field in the x-direction at time(s) t.
             The type returned is the same as the type of t.
         """
@@ -43,7 +44,7 @@ class Hamiltonian:
         
         Parameters
         ----------
-        t : float | np.ndarray[float], optional
+        t : float | ndarray[float], optional
             The time, in seconds, at which to evaluate the Hamiltonian.
             Accepts vectorised inputs.
             If called without a time value (or with t = 0), returns the coefficient of
@@ -51,7 +52,7 @@ class Hamiltonian:
 
         Returns
         -------
-        float | np.ndarray[float]:
+        float | ndarray[float]:
             The coefficient of sigma_x in the driven Hamiltonian at time(s) t.
             The type returned is the same as the type of t, if given.
             If no t is given, returns a float.
@@ -80,7 +81,7 @@ class Hamiltonian:
         
         Parameters
         ----------
-        t : float | np.ndarray[float], optional
+        t : float | ndarray[float], optional
             The time, in seconds, at which to evaluate the Hamiltonian.
             Accepts vectorised inputs.
             If called without a time value (or with t = 0), returns the coefficient of
@@ -88,7 +89,7 @@ class Hamiltonian:
 
         Returns
         -------
-        float | np.ndarray[float]:
+        float | ndarray[float]:
             The coefficient of sigma_z in the driven Hamiltonian at time(s) t.
             The type returned is the same as the type of t, if given.
             If no t is given, returns a float.
@@ -111,20 +112,20 @@ class Hamiltonian:
 
         return np.sqrt(self.hx()**2 + self.hy()**2 + self.hz()**2)
     
-    def Hm(self, t: float | np.ndarray[float]) -> float | np.ndarray[float]:
+    def Hm(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
         """
         Returns the coefficient of sigma_- in the driven Hamiltonian in the band basis,
         at time t.
 
         Parameters
         ----------
-        t : float | np.ndarray[float]
+        t : float | ndarray[float]
             The time, in seconds, at which to evaluate the Hamiltonian.
             Accepts vectorised inputs.
 
         Returns
         -------
-        float | np.ndarray[float]:
+        complex | ndarray[complex]:
             The value of the coefficient of sigma_- in the driven Hamiltonian in the band basis
             at time(s) t. The type returned is the same as the type of t.
         """
@@ -137,20 +138,20 @@ class Hamiltonian:
             -1j * hy * (hx - 1j * hy * hz / energy) / rho \
             + self.hz(t) * rho / energy
     
-    def Hp(self, t: float | np.ndarray[float]) -> float | np.ndarray[float]:
+    def Hp(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
         """
         Returns the coefficient of sigma_+ in the driven Hamiltonian in the band basis,
         at time t.
 
         Parameters
         ----------
-        t : float | np.ndarray[float]
+        t : float | ndarray[float]
             The time, in seconds, at which to evaluate the Hamiltonian.
             Accepts vectorised inputs.
 
         Returns
         -------
-        float | np.ndarray[float]:
+        complex | ndarray[complex]
             The value of the coefficient of sigma_+ in the driven Hamiltonian in the band basis
             at time(s) t. The type returned is the same as the type of t.
         """
@@ -163,20 +164,20 @@ class Hamiltonian:
             + 1j * hy * (hx + 1j * hy * hz / energy) / rho \
             + self.hz(t) * rho / energy
     
-    def Hz(self, t: float | np.ndarray[float]) -> float | np.ndarray[float]:
+    def Hz(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
         """
         Returns the coefficient of sigma_z in the driven Hamiltonian in the band basis,
         at time t.
 
         Parameters
         ----------
-        t : float | np.ndarray[float]
+        t : float | ndarray[float]
             The time, in seconds, at which to evaluate the Hamiltonian.
             Accepts vectorised inputs.
 
         Returns
         -------
-        float | np.ndarray[float]:
+        complex | ndarray[complex]:
             The value of the coefficient of sigma_z in the driven Hamiltonian in the band basis
             at time(s) t. The type returned is the same as the type of t.
         """
@@ -186,20 +187,20 @@ class Hamiltonian:
 
         return (self.hx(t) * hx + hy * hy + self.hz(t) * hz) / energy
     
-    def jxm(self, t: float | np.ndarray[float]) -> float | np.ndarray[float]:
+    def jxm(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
         """
         Returns the coefficient of sigma_- for the current operator in the
         x-direction, in the band basis, at time t.
 
         Parameters
         ----------
-        t : float | np.ndarray[float]
+        t : float | ndarray[float]
             The time, in seconds, at which to evaluate the Hamiltonian.
             Accepts vectorised inputs.
 
         Returns
         -------
-        float | np.ndarray[float]:
+        complex | ndarray[complex]:
             The coefficient of sigma_- for the current operator in the
             x-direction, in the band basis, at time t.
             The type returned is the same as the type of t.
@@ -212,20 +213,20 @@ class Hamiltonian:
         return np.cos(self.__params.kx - self.Ax(t)) * (1j * hy - hx * hz / energy) / rho \
             - np.sin(self.__params.kx - self.Ax(t)) * rho / energy
     
-    def jxp(self, t: float | np.ndarray[float]) -> float | np.ndarray[float]:
+    def jxp(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
         """
         Returns the coefficient of sigma_+ for the current operator in the
         x-direction, in the band basis, at time t.
 
         Parameters
         ----------
-        t : float | np.ndarray[float]
+        t : float | ndarray[float]
             The time, in seconds, at which to evaluate the Hamiltonian.
             Accepts vectorised inputs.
 
         Returns
         -------
-        float | np.ndarray[float]:
+        complex | ndarray[complex]
             The coefficient of sigma_+ for the current operator in the
             x-direction, in the band basis, at time t.
             The type returned is the same as the type of t.
@@ -245,13 +246,13 @@ class Hamiltonian:
 
         Parameters
         ----------
-        t : float | np.ndarray[float]
+        t : float | ndarray[float]
             The time, in seconds, at which to evaluate the Hamiltonian.
             Accepts vectorised inputs.
 
         Returns
         -------
-        float | np.ndarray[float]:
+        float | ndarray[float]:
             The coefficient of sigma_z for the current operator in the
             x-direction, in the band basis, at time t.
             The type returned is the same as the type of t.
@@ -262,20 +263,20 @@ class Hamiltonian:
 
         return (np.cos(self.__params.kx - self.Ax(t)) * hx - np.sin(self.__params.kx - self.Ax(t)) * hz) / energy
     
-    def jym(self, t: float | np.ndarray[float]) -> float | np.ndarray[float]:
+    def jym(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
         """
         Returns the coefficient of sigma_- for the current operator in the
         y-direction, in the band basis, at time t.
 
         Parameters
         ----------
-        t : float | np.ndarray[float]
+        t : float | ndarray[float]
             The time, in seconds, at which to evaluate the Hamiltonian.
             Accepts vectorised inputs.
 
         Returns
         -------
-        float | np.ndarray[float]:
+        complex | ndarray[complex]:
             The coefficient of sigma_- for the current operator in the
             y-direction, in the band basis, at time t.
             The type returned is the same as the type of t.
@@ -288,20 +289,20 @@ class Hamiltonian:
         return -1j * np.cos(self.__params.ky) * (hx - 1j * hy * hz / energy) / rho \
             - np.sin(self.__params.ky) * rho / energy
     
-    def jyp(self, t: float | np.ndarray[float]) -> float | np.ndarray[float]:
+    def jyp(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
         """
         Returns the coefficient of sigma_+ for the current operator in the
         y-direction, in the band basis, at time t.
 
         Parameters
         ----------
-        t : float | np.ndarray[float]
+        t : float | ndarray[float]
             The time, in seconds, at which to evaluate the Hamiltonian.
             Accepts vectorised inputs.
 
         Returns
         -------
-        float | np.ndarray[float]:
+        complex | ndarray[complex]:
             The coefficient of sigma_+ for the current operator in the
             y-direction, in the band basis, at time t.
             The type returned is the same as the type of t.
@@ -321,13 +322,13 @@ class Hamiltonian:
 
         Parameters
         ----------
-        t : float | np.ndarray[float]
+        t : float | ndarray[float]
             The time, in seconds, at which to evaluate the Hamiltonian.
             Accepts vectorised inputs.
 
         Returns
         -------
-        float | np.ndarray[float]:
+        float | ndarray[float]:
             The coefficient of sigma_z for the current operator in the
             y-direction, in the band basis, at time t.
             The type returned is the same as the type of t.
@@ -338,6 +339,75 @@ class Hamiltonian:
 
         return (np.cos(self.__params.ky) * hy - np.sin(self.__params.ky) * hz) / energy
     
+    def hxn(self, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
+        """
+        Calculates the nth Fourier coefficient for the driven term hx(t).
+
+        Parameters
+        ----------
+        n : int | ndarray[int]
+            The index, or indices, that we will calculate the Fourier coefficients of.
+            The index corresponds to the harmonic of the base frequency.
+
+        Returns
+        -------
+        complex | ndarray[complex]:
+            The desired coefficient(s). Of the same type as n.
+        """
+
+        # Form numpy array so that we can iterate through n.
+        n = np.atleast_1d(n)
+        coeffs = np.zeros_like(n)
+
+        zeroMask = n == 0
+        evenMask = n % 2 == 0
+        oddMask = ~evenMask
+
+        # Calculates the relevant coefficients in a vectorised manner.
+        # Not sure if scipy is actually faster vectorised, but regardless it neatens up the code.
+        coeffs[zeroMask] = special.jv(0, self.__params.drivingAmplitude) * np.sin(self.__params.kx)
+        coeffs[evenMask] = special.jv(np.abs(n[evenMask]), self.__params.drivingAmplitude) * np.sin(self.__params.kx)
+        coeffs[oddMask] = 1j * special.jv(np.abs(n[oddMask]), self.__params.drivingAmplitude) * np.cos(self.__params.kx)
+
+        # Returns the array as a float if it has size 1.
+        if coeffs.size == 1:
+            return float(coeffs)
+
+        return coeffs
+
+    def hzn(self, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
+        """
+        Calculates the nth Fourier coefficient for the driven term hz(t).
+
+        Parameters
+        ----------
+        n : int | ndarray[int]
+            The index, or indices, that we will calculate the Fourier coefficients of.
+            The index corresponds to the harmonic of the base frequency.
+
+        Returns
+        -------
+        complex | ndarray[complex]:
+            The desired coefficient(s). Of the same type as n.
+        """
+
+        # Form numpy array so that we can iterate through n.
+        n = np.atleast_1d(n)
+        coeffs = np.zeros_like(n)
+
+        zeroMask = n == 0
+        evenMask = n % 2 == 0
+        oddMask = ~evenMask
+
+        # Calculates the relevant coefficients in a vectorised manner.
+        # Not sure if scipy is actually faster vectorised, but regardless it neatens up the code.
+        coeffs[zeroMask] = self.__params.delta + np.cos(self.__params.kx) * special.jv(0, self.__params.drivingAmplitude) \
+                    + np.cos(self.__params.ky)
+        coeffs[evenMask] = special.jv(np.abs(n[evenMask]), self.__params.drivingAmplitude) * np.cos(self.__params.kx)
+        coeffs[oddMask] = -1j * special.jv(np.abs(n[oddMask]), self.__params.drivingAmplitude) * np.sin(self.__params.kx)
+
+        return coeffs
+    
     def EquationsOfMotion(self, t: float | np.ndarray[float],
                           c: np.ndarray[complex]
                           ) -> np.ndarray[complex]:
@@ -346,16 +416,16 @@ class Hamiltonian:
 
         Parameters
         ----------
-        t : float | np.ndarray[float]
+        t : float | ndarray[float]
             The time, in seconds, at which to evaluate the equations of motion.
             Accepts vectorised inputs.
-        c : np.ndarray[complex]
+        c : ndarray[complex]
             The state of the system at time t, in the band basis.
             For single-time correlations, c should be (sigma_-, sigma_+, sigma_z).
 
         Returns
         -------
-        np.ndarray[complex]:
+        ndarray[complex]:
             The right hand side of the equations of motion. If the input is vectorised, the output
             will also be vectorised, with the first axis having size 3, corresponding to the different operators
             in c.
