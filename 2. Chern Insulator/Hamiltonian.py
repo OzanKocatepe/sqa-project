@@ -357,7 +357,7 @@ class Hamiltonian:
 
         # Form numpy array so that we can iterate through n.
         n = np.atleast_1d(n)
-        coeffs = np.zeros_like(n)
+        coeffs = np.zeros_like(n, dtype=complex)
 
         zeroMask = n == 0
         evenMask = n % 2 == 0
@@ -393,7 +393,7 @@ class Hamiltonian:
 
         # Form numpy array so that we can iterate through n.
         n = np.atleast_1d(n)
-        coeffs = np.zeros_like(n)
+        coeffs = np.zeros_like(n, dtype=complex)
 
         zeroMask = n == 0
         evenMask = n % 2 == 0
