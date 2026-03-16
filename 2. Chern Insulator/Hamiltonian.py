@@ -509,9 +509,9 @@ class Hamiltonian:
 
         B = np.array([[-(2j * Hz + 0.5 * gamma), 0, 1j * Hp],
                       [0, (2j * Hz - 0.5 * gamma), -1j * Hm],
-                      [2j * Hm, -2j * Hp, -gamma]])
+                      [2j * Hm, -2j * Hp, -gamma]], dtype=complex)
         
-        inhomPart = np.array([0, 0, -gamma])
+        inhomPart = np.array([0, 0, -gamma], dtype=complex)
         
         return B @ c + inhomPart[:, np.newaxis]
     
