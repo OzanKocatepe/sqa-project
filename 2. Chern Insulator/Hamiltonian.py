@@ -414,7 +414,72 @@ class Hamiltonian:
     
     def Hmn(self, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
         """
-        Calculates the nth Fourier coefficient for Hm(t)."""
+        Calculates the nth Fourier coefficient for Hm(t).
+        
+        Parameters
+        ----------
+        n : int | ndarray[int]
+            The index, or indices, that we will calculate the Fourier coefficients of.
+            The index corresponds to the harmonic of the base frequency.
+
+        Returns
+        -------
+        complex | ndarray[complex]:
+            The desired coefficient(s). Of the same type as n.
+        """
+
+        rho = self.rho
+        energy = self.energy()
+        hx, hy, hz = self.hx(), self.hy(), self.hz()
+
+        return self.hxn(n) * (1j * hy - hx * hz / energy) / rho \
+            -1j * hy * (hx - 1j * hy * hz / energy) / rho \
+            + self.hzn(n) * rho / energy
+
+    def Hpn(self, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
+        """
+        Calculates the nth Fourier coefficient for Hp(t).
+        
+        Parameters
+        ----------
+        n : int | ndarray[int]
+            The index, or indices, that we will calculate the Fourier coefficients of.
+            The index corresponds to the harmonic of the base frequency.
+
+        Returns
+        -------
+        complex | ndarray[complex]:
+            The desired coefficient(s). Of the same type as n.
+        """
+
+        rho = self.rho
+        energy = self.energy()
+        hx, hy, hz = self.hx(), self.hy(), self.hz()
+
+        return -self.hxn(n) * (1j * hy + hx * hz / energy) / rho \
+            + 1j * hy * (hx + 1j * hy * hz / energy) / rho \
+            + self.hzn(n) * rho / energy
+
+    def Hzn(self, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
+        """
+        Calculates the nth Fourier coefficient for Hz(t).
+        
+        Parameters
+        ----------
+        n : int | ndarray[int]
+            The index, or indices, that we will calculate the Fourier coefficients of.
+            The index corresponds to the harmonic of the base frequency.
+
+        Returns
+        -------
+        complex | ndarray[complex]:
+            The desired coefficient(s). Of the same type as n.
+        """
+
+        energy = self.energy()
+        hx, hy, hz = self.hx(), self.hy(), self.hz()
+
+        return (self.hxn(n) * hx + hy * hy + self.hzn(n) * hz) / energy
     
     def EquationsOfMotion(self, t: float | np.ndarray[float],
                           c: np.ndarray[complex]
