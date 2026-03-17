@@ -18,7 +18,7 @@ class CorrelationSolver:
         self.__params = params
         self.__hamiltonian = Hamiltonian(params)
 
-    def SingleTimeFourierMatrix(self) -> np.ndarray[complex]:
+    def __SingleTimeFourierMatrix(self) -> np.ndarray[complex]:
         """
         Creates the matrix M in the equation Mx = b, where x is a vector containing
         the Fourier series coefficients for sigma_-, sigma_+, sigma_z, and
@@ -79,7 +79,7 @@ class CorrelationSolver:
 
         n = self.__params.maxN
         fullN = 2 * n + 1
-        M = self.SingleTimeFourierMatrix()
+        M = self.__SingleTimeFourierMatrix()
 
         # Creates the right hand side of the equation Mx = b.
         b = np.zeros((3 * fullN), dtype=complex)
