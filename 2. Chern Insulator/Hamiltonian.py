@@ -36,7 +36,7 @@ class Hamiltonian:
             The type returned is the same as the type of t.
         """
 
-        return self.__params.drivingAmplitude * np.sin(self.__params.angularFreq * t)
+        return self.__params.drivingAmp * np.sin(self.__params.angularFreq * t)
 
     def hx(self, t: float | np.ndarray[float]=0) -> float | np.ndarray[float]:
         """
@@ -365,9 +365,9 @@ class Hamiltonian:
 
         # Calculates the relevant coefficients in a vectorised manner.
         # Not sure if scipy is actually faster vectorised, but regardless it neatens up the code.
-        coeffs[zeroMask] = special.jv(0, self.__params.drivingAmplitude) * np.sin(self.__params.kx)
-        coeffs[evenMask] = special.jv(np.abs(n[evenMask]), self.__params.drivingAmplitude) * np.sin(self.__params.kx)
-        coeffs[oddMask] = 1j * special.jv(np.abs(n[oddMask]), self.__params.drivingAmplitude) * np.cos(self.__params.kx)
+        coeffs[zeroMask] = special.jv(0, self.__params.drivingAmp) * np.sin(self.__params.kx)
+        coeffs[evenMask] = special.jv(np.abs(n[evenMask]), self.__params.drivingAmp) * np.sin(self.__params.kx)
+        coeffs[oddMask] = 1j * special.jv(np.abs(n[oddMask]), self.__params.drivingAmp) * np.cos(self.__params.kx)
 
         # Returns the array as a float if it has size 1.
         if coeffs.size == 1:
@@ -401,10 +401,10 @@ class Hamiltonian:
 
         # Calculates the relevant coefficients in a vectorised manner.
         # Not sure if scipy is actually faster vectorised, but regardless it neatens up the code.
-        coeffs[zeroMask] = self.__params.delta + np.cos(self.__params.kx) * special.jv(0, self.__params.drivingAmplitude) \
+        coeffs[zeroMask] = self.__params.delta + np.cos(self.__params.kx) * special.jv(0, self.__params.drivingAmp) \
                     + np.cos(self.__params.ky)
-        coeffs[evenMask] = special.jv(np.abs(n[evenMask]), self.__params.drivingAmplitude) * np.cos(self.__params.kx)
-        coeffs[oddMask] = -1j * special.jv(np.abs(n[oddMask]), self.__params.drivingAmplitude) * np.sin(self.__params.kx)
+        coeffs[evenMask] = special.jv(np.abs(n[evenMask]), self.__params.drivingAmp) * np.cos(self.__params.kx)
+        coeffs[oddMask] = -1j * special.jv(np.abs(n[oddMask]), self.__params.drivingAmp) * np.sin(self.__params.kx)
 
         # Returns the array as a float if it has size 1.
         if coeffs.size == 1:

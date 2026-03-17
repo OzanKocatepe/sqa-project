@@ -43,14 +43,14 @@ class CorrelationSolver:
         deriv = 1j * self.__params.angularFreq * np.diag(np.arange(-n, n + 1))
 
         # Builds the convolution matrices for Hm, Hp, Hz.
-        HmConv = Fourier(self.__params.drivingFrequency, self.__hamiltonian.Hmn(np.arange(-n, n + 1))) \
+        HmConv = Fourier(self.__params.drivingFreq, self.__hamiltonian.Hmn(np.arange(-n, n + 1))) \
             .BuildConvolutionMatrix()
 
-        HpConv = Fourier(self.__params.drivingFrequency, self.__hamiltonian.Hpn(np.arange(-n, n + 1))) \
+        HpConv = Fourier(self.__params.drivingFreq, self.__hamiltonian.Hpn(np.arange(-n, n + 1))) \
             .BuildConvolutionMatrix()
 
         HzConv = Fourier.BuildConvolutionMatrix(
-            Fourier(self.__params.drivingFrequency, self.__hamiltonian.Hzn(np.arange(-n, n + 1)))
+            Fourier(self.__params.drivingFreq, self.__hamiltonian.Hzn(np.arange(-n, n + 1)))
         )
 
         # First row, equation for sigma_-.
@@ -63,7 +63,7 @@ class CorrelationSolver:
 
         # Third row, equation for sigma_z.
         M[2 * fullN:, 0:fullN] = -2j * HmConv
-        M[2 * fullN: fullN:2 * fullN] = 2j * HpConv
+        M[2 * fullN:, fullN:2 * fullN] = 2j * HpConv
         M[2 * fullN:, 2 * fullN:] = deriv + gamma * np.eye(fullN)
 
         return M

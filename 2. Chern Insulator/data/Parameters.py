@@ -26,10 +26,11 @@ class EnsembleParameters:
     """
 
     delta: float
-    drivingAmplitude: float
-    drivingFrequency: float
+    drivingAmp: float
+    drivingFreq: float
     decayConstant: float
     maxN: int
+
     angularFreq: float = field(init=False)
 
     def __post_init__(self) -> None:
@@ -38,7 +39,7 @@ class EnsembleParameters:
         the main code.
         """
 
-        self.angularFreq = 2 * np.pi * self.drivingFrequency
+        self.angularFreq = 2 * np.pi * self.drivingFreq
 
 @dataclass(slots=True)
 class ModelParameters(EnsembleParameters):
