@@ -37,16 +37,3 @@ class Model:
 
         corrSolver = CorrelationSolver(self.__params)
         singleTimeFourier = corrSolver.SolveSingleTimeCorrelations()
-
-        # Solves the single-time ODE.
-        singleTime = integrate.solve_ivp(
-            fun = self.__hamiltonian.EquationsOfMotion,
-            t_span = (0, tauMax / self.__params.decayConstant),
-            y0 = np.array([0, 0, -1], dtype=complex),
-            t_eval = tauAxisSec,
-            rtol = 1e-9,
-            atol = 1e-12,
-            vectorized = True
-        ).y
-
-        return singleTimeFourier, singleTime
