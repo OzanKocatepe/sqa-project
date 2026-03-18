@@ -7,8 +7,8 @@ from data import ModelParameters
 params = ModelParameters(
     kx = np.pi / 4,
     ky = -np.pi / 8,
-    delta = 0,
-    drivingAmp = 0.2,
+    delta = 1,
+    drivingAmp = 0.3,
     drivingFreq = 2 / 3.01 * 1 / (2 * np.pi),
     decayConstant = 0.2,
     maxN = 50
