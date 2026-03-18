@@ -75,7 +75,7 @@ class Hamiltonian:
 
         return np.sin(self.__params.ky)
     
-    def hz(self, t: float | np.ndarrayp[float]=0) -> float | np.ndarray[float]:
+    def hz(self, t: float | np.ndarray[float]=0) -> float | np.ndarray[float]:
         """
         Returns the coefficient of sigma_z in the driven Hamiltonian at time t.
         
@@ -374,6 +374,41 @@ class Hamiltonian:
             return coeffs[0]
 
         return coeffs
+    
+    def hyn(self, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
+        """
+        Calculates the nth Fourier coefficient for the term hyn.
+        This is a constant term, so returning the 'Fourier coefficients' just
+        returns the value itself for n = 0, and 0 for all other n.
+        This function is just a utility to use for compatibility with the other Fourier
+        coefficient functions.
+
+        Parameters
+        ----------
+        n : int | ndarray[int]
+            The index, or indices, that we will calculate the Fourier coefficients of.
+            The index corresponds to the harmonic of the base frequency.
+
+        Returns
+        -------
+        complex | ndarray[complex]:
+            The desired coefficient(s). Of the same type as n.
+        """
+
+        # Form numpy array so that we can iterate through n.
+        n = np.atleast_1d(n)
+        coeffs = np.zeros_like(n, dtype=complex)
+
+        # Sets n = 0 to the value of the constant,
+        # otherwise leaves all other coefficients as zero.
+        coeffs[n == 0] = self.hy()
+
+        # Returns the array as a float if it has size 1.
+        if coeffs.size == 1:
+            return coeffs[0]
+
+        return coeffs
+
 
     def hzn(self, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
         """
@@ -433,7 +468,7 @@ class Hamiltonian:
         hx, hy, hz = self.hx(), self.hy(), self.hz()
 
         return self.hxn(n) * (1j * hy - hx * hz / energy) / rho \
-            -1j * hy * (hx - 1j * hy * hz / energy) / rho \
+            -1j * self.hyn(n) * (hx - 1j * hy * hz / energy) / rho \
             + self.hzn(n) * rho / energy
 
     def Hpn(self, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
@@ -457,7 +492,7 @@ class Hamiltonian:
         hx, hy, hz = self.hx(), self.hy(), self.hz()
 
         return -self.hxn(n) * (1j * hy + hx * hz / energy) / rho \
-            + 1j * hy * (hx + 1j * hy * hz / energy) / rho \
+            + 1j * self.hyn(n) * (hx + 1j * hy * hz / energy) / rho \
             + self.hzn(n) * rho / energy
 
     def Hzn(self, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
@@ -479,7 +514,7 @@ class Hamiltonian:
         energy = self.energy()
         hx, hy, hz = self.hx(), self.hy(), self.hz()
 
-        return (self.hxn(n) * hx + hy * hy + self.hzn(n) * hz) / energy
+        return (self.hxn(n) * hx + self.hyn(n) * hy + self.hzn(n) * hz) / energy
     
     def EquationsOfMotion(self, t: float | np.ndarray[float],
                           c: np.ndarray[complex]

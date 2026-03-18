@@ -49,9 +49,8 @@ class CorrelationSolver:
         HpConv = Fourier(self.__params.drivingFreq, self.__hamiltonian.Hpn(np.arange(-n, n + 1))) \
             .BuildConvolutionMatrix()
 
-        HzConv = Fourier.BuildConvolutionMatrix(
-            Fourier(self.__params.drivingFreq, self.__hamiltonian.Hzn(np.arange(-n, n + 1)))
-        )
+        HzConv = Fourier(self.__params.drivingFreq, self.__hamiltonian.Hzn(np.arange(-n, n + 1))) \
+            .BuildConvolutionMatrix()
 
         # First row, equation for sigma_-.
         M[0:fullN, 0:fullN] = deriv + 2j * HzConv + 0.5 * gamma * np.eye(fullN)
