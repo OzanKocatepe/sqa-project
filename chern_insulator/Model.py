@@ -1,8 +1,8 @@
 import numpy as np
-from scipy import integrate
 
 from data import ModelParameters
 from CorrelationSolver import CorrelationSolver
+from CurrentSolver import CurrentSolver
 from Hamiltonian import Hamiltonian
 
 class Model:
@@ -37,3 +37,8 @@ class Model:
 
         corrSolver = CorrelationSolver(self.__params)
         singleTimeFourier = corrSolver.SolveSingleTimeCorrelations()
+
+        currentSolver = CurrentSolver(self.__params)
+        singleTimeCurrent = currentSolver.CalculateSingleTimeCurrent(tauAxisSec, singleTimeFourier)
+
+        return singleTimeFourier, singleTimeCurrent
