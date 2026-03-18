@@ -25,7 +25,7 @@ whateverman = ['Real', 'Imag']
 for fi, function in enumerate([lambda x: x.real, lambda x: x.imag]):
     for index in [0, 1, 2]:
         plt.plot(time, function(sigma[index, :]), color='black')
-        plt.plot(time, function(f[index].Evaluate(time)), color='blue')
+        plt.plot(time, function(f[index].Evaluate(time / 0.2)), color='blue')
         plt.title(f"{functionLabels[fi]} {labels[index]}")
         plt.savefig(f"2. Chern Insulator/plots/{whateverman[fi]} {labels[index]}")
         plt.show()

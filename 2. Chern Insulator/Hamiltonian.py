@@ -367,7 +367,7 @@ class Hamiltonian:
         # Not sure if scipy is actually faster vectorised, but regardless it neatens up the code.
         coeffs[zeroMask] = special.jv(0, self.__params.drivingAmp) * np.sin(self.__params.kx)
         coeffs[evenMask] = special.jv(np.abs(n[evenMask]), self.__params.drivingAmp) * np.sin(self.__params.kx)
-        coeffs[oddMask] = 1j * special.jv(np.abs(n[oddMask]), self.__params.drivingAmp) * np.cos(self.__params.kx)
+        coeffs[oddMask] = np.sign(n[oddMask]) * 1j * special.jv(np.abs(n[oddMask]), self.__params.drivingAmp) * np.cos(self.__params.kx)
 
         # Returns the array as a float if it has size 1.
         if coeffs.size == 1:
@@ -439,7 +439,7 @@ class Hamiltonian:
         coeffs[zeroMask] = self.__params.delta + np.cos(self.__params.kx) * special.jv(0, self.__params.drivingAmp) \
                     + np.cos(self.__params.ky)
         coeffs[evenMask] = special.jv(np.abs(n[evenMask]), self.__params.drivingAmp) * np.cos(self.__params.kx)
-        coeffs[oddMask] = -1j * special.jv(np.abs(n[oddMask]), self.__params.drivingAmp) * np.sin(self.__params.kx)
+        coeffs[oddMask] = np.sign(n[oddMask]) * -1j * special.jv(np.abs(n[oddMask]), self.__params.drivingAmp) * np.sin(self.__params.kx)
 
         # Returns the array as a float if it has size 1.
         if coeffs.size == 1:
