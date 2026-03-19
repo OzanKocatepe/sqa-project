@@ -37,11 +37,11 @@ whateverman = ['Real', 'Imag']
 #     plt.savefig(f"chern_insulator/plots/[{whateverman[fi]}] Current")
 #     plt.show()
 
-sampleSpacing = (np.max(timeSec) - np.min(timeSec)) / timeSec.size
-freqAxis = np.fft.fftshift(np.fft.fftfreq(timeSec.size, sampleSpacing)) / params.drivingFreq
-plt.semilogy(freqAxis, np.abs(np.fft.fftshift(np.fft.fft(current[0, :]))), label='Jx')
-plt.semilogy(freqAxis, np.abs(np.fft.fftshift(np.fft.fft(current[1, :]))), label='Jy')
-plt.xlim(-12.5, 12.5)
-plt.legend()
-plt.savefig(f"chern_insulator/plots/Current FFT.png")
-plt.show()
+# sampleSpacing = (np.max(timeSec) - np.min(timeSec)) / timeSec.size
+# freqAxis = np.fft.fftshift(np.fft.fftfreq(timeSec.size, sampleSpacing)) / params.drivingFreq
+# plt.plot(freqAxis, np.abs(np.fft.fftshift(np.fft.fft(current[0, :]))), label='Jx')
+# plt.plot(freqAxis, np.abs(np.fft.fftshift(np.fft.fft(current[1, :]))), label='Jy')
+# plt.xlim(-12.5, 12.5)
+# plt.legend()
+# plt.savefig(f"chern_insulator/plots/Current FFT.png")
+# plt.show()
