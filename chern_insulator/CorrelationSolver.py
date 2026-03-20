@@ -85,11 +85,7 @@ class CorrelationSolver:
         # Corresponds to the inhomogenous part -gamma in the ODEs.
         b[2 * fullN + n] = -self.__params.decayConstant
 
-        # Mx = b => UDU^{-1}x = b => x = UD^{-1}U^{-1}b
-        eigs, U = np.linalg.eig(M)
-        D_inv = np.diag(1.0 / eigs)
-        U_inv = np.linalg.inv(U)
-        sigmaCoeffs = U @ D_inv @ U_inv @ b
+        sigmaCoeffs = np.linalg.solve(M, b)
 
         return [
             Fourier(
