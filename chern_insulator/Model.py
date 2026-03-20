@@ -56,3 +56,7 @@ class Model:
                                                                                           self.__corrData.singleTimeFourier)
 
         return self.__corrData, self.__currentData
+    
+    @property
+    def currentData(self) -> CurrentData:
+        return self.__currentData
