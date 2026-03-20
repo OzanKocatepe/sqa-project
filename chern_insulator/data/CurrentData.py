@@ -19,3 +19,24 @@ class CurrentData:
 
     paramagneticCurrent: np.ndarray[complex] = field(init = False)
     diamagneticCurrent: np.ndarray[complex] = field(init = False)
+
+    def __add__(self, other: CurrentData) -> CurrentData:
+        """
+        Adds together two CurrentData instances by adding together each attribute.
+
+        Parameters
+        ----------
+        other : CurrentData
+            The other CurrentData instance to add to this one.
+
+        Returns
+        -------
+        CurrentData:
+            A new CurrentData instance that has attributes equal to the sum
+            of the attributes of the two operands.
+        """
+
+        return CurrentData(
+            paramagneticCurrent = self.paramagneticCurrent + other.paramagneticCurrent,
+            diamagneticCurrent = self.diamagneticCurrent + other.diamagneticCurrent
+        )

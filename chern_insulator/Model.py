@@ -8,7 +8,7 @@ from Hamiltonian import Hamiltonian
 class Model:
     """Contains a Chern Insulator model evaluated at a single pair kx, ky."""
 
-    def __init__(self, params: ModelParameters, axes: AxisData) -> None:
+    def __init__(self, params: ModelParameters) -> None:
         """Initialises the instance.
         
         Parameters
@@ -18,15 +18,23 @@ class Model:
         """
 
         self.__params = params
-        self.__axes = axes
         self.__hamiltonian = Hamiltonian(self.__params)
 
         self.__corrData = CorrelationData()
         self.__currentData = CurrentData()
 
-    def Run(self) -> tuple[CorrelationData, CurrentData]:
+        # Will be given in the Run() function.
+        self.__axes = None
+
+    def Run(self, axes: AxisData) -> tuple[CorrelationData, CurrentData]:
         """
         Runs all of the simulation code for this model.
+
+        Parameters
+        ----------
+        axes : AxisData
+            The different axes that the simulation will calculate the
+            operators on.
 
         Returns
         -------
@@ -35,6 +43,9 @@ class Model:
         CurrentData:
             The current data for this model.
         """
+
+        # Stores the axis data.
+        self.__axes = axes
         
         # Solves the single-time fourier series.
         corrSolver = CorrelationSolver(self.__params)

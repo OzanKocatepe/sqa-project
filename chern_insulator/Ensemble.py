@@ -1,6 +1,7 @@
 import numpy as np
+from functools import cached_property
 
-from data import ModelParameters, EnsembleParameters, AxisData
+from data import ModelParameters, EnsembleParameters, AxisData, CurrentData
 from Model import Model
 
 class Ensemble:
@@ -68,6 +69,9 @@ class Ensemble:
 
         self.__axes = self.__CreateAxes(tauMax)
 
+        for model in self.__models.values():
+            model.Run(self.__axes)
+
     def __CreateAxes(self, tauMax: float) -> AxisData:
         """
         Creates the axis data used for each model.
@@ -94,3 +98,7 @@ class Ensemble:
             tauAxisSec = tauAxisSec,
             freqAxis = freqAxis
         )
+    
+    @cached_property
+    def totalCurrent(self) -> CurrentData:
+        return np.sum([model.currentData for model in self.models.values()])
