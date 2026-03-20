@@ -72,6 +72,33 @@ class Ensemble:
         for model in self.__models.values():
             model.Run(self.__axes)
 
+    def SampleBrillouinZone(self, numK: int) -> None:
+        """
+        Samples the Brillouin Zone (kx, ky in [-pi, pi]) evenly on
+        both axes to obtain a number of samples closest to numK.
+        i.e. it will samples floor(sqrt(numK)) points on the x and y axes
+        of the Brillouin zone.
+
+        This function automatically adds the models with the associated
+        momentum values to the ensemble.
+        
+        Parameters
+        ----------
+        numK : int
+            The number of desired momentum points that we want to sample.
+        """
+
+        # Samples the Brillouin zone.
+        sqrtK = np.floor(np.sqrt(numK))
+        axisPoints = np.linspace(-np.pi, np.pi, sqrtK)
+        x, y = np.meshgrid(axisPoints, axisPoints)
+        
+        # Stacks x and y so that the last axis differentiates between them.
+        momentums = np.stack((x, y), axis=-1)
+
+        # Adds the momentum points to the ensemble.
+        self.AddMomentum(momentums)
+
     def __CreateAxes(self, tauMax: float) -> AxisData:
         """
         Creates the axis data used for each model.
