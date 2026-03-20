@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 from Ensemble import Ensemble
 
@@ -81,7 +82,13 @@ class Plotting:
             ax[1].legend()
             
             plt.suptitle(rf"Current Operator {labels[operatorIndex]} with $\Delta = {self.__ensemble.params.delta}$")
-            plt.savefig(f"{self.__plotFolder}/J{['x', 'y'][operatorIndex]}", dpi=300)
+
+            # Makes subfolder if it doesn't exist.
+            folder = f"{self.__plotFolder}/Delta {self.__ensemble.params.delta}/Paramagnetic Current"
+            os.makedirs(folder, exist_ok=True)
+            # Saves.
+            plt.savefig(f"{folder}/J{['x', 'y'][operatorIndex]}", dpi=300)
+
             plt.show()
             plt.close()
 
@@ -115,8 +122,15 @@ class Plotting:
         for n in np.arange(-10, 11):
             plt.axvline(n, color='black', linestyle='dashed', alpha=0.2)
 
-        plt.title(fr"Current Operator, $\Delta = {self.__ensemble.params.delta}$")
+        plt.title(fr"Current Operators with $\Delta = {self.__ensemble.params.delta}$")
 
         plt.tight_layout()
+
+        # Makes subfolder if it doesn't exist.
+        folder = f"{self.__plotFolder}/Delta {self.__ensemble.params.delta}/Paramagnetic Current"
+        os.makedirs(folder, exist_ok=True)
+        # Saves.
+        plt.savefig(f"{folder}/Current FFT", dpi=300)
+
         plt.show()
         plt.close()

@@ -10,7 +10,7 @@ numK = 75
 tauMax = 50
 
 params = EnsembleParameters(
-    delta = 3,
+    delta = 1,
     drivingAmp = 0.2,
     decayConstant = 0.2,
     maxN = 50
@@ -22,3 +22,4 @@ ensemble.Run(tauMax)
 
 plot = Plotting(ensemble)
 plot.PlotParamagneticCurrent()
+plot.PlotParamagneticCurrentFFT()
