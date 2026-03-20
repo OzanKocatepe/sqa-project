@@ -22,4 +22,4 @@ ensemble.Run(tauMax)
 
 plot = Plotting(ensemble)
 plot.PlotParamagneticCurrent()
-plot.PlotParamagneticCurrentFFT()
+plot.PlotParamagneticCurrentFFT(linearScale=False)

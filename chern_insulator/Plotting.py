@@ -93,8 +93,15 @@ class Plotting:
             plt.close()
 
 
-    def PlotParamagneticCurrentFFT(self) -> None:
-        """Plots the FFT of the paramagnetic current as a function of frequency."""
+    def PlotParamagneticCurrentFFT(self, linearScale: bool=False) -> None:
+        """Plots the FFT of the paramagnetic current as a function of frequency.
+        
+        Parameters
+        ----------
+        linearScale : bool
+            A debug option to scale the axes linearly, giving a more obvious view of
+            the relative scales of the Jx and Jy peaks. False by default.
+        """
 
         axes = self.__ensemble.axes
         current = self.__ensemble.totalCurrent
@@ -102,17 +109,20 @@ class Plotting:
         jxFFT = np.fft.fftshift(np.fft.fft(current.paramagneticCurrent[0]))
         jyFFT = np.fft.fftshift(np.fft.fft(current.paramagneticCurrent[1]))
 
-        plt.semilogy(
+        plt.plot(
             axes.freqAxis,
             np.abs(jxFFT),
             label=r'$\hat j_x$',
             color='tab:blue')
 
-        plt.semilogy(
+        plt.plot(
             axes.freqAxis,
             np.abs(jyFFT),
             label=r'$\hat j_y$',
             color='orange')
+        
+        if not linearScale:
+            plt.yscale('log')
 
         plt.xlim(-11, 11)
         plt.xlabel(r"$f / \Omega$")
@@ -123,7 +133,6 @@ class Plotting:
             plt.axvline(n, color='black', linestyle='dashed', alpha=0.2)
 
         plt.title(fr"Current Operators with $\Delta = {self.__ensemble.params.delta}$")
-
         plt.tight_layout()
 
         # Makes subfolder if it doesn't exist.
