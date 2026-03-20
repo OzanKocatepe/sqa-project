@@ -92,11 +92,13 @@ class Ensemble:
 
         # Samples the Brillouin zone.
         sqrtK = np.floor(np.sqrt(numK)).astype(int)
-        axisPoints = np.linspace(-np.pi, np.pi, sqrtK)
-        x, y = np.meshgrid(axisPoints, axisPoints)
+        # Makes sure we have an even number of points along each axis.
+        if sqrtK % 2 != 0:
+            sqrtK += 1
 
-        # plt.scatter(x, y)
-        # plt.show()
+        offset = 0.8
+        axisPoints = np.linspace(-np.pi + offset, np.pi - offset, sqrtK)
+        x, y = np.meshgrid(axisPoints, axisPoints)
  
         # Stacks x and y so that the last axis differentiates between them.
         momentums = np.stack((x.flatten(), y.flatten()), axis=-1)
