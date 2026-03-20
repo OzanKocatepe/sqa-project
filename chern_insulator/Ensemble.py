@@ -134,3 +134,7 @@ class Ensemble:
     @property
     def axes(self) -> AxisData:
         return self.__axes
+    
+    @property
+    def params(self) -> EnsembleParameters:
+        return self.__params
