@@ -1,5 +1,6 @@
 import numpy as np
 from functools import cached_property
+import matplotlib.pyplot as plt
 
 from data import ModelParameters, EnsembleParameters, AxisData, CurrentData
 from Model import Model
@@ -93,7 +94,10 @@ class Ensemble:
         sqrtK = np.floor(np.sqrt(numK)).astype(int)
         axisPoints = np.linspace(-np.pi, np.pi, sqrtK)
         x, y = np.meshgrid(axisPoints, axisPoints)
-        
+
+        plt.scatter(x, y)
+        plt.show()
+ 
         # Stacks x and y so that the last axis differentiates between them.
         momentums = np.stack((x.flatten(), y.flatten()), axis=-1)
 
