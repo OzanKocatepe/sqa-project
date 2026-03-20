@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-from Fourier import Fourier
+from .Fourier import Fourier
 
 @dataclass(slots=True)
 class CorrelationData:

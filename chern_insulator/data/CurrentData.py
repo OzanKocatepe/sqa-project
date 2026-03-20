@@ -17,8 +17,8 @@ class CurrentData:
         Stores the diamagnetic current in an array of shape (time.size).
     """
 
-    paramagneticCurrent: np.ndarray[complex] = field(init = False)
-    diamagneticCurrent: np.ndarray[complex] = field(init = False)
+    paramagneticCurrent: np.ndarray[complex] = field(default = None)
+    diamagneticCurrent: np.ndarray[complex] = field(default = None)
 
     def __add__(self, other: CurrentData) -> CurrentData:
         """
@@ -37,6 +37,6 @@ class CurrentData:
         """
 
         return CurrentData(
-            paramagneticCurrent = self.paramagneticCurrent + other.paramagneticCurrent,
-            diamagneticCurrent = self.diamagneticCurrent + other.diamagneticCurrent
+            paramagneticCurrent = self.paramagneticCurrent + other.paramagneticCurrent
+            # diamagneticCurrent = self.diamagneticCurrent + other.diamagneticCurrent   # Since diamagnetic current is not implemented yet.
         )

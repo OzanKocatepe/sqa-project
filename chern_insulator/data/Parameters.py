@@ -27,11 +27,14 @@ class EnsembleParameters:
 
     delta: float
     drivingAmp: float
-    drivingFreq: float
     decayConstant: float
     maxN: int
 
-    angularFreq: float = field(init=False)
+    # Not set to init=False, since we want to explicitly set it
+    # when we create a ModelParameters instance, rather than recalculating it
+    # in __post_init__.
+    drivingFreq: float = field(default=None)
+    angularFreq: float = field(init = False)
 
     def __post_init__(self) -> None:
         """
@@ -39,17 +42,45 @@ class EnsembleParameters:
         the main code.
         """
 
-        self.angularFreq = 2 * np.pi * self.drivingFreq
+        # Only calculates the band gap again IF this is an instance of EnsembleParameters,
+        # meaning drivingFreq is none. If we are creating a ModelParameters instance, we will explicitly
+        # set the drivingFreq and so we will not recalculate it.
+        
+        if self.drivingFreq is None:
+            from Hamiltonian import Hamiltonian
+            # Samples the BZ based on the resolution. This can be very detailed since
+            # it should only happen a single time in the code.
+            resolution = 25
+            axisPoints = np.linspace(-np.pi, np.pi, 10)
+            x, y = np.meshgrid(axisPoints, axisPoints)
+
+            energies = Hamiltonian.staticEnergy(x.flatten(), y.flatten(), self.delta)
+            bandGap = 2 * np.min(energies)
+
+            # Finds the minimum band gap over the Brillouin zone.
+            # The band gap for an ensemble is controlled only by the delta.
+
+            self.angularFreq = bandGap * 2 / 5
+            self.drivingFreq =  self.angularFreq / (2 * np.pi)
 
 @dataclass(slots=True)
 class ModelParameters(EnsembleParameters):
     """
     Parameters specific to a single Chern insulator model at a single
     momentum point.
+
+    Parameters
+    ----------
+    kx : float
+        The x-component of the momentum.
+    ky : float
+        The y-component of the momentum.
     """
 
-    kx: float
-    ky: float
+    # Given default values so as to not destroy the constructor,
+    # since drivingFreq is already given a default value.
+    kx: float = field(default = None)
+    ky: float = field(default = None)
 
     @staticmethod
     def FromEnsemble(kx: float, ky: float, params: EnsembleParameters) -> ModelParameters:
@@ -73,7 +104,7 @@ class ModelParameters(EnsembleParameters):
             given kx and ky.
         """
         
-        return ModelParameters(
+        modelParams = ModelParameters(
             kx = kx,
             ky = ky,
             delta = params.delta,
@@ -82,3 +113,8 @@ class ModelParameters(EnsembleParameters):
             decayConstant = params.decayConstant,
             maxN = params.maxN
         )
+
+        # Must set outside constructor, since angular freq is not in the constructor.
+        modelParams.angularFreq = params.angularFreq
+
+        return modelParams

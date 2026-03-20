@@ -50,7 +50,8 @@ class Ensemble:
             # Create the model parameters from the ensemble parameters.
             modelParams = ModelParameters.FromEnsemble(
                 kx = k[0],
-                ky = k[1]
+                ky = k[1],
+                params = self.__params
             )
 
             # Stores the model in the dictionary with its momentum
@@ -89,12 +90,12 @@ class Ensemble:
         """
 
         # Samples the Brillouin zone.
-        sqrtK = np.floor(np.sqrt(numK))
+        sqrtK = np.floor(np.sqrt(numK)).astype(int)
         axisPoints = np.linspace(-np.pi, np.pi, sqrtK)
         x, y = np.meshgrid(axisPoints, axisPoints)
         
         # Stacks x and y so that the last axis differentiates between them.
-        momentums = np.stack((x, y), axis=-1)
+        momentums = np.stack((x.flatten(), y.flatten()), axis=-1)
 
         # Adds the momentum points to the ensemble.
         self.AddMomentum(momentums)
@@ -128,4 +129,8 @@ class Ensemble:
     
     @cached_property
     def totalCurrent(self) -> CurrentData:
-        return np.sum([model.currentData for model in self.models.values()])
+        return np.sum([model.currentData for model in self.__models.values()])
+    
+    @property
+    def axes(self) -> AxisData:
+        return self.__axes

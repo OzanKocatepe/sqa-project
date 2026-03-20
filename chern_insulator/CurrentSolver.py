@@ -50,7 +50,7 @@ class CurrentSolver:
         
         current[1, :] = self.__hamiltonian.jym(time) * sigmam \
             + self.__hamiltonian.jyp(time) * sigmap \
-            + self.__hamiltonian.jyz(time) * sigmap
+            + self.__hamiltonian.jyz(time) * sigmaz
         
         return current
 

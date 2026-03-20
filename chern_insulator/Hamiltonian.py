@@ -111,6 +111,39 @@ class Hamiltonian:
         """
 
         return np.sqrt(self.hx()**2 + self.hy()**2 + self.hz()**2)
+
+    @staticmethod
+    def staticEnergy(kx: float | np.ndarray[float], ky: float | np.ndarray[float], delta: float) -> float | np.ndarray[float]:
+        """
+        Exact same thing as energy, but it turns out to be useful to have a
+        static instance of this function so that we can calculate
+        energies throughout the Brillouin zone without relying on other properties.
+
+        We also vectorise this function in the momentums to speed things up.
+
+        Parameters
+        ----------
+        kx : float | ndarray[float]
+            The x-component of the momentum.
+        ky : float | ndarray[float]
+            The x-component of the momentum.
+            Must be the same type as kx.
+        delta : float
+            The value of delta.
+
+        Returns
+        -------
+        float | ndarray[float]:
+            The energy of the unperturbed system at this momentum
+            and delta.
+            Will be the same type as kx and ky.
+        """
+
+        hx = np.sin(kx)
+        hy = np.sin(ky)
+        hz = delta + np.cos(kx) + np.cos(ky)
+
+        return np.sqrt(hx**2 + hy**2 + hz**2)
     
     def Hm(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
         """
