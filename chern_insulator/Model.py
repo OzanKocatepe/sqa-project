@@ -18,7 +18,6 @@ class Model:
         """
 
         self.__params = params
-        self.__hamiltonian = Hamiltonian(self.__params)
 
         self.__corrData = CorrelationData()
         self.__currentData = CurrentData()

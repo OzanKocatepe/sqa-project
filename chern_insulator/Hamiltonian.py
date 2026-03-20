@@ -113,7 +113,7 @@ class Hamiltonian:
         return np.sqrt(self.hx()**2 + self.hy()**2 + self.hz()**2)
 
     @staticmethod
-    def staticEnergy(kx: float | np.ndarray[float], ky: float | np.ndarray[float], delta: float) -> float | np.ndarray[float]:
+    def StaticEnergy(kx: float | np.ndarray[float], ky: float | np.ndarray[float], delta: float) -> float | np.ndarray[float]:
         """
         Exact same thing as energy, but it turns out to be useful to have a
         static instance of this function so that we can calculate
