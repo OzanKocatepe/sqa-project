@@ -19,7 +19,7 @@ class Ensemble:
         self.__params = params
 
         # Stores the models in a dictionary.
-        self.__models: dict{tuple[float, float], Model} = {}
+        self.__models: dict[tuple[float, float], Model] = {}
         # The axis data shared by the system.
         self.__axes = None
 
@@ -66,17 +66,21 @@ class Ensemble:
             The maximum non-dimensional time the system will solve for.
         """
 
-        self.__CreateAxes(tauMax)
+        self.__axes = self.__CreateAxes(tauMax)
 
-    def __CreateAxes(self, tauMax: float):
+    def __CreateAxes(self, tauMax: float) -> AxisData:
         """
         Creates the axis data used for each model.
-        Stores it in this ensemble instance's axes attribute.
         
         Parameters
         ----------
         tauMax : float
             The maximum non-dimensional time the system will solve for.
+
+        Returns
+        -------
+        AxisData:
+            The object containing the axis data.
         """
 
         tauAxisDim = np.linspace(0, tauMax, 4000)
@@ -85,7 +89,7 @@ class Ensemble:
         sampleSpacing = (np.max(tauAxisSec) - np.min(tauAxisSec)) / tauAxisSec.size
         freqAxis = np.fft.fftshift(np.fft.fftfreq(tauAxisSec.size, sampleSpacing)) / self.__params.drivingFreq
 
-        self.__axes = AxisData(
+        return AxisData(
             tauAxisDim = tauAxisDim,
             tauAxisSec = tauAxisSec,
             freqAxis = freqAxis
