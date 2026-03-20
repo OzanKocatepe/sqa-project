@@ -95,8 +95,8 @@ class Ensemble:
         axisPoints = np.linspace(-np.pi, np.pi, sqrtK)
         x, y = np.meshgrid(axisPoints, axisPoints)
 
-        plt.scatter(x, y)
-        plt.show()
+        # plt.scatter(x, y)
+        # plt.show()
  
         # Stacks x and y so that the last axis differentiates between them.
         momentums = np.stack((x.flatten(), y.flatten()), axis=-1)

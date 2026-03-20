@@ -265,12 +265,14 @@ class Hamiltonian:
             The type returned is the same as the type of t.
         """
 
-        energy = self.energy()
-        hx, hy, hz = self.hx(), self.hy(), self.hz()
-        rho = self.rho
+        # energy = self.energy()
+        # hx, hy, hz = self.hx(), self.hy(), self.hz()
+        # rho = self.rho
 
-        return -np.cos(self.__params.kx - self.Ax(t)) * (1j * hy + hx * hz / energy) / rho \
-            - np.sin(self.__params.kx - self.Ax(t)) * rho / energy
+        # return -np.cos(self.__params.kx - self.Ax(t)) * (1j * hy + hx * hz / energy) / rho \
+        #     - np.sin(self.__params.kx - self.Ax(t)) * rho / energy
+
+        return np.conjugate(self.jxm(t))
     
     def jxz(self, t: float | np.ndarray[float]) -> float | np.ndarray[float]:
         """
@@ -329,12 +331,14 @@ class Hamiltonian:
             y-direction, in the band basis.
         """
 
-        energy = self.energy()
-        hx, hy, hz = self.hx(), self.hy(), self.hz()
-        rho = self.rho
+        # energy = self.energy()
+        # hx, hy, hz = self.hx(), self.hy(), self.hz()
+        # rho = self.rho
 
-        return 1j * np.cos(self.__params.ky) * (hx + 1j * hy * hz / energy) / rho \
-            - np.sin(self.__params.ky) * rho / energy
+        # return 1j * np.cos(self.__params.ky) * (hx + 1j * hy * hz / energy) / rho \
+        #     - np.sin(self.__params.ky) * rho / energy
+
+        return np.conjugate(self.jym())
     
     @cache
     def jyz(self) -> complex:
