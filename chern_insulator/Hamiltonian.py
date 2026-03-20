@@ -296,23 +296,17 @@ class Hamiltonian:
 
         return (np.cos(self.__params.kx - self.Ax(t)) * hx - np.sin(self.__params.kx - self.Ax(t)) * hz) / energy
     
-    def jym(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
+    @cache
+    def jym(self) -> complex:
         """
         Returns the coefficient of sigma_- for the current operator in the
-        y-direction, in the band basis, at time t.
-
-        Parameters
-        ----------
-        t : float | ndarray[float]
-            The time, in seconds, at which to evaluate the Hamiltonian.
-            Accepts vectorised inputs.
+        y-direction, in the band basis.
 
         Returns
         -------
-        complex | ndarray[complex]:
+        complex
             The coefficient of sigma_- for the current operator in the
-            y-direction, in the band basis, at time t.
-            The type returned is the same as the type of t.
+            y-direction, in the band basis.
         """
 
         energy = self.energy()
@@ -322,23 +316,17 @@ class Hamiltonian:
         return -1j * np.cos(self.__params.ky) * (hx - 1j * hy * hz / energy) / rho \
             - np.sin(self.__params.ky) * rho / energy
     
-    def jyp(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
+    @cache
+    def jyp(self) -> complex:
         """
         Returns the coefficient of sigma_+ for the current operator in the
-        y-direction, in the band basis, at time t.
-
-        Parameters
-        ----------
-        t : float | ndarray[float]
-            The time, in seconds, at which to evaluate the Hamiltonian.
-            Accepts vectorised inputs.
+        y-direction, in the band basis.
 
         Returns
         -------
-        complex | ndarray[complex]:
+        complex:
             The coefficient of sigma_+ for the current operator in the
-            y-direction, in the band basis, at time t.
-            The type returned is the same as the type of t.
+            y-direction, in the band basis.
         """
 
         energy = self.energy()
@@ -348,23 +336,17 @@ class Hamiltonian:
         return 1j * np.cos(self.__params.ky) * (hx + 1j * hy * hz / energy) / rho \
             - np.sin(self.__params.ky) * rho / energy
     
-    def jyz(self, t: float | np.ndarray[float]) -> float | np.ndarray[float]:
+    @cache
+    def jyz(self) -> complex:
         """
         Returns the coefficient of sigma_z for the current operator in the
-        y-direction, in the band basis, at time t.
-
-        Parameters
-        ----------
-        t : float | ndarray[float]
-            The time, in seconds, at which to evaluate the Hamiltonian.
-            Accepts vectorised inputs.
+        y-direction, in the band basis.
 
         Returns
         -------
-        float | ndarray[float]:
+        ndarray[complex]:
             The coefficient of sigma_z for the current operator in the
-            y-direction, in the band basis, at time t.
-            The type returned is the same as the type of t.
+            y-direction, in the band basis.
         """
 
         energy = self.energy()

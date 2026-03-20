@@ -48,9 +48,9 @@ class CurrentSolver:
             + self.__hamiltonian.jxp(time) * sigmap \
             + self.__hamiltonian.jxz(time) * sigmaz
         
-        current[1, :] = self.__hamiltonian.jym(time) * sigmam \
-            + self.__hamiltonian.jyp(time) * sigmap \
-            + self.__hamiltonian.jyz(time) * sigmaz
+        current[1, :] = self.__hamiltonian.jym() * sigmam \
+            + self.__hamiltonian.jyp() * sigmap \
+            + self.__hamiltonian.jyz() * sigmaz
         
         return current
 
