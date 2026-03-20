@@ -50,3 +50,35 @@ class ModelParameters(EnsembleParameters):
 
     kx: float
     ky: float
+
+    @staticmethod
+    def FromEnsemble(kx: float, ky: float, params: EnsembleParameters) -> ModelParameters:
+        """
+        Creates an instance of ModelParameters from an instance of EnsembleParameters.
+
+        Parameters
+        ----------
+        kx : float
+            The x-component of the momentum.
+        ky : float
+            The y-component of the momentum.
+        params : EnsembleParameters
+            The object containing the remaining parameters required
+            for the ModelParameters instance.
+
+        Returns
+        -------
+        ModelParameters:
+            An instance containing the same attributes as params, along with the
+            given kx and ky.
+        """
+        
+        return ModelParameters(
+            kx = kx,
+            ky = ky,
+            delta = params.delta,
+            drivingAmp = params.drivingAmp,
+            drivingFreq = params.drivingFreq,
+            decayConstant = params.decayConstant,
+            maxN = params.maxN
+        )
