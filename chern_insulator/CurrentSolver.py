@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 from data import ModelParameters, Fourier
 from Hamiltonian import Hamiltonian
@@ -19,7 +20,7 @@ class CurrentSolver:
         self.__params = params
         self.__hamiltonian = Hamiltonian(self.__params)
 
-    def CalculateSingleTimeCurrent(self, time: float | np.ndarray[float], fourierSeries: np.ndarray[complex]) -> np.ndarray[complex]:
+    def CalculateSingleTimeCurrent(self, time: float | np.ndarray[float], fourierSeries: list[Fourier]) -> np.ndarray[complex]:
         """Calculates the single time current.
         
         Parameters
@@ -44,6 +45,10 @@ class CurrentSolver:
         sigmap = fourierSeries[1].Evaluate(time)
         sigmaz = fourierSeries[2].Evaluate(time)
 
+        # plt.plot(time, sigmam - np.conjugate(sigmap))
+        # plt.title(r"$\sigma_- - \sigma_+^*$")
+        # plt.show()
+        # print(np.mean(sigmam - np.conjugate(sigmap)))
         
         current[0, :] = self.__hamiltonian.jxm(time) * sigmam \
             + self.__hamiltonian.jxp(time) * sigmap \
@@ -54,5 +59,3 @@ class CurrentSolver:
             + self.__hamiltonian.jyz() * sigmaz
         
         return current
-
-        

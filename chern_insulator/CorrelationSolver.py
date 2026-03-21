@@ -1,6 +1,7 @@
 from data import ModelParameters, Fourier
 from Hamiltonian import Hamiltonian
 import numpy as np
+import matplotlib.pyplot as plt
 
 class CorrelationSolver:
     """Contains the relevant code for solving the single- and double- time correlations."""
@@ -87,6 +88,10 @@ class CorrelationSolver:
 
         sigmaCoeffs = np.linalg.solve(M, b)
 
+        # plt.plot(sigmaCoeffs[0:fullN] - np.conjugate(sigmaCoeffs[fullN:2 * fullN]))
+        # plt.title(r"$\sigma_-$ coeffs - $\sigma_+^*$ coeffs.")
+        # plt.show()
+
         return [
             Fourier(
                 freq = self.__params.drivingFreq,
@@ -95,7 +100,8 @@ class CorrelationSolver:
 
             Fourier(
                 freq = self.__params.drivingFreq,
-                coeffs = np.conjugate(sigmaCoeffs[0: fullN])
+                # coeffs = np.conjugate(sigmaCoeffs[0: fullN])
+                coeffs = sigmaCoeffs[fullN : 2*fullN]
             ),
 
             Fourier(
