@@ -17,9 +17,23 @@ params = EnsembleParameters(
 )
 
 ensemble = Ensemble(params)
-ensemble.SampleBrillouinZone(numK)
+# ensemble.SampleBrillouinZone(numK)
+ensemble.AddMomentum((-np.pi / 4, np.pi / 8))
 ensemble.Run(tauMax)
+current = ensemble.totalCurrent.paramagneticCurrent[1]
 
-plot = Plotting(ensemble)
-plot.PlotParamagneticCurrent()
-plot.PlotParamagneticCurrentFFT(linearScale=False)
+# plot = Plotting(ensemble)
+# plot.PlotParamagneticCurrent()
+# plot.PlotParamagneticCurrentFFT(linearScale=False)
+
+ensemble = Ensemble(params)
+ensemble.AddMomentum((np.pi / 4, -np.pi / 8))
+ensemble.Run(tauMax)
+current += ensemble.totalCurrent.paramagneticCurrent[1]
+print(current.shape)
+plt.plot(current.real)
+plt.show()
+
+# plot = Plotting(ensemble)
+# plot.PlotParamagneticCurrent()
+# plot.PlotParamagneticCurrentFFT(linearScale=False)

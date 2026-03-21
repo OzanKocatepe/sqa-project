@@ -96,7 +96,7 @@ class Ensemble:
         if sqrtK % 2 != 0:
             sqrtK += 1
 
-        offset = 0.8
+        offset = 0.01
         axisPoints = np.linspace(-np.pi + offset, np.pi - offset, sqrtK)
         x, y = np.meshgrid(axisPoints, axisPoints)
  

@@ -38,10 +38,11 @@ class CurrentSolver:
             current in the x-dimension and y-dimension for indices 0 and 1 respectively.
         """
 
+        current = np.zeros((2, time.size), dtype=complex)
+
         sigmam = fourierSeries[0].Evaluate(time)
         sigmap = fourierSeries[1].Evaluate(time)
         sigmaz = fourierSeries[2].Evaluate(time)
-        current = np.zeros((2, time.size), dtype=complex)
 
         
         current[0, :] = self.__hamiltonian.jxm(time) * sigmam \

@@ -95,7 +95,7 @@ class CorrelationSolver:
 
             Fourier(
                 freq = self.__params.drivingFreq,
-                coeffs = sigmaCoeffs[fullN:2 * fullN]
+                coeffs = np.conjugate(sigmaCoeffs[0: fullN])
             ),
 
             Fourier(
