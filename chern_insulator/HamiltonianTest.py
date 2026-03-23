@@ -4,8 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 params = ModelParameters(
-    kx = np.pi / 4,
-    ky = -np.pi / 8,
+    kx = np.pi / 4.01,
+    ky = -np.pi / 8.07,
     delta = 1,
     drivingAmp = 0.3,
     decayConstant = 0.2,
