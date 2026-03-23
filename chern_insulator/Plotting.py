@@ -29,6 +29,46 @@ class Plotting:
         self.__freqLabel = r"$f / \Omega$"
         self.__plotFolder = "chern_insulator/plots"
 
+    def PlotSingleTime(self, kx: float, ky: float, tMax: float=None) -> None:
+        """
+        Plots the single-time correlations as functions of time.
+        
+        Parameters
+        ----------
+        kx : float
+            The x-component of the momentum to plot.
+        ky : float
+            The y-component of the momentum to plot.
+        tMax : float
+            The non-dimensional time to plot until.
+        """
+
+        axes = self.__ensemble.axes
+        model = self.__ensemble.models[(kx, ky)]
+        sigma = model.correlationData.singleTimeFourier
+        functions = self.__plottingFunctions[1:]
+        functionLabels = ['Real', 'Imaginary']
+        
+        subscripts = ['-', '+', 'z']
+
+        fig, ax = plt.subplots(2, 3)
+
+        for row in range(2):
+            for col in range(3):
+                ax[row, col].plot(axes.tauAxisDim,
+                                  functions[row](sigma[col].Evaluate(axes.tauAxisSec)),
+                                  color = 'black')
+
+                ax[row, col].set_xlabel(self.__tLabel)
+                ax[row, col].set_ylabel(f"{functionLabels[row]} Part of $\hat \sigma_{subscripts[col]}$")
+                ax[row, col].set_xlim(None, tMax)
+        
+        plt.suptitle(rf"Single-Time Correlations for $(k_x, k_y) = ({kx / np.pi:.2f}\pi, {ky / np.pi:.2f}\pi)$")
+        plt.tight_layout()
+        plt.show()
+        plt.close()
+        
+
     def PlotParamagneticCurrent(self) -> None:
         """Plots the paramagnetic current as a function of time."""
 

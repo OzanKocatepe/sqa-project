@@ -12,6 +12,8 @@ At the very least, the Fourier series for $h_x(t), h_y, h_z(t), H_m(t), H_p(t), 
 
 Also, based on eyeballed measurements it definitely seems like $H_m(t) = H_p(t)^*$, so at least those formulae seem to be correct?
 
+The single-time correlations seem right, with $\sigma_-$ and $\sigma_-$ oscillating around zero, and being conjugates of each other. However, the $\sigma_z$ doesn't oscillate around -1, but rather 'bounces' off of it? It doesn't even bounce evenly, it seems to vary in amplitude. 'Bouncing' might be the wrong term, the most negative it goes is -1. Will double-check if this agrees with numerical simulation.
+
 ## Rho Singularities
 
 There are singularities at $\{ (x, y) : x, y \in \{-\pi, 0, \pi \} \}$. These points have $\rho = 0$, so the assumption is that because $\rho$ gets so small, at opposite momentums the value of $\rho$ undergoes rounding errors, meaning $1 / \rho$ doesn't match at opposite momentums, and hence the Jy current terms don't cancel.

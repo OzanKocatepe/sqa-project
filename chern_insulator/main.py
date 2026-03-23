@@ -25,5 +25,6 @@ ensemble.AddMomentum((-np.pi / 4, -np.pi / 8))
 ensemble.Run(tauMax)
 
 plot = Plotting(ensemble)
-plot.PlotParamagneticCurrent()
+plot.PlotSingleTime(np.pi / 4, np.pi / 8, 10)
+# plot.PlotParamagneticCurrent()
 # plot.PlotParamagneticCurrentFFT(linearScale=False)

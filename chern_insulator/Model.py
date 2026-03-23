@@ -59,3 +59,7 @@ class Model:
     @property
     def currentData(self) -> CurrentData:
         return self.__currentData
+    
+    @property
+    def correlationData(self) -> CorrelationData:
+        return self.__corrData

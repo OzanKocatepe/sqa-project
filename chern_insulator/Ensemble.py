@@ -144,3 +144,7 @@ class Ensemble:
     @property
     def params(self) -> EnsembleParameters:
         return self.__params
+    
+    @property
+    def models(self) -> dict[tuple[float, float], Model]:
+        return self.__models
