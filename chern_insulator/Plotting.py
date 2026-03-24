@@ -84,7 +84,7 @@ class Plotting:
                     ax[row, col].legend()
 
                 ax[row, col].set_xlabel(self.__tLabel)
-                ax[row, col].set_ylabel(f"{functionLabels[row]} Part of $\hat \sigma_{subscripts[col]}$")
+                ax[row, col].set_ylabel(fr"{functionLabels[row]} Part of $\hat \sigma_{subscripts[col]}$")
                 ax[row, col].set_xlim(None, tMax)
         
         plt.suptitle(rf"Single-Time Correlations for $(k_x, k_y) = ({kx / np.pi:.2f}\pi, {ky / np.pi:.2f}\pi)$")
@@ -97,7 +97,10 @@ class Plotting:
         """Plots the paramagnetic current as a function of time."""
 
         axes = self.__ensemble.axes
-        current = self.__ensemble.totalCurrent
+        current = self.__ensemble.totalCurrent.paramagneticCurrent
+
+        print(f"Jx: {np.max(np.abs(current[0, -1000]))}")
+        print(f"Jy: {np.max(np.abs(current[1, -1000]))}")
 
         labels = [r"$\hat j_x$", r"$\hat j_y$"]
         alpha = 0.2
@@ -111,24 +114,24 @@ class Plotting:
 
             # Plots the main operator with full opacity.
             ax[0].plot(axes.tauAxisDim,
-                       current.paramagneticCurrent[operatorIndex].real,
+                       current[operatorIndex].real,
                        color = colors[operatorIndex],
                        label = labels[operatorIndex])
 
             ax[1].plot(axes.tauAxisDim,
-                       current.paramagneticCurrent[operatorIndex].imag,
+                       current[operatorIndex].imag,
                        color = colors[operatorIndex],
                        label = labels[operatorIndex])
 
             # Plots the other operator with small opacity.
             ax[0].plot(axes.tauAxisDim,
-                       current.paramagneticCurrent[opacityIndex].real,
+                       current[opacityIndex].real,
                        color = colors[opacityIndex],
                        label = labels[opacityIndex],
                        alpha = alpha)
 
             ax[1].plot(axes.tauAxisDim,
-                       current.paramagneticCurrent[opacityIndex].imag,
+                       current[opacityIndex].imag,
                        color = colors[opacityIndex],
                        label = labels[opacityIndex],
                        alpha = alpha)

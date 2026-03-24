@@ -96,9 +96,11 @@ class Ensemble:
         if sqrtK % 2 != 0:
             sqrtK += 1
 
-        offset = 0.01
-        axisPoints = np.linspace(-np.pi + offset, np.pi - offset, sqrtK)
-        x, y = np.meshgrid(axisPoints, axisPoints)
+        offsetX, offsetY = 0, 0.3
+        print(offsetX, offsetY)
+        xPoints = np.linspace(-np.pi + offsetX, np.pi - offsetX, sqrtK)
+        yPoints = np.linspace(-np.pi + offsetY, np.pi - offsetY, sqrtK)
+        x, y = np.meshgrid(xPoints, yPoints)
  
         # Stacks x and y so that the last axis differentiates between them.
         momentums = np.stack((x.flatten(), y.flatten()), axis=-1)

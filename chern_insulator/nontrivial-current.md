@@ -18,6 +18,8 @@ The $\sigma_z$ term seems weird, but it matches the numerical solution, so unles
 
 I've looked at every formula in the Hamiltonian class and they match my derivations. Need to check whether my derivations are correct.
 
+Seems like we're using the right number of momentum points.
+
 ## Rho Singularities
 
 There are singularities at $\{ (x, y) : x, y \in \{-\pi, 0, \pi \} \}$. These points have $\rho = 0$, so the assumption is that because $\rho$ gets so small, at opposite momentums the value of $\rho$ undergoes rounding errors, meaning $1 / \rho$ doesn't match at opposite momentums, and hence the Jy current terms don't cancel.
