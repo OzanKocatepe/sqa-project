@@ -14,6 +14,10 @@ Also, based on eyeballed measurements it definitely seems like $H_m(t) = H_p(t)^
 
 The single-time correlations seem right, with $\sigma_-$ and $\sigma_-$ oscillating around zero, and being conjugates of each other. However, the $\sigma_z$ doesn't oscillate around -1, but rather 'bounces' off of it? It doesn't even bounce evenly, it seems to vary in amplitude. 'Bouncing' might be the wrong term, the most negative it goes is -1. Will double-check if this agrees with numerical simulation. However, its worrying since the difference in amplitude is like 1e-4, and thats also the order of amplitude of the oscillation, so idk if that can explain a current of 0.1 amplitude appearing in the y-direction.
 
+The $\sigma_z$ term seems weird, but it matches the numerical solution, so unless the ODE is wrong I don't think there's a problem there. I should compare with Alessandria's code.
+
+I've looked at every formula in the Hamiltonian class and they match my derivations. Need to check whether my derivations are correct.
+
 ## Rho Singularities
 
 There are singularities at $\{ (x, y) : x, y \in \{-\pi, 0, \pi \} \}$. These points have $\rho = 0$, so the assumption is that because $\rho$ gets so small, at opposite momentums the value of $\rho$ undergoes rounding errors, meaning $1 / \rho$ doesn't match at opposite momentums, and hence the Jy current terms don't cancel.
