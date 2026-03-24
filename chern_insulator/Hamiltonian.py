@@ -566,7 +566,7 @@ class Hamiltonian:
                       [2j * Hm, -2j * Hp, -gamma]], dtype=complex)
         
         inhomPart = np.array([0, 0, -gamma], dtype=complex)
-        
+ 
         return B @ c + inhomPart[:, np.newaxis]
     
     @cached_property

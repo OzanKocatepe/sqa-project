@@ -63,3 +63,7 @@ class Model:
     @property
     def correlationData(self) -> CorrelationData:
         return self.__corrData
+    
+    @property
+    def params(self) -> ModelParameters:
+        return self.__params

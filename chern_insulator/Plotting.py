@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+from scipy import integrate
 
 from Ensemble import Ensemble
 
@@ -29,7 +30,7 @@ class Plotting:
         self.__freqLabel = r"$f / \Omega$"
         self.__plotFolder = "chern_insulator/plots"
 
-    def PlotSingleTime(self, kx: float, ky: float, tMax: float=None) -> None:
+    def PlotSingleTime(self, kx: float, ky: float, tMax: float=None, overplotNumericalSolution: bool=False) -> None:
         """
         Plots the single-time correlations as functions of time.
         
@@ -41,6 +42,10 @@ class Plotting:
             The y-component of the momentum to plot.
         tMax : float
             The non-dimensional time to plot until.
+        overplotNumericalSolution : bool
+            Whether to overplot the numerical simulation, solved using the equations
+            of motion ODE and numerical approximation methods (solve_ivp from scipy)
+            to confirm that the Fourier series are accurate.
         """
 
         axes = self.__ensemble.axes
@@ -57,7 +62,26 @@ class Plotting:
             for col in range(3):
                 ax[row, col].plot(axes.tauAxisDim,
                                   functions[row](sigma[col].Evaluate(axes.tauAxisSec)),
-                                  color = 'black')
+                                  color = 'black', label='Fourier Series')
+                
+                if overplotNumericalSolution:
+                    from Hamiltonian import Hamiltonian
+                    h = Hamiltonian(model.params)
+
+                    numericalSigma = integrate.solve_ivp(
+                        fun = h.EquationsOfMotion,
+                        t_span = (0, np.max(axes.tauAxisSec)),
+                        y0 = np.array([0.0, 0.0, -1.0], dtype=complex),
+                        t_eval = axes.tauAxisSec,
+                        rtol=1e-9,
+                        atol=1e-12,
+                        vectorized = True
+                    ).y
+
+                    ax[row, col].plot(axes.tauAxisDim,
+                                      functions[row](numericalSigma[col]),
+                                      color = 'blue', label='Numerical Soln')
+                    ax[row, col].legend()
 
                 ax[row, col].set_xlabel(self.__tLabel)
                 ax[row, col].set_ylabel(f"{functionLabels[row]} Part of $\hat \sigma_{subscripts[col]}$")
