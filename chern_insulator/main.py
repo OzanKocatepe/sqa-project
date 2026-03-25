@@ -6,7 +6,7 @@ from Ensemble import Ensemble
 from Plotting import Plotting
 
 # Number of momentum points on each axis.
-numK = 21
+numK = 20
 tauMax = 50
 
 params = EnsembleParameters(
