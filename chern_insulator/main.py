@@ -13,7 +13,7 @@ params = EnsembleParameters(
     delta = 3,
     drivingAmp = 0.2,
     decayConstant = 0.2,
-    maxN = 25
+    maxN = 50
 )
 
 ensemble = Ensemble(params)
@@ -24,7 +24,7 @@ ensemble.SampleBrillouinZone(numK)
 # ensemble.AddMomentum((-np.pi / 4, -np.pi / 8))
 ensemble.Run(tauMax)
 
-plot = Plotting(ensemble)
+# plot = Plotting(ensemble)
 # plot.PlotSingleTime(np.pi / 4, np.pi / 8, tMax = 10, overplotNumericalSolution=False)
-plot.PlotParamagneticCurrent()
+# plot.PlotParamagneticCurrent()
 # plot.PlotParamagneticCurrentFFT(linearScale=False)
