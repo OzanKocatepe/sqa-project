@@ -20,6 +20,8 @@ I've looked at every formula in the Hamiltonian class and they match my derivati
 
 Seems like we're using the right number of momentum points.
 
+Replacing my current functions with Alessandria's (switching the sign of the sin components), without changing everything else (other than sometimes the sign of the driving amplitude to match hers) actually makes the code worse, even if I set the BZ offsets back to 0. Switching between our derivations must be slightly more complicated, maybe requiring changing the sigma ODE too?
+
 ## Rho Singularities
 
 There are singularities at $\{ (x, y) : x, y \in \{-\pi, 0, \pi \} \}$. These points have $\rho = 0$, so the assumption is that because $\rho$ gets so small, at opposite momentums the value of $\rho$ undergoes rounding errors, meaning $1 / \rho$ doesn't match at opposite momentums, and hence the Jy current terms don't cancel.
