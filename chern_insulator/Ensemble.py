@@ -97,7 +97,7 @@ class Ensemble:
             sqrtK += 1
 
         offsetX, offsetY = 0, 0.3
-        print(offsetX, offsetY)
+        print(f"x-offset: {offsetX}, y-offset: {offsetY}")
         xPoints = np.linspace(-np.pi + offsetX, np.pi - offsetX, sqrtK)
         yPoints = np.linspace(-np.pi + offsetY, np.pi - offsetY, sqrtK)
         x, y = np.meshgrid(xPoints, yPoints)
