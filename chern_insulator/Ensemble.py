@@ -76,10 +76,8 @@ class Ensemble:
 
     def SampleBrillouinZone(self, numK: int) -> None:
         """
-        Samples the Brillouin Zone (kx, ky in [-pi, pi]) evenly on
-        both axes to obtain a number of samples closest to numK.
-        i.e. it will samples floor(sqrt(numK)) points on the x and y axes
-        of the Brillouin zone.
+        Samples the Brillouin Zone (kx, ky in [-pi, pi]) using a
+        numK-by-numK grid.
 
         This function automatically adds the models with the associated
         momentum values to the ensemble.
@@ -87,21 +85,21 @@ class Ensemble:
         Parameters
         ----------
         numK : int
-            The number of desired momentum points that we want to sample.
+            The side length of the grid we want to sample.
         """
-
-        # Samples the Brillouin zone.
-        sqrtK = np.floor(np.sqrt(numK)).astype(int)
-        # Makes sure we have an even number of points along each axis.
-        if sqrtK % 2 != 0:
-            sqrtK += 1
 
         offsetX, offsetY = 0, 0.3
         print(f"x-offset: {offsetX}, y-offset: {offsetY}")
-        xPoints = np.linspace(-np.pi + offsetX, np.pi - offsetX, sqrtK)
-        yPoints = np.linspace(-np.pi + offsetY, np.pi - offsetY, sqrtK)
+        xPoints = np.linspace(-np.pi + offsetX, np.pi - offsetX, numK)
+        yPoints = np.linspace(-np.pi + offsetY, np.pi - offsetY, numK)
         x, y = np.meshgrid(xPoints, yPoints)
- 
+
+        # Masks our the (0, 0) point, since the code breaks there.
+        # Better than enforcing that numK has to be even.
+        zeroMask = (x == 0) & (y == 0)
+        x = x[~zeroMask]
+        y = y[~zeroMask]
+         
         # Stacks x and y so that the last axis differentiates between them.
         momentums = np.stack((x.flatten(), y.flatten()), axis=-1)
 
