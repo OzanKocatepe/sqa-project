@@ -89,6 +89,10 @@ class Plotting:
         
         plt.suptitle(rf"Single-Time Correlations for $(k_x, k_y) = ({kx / np.pi:.2f}\pi, {ky / np.pi:.2f}\pi)$")
         plt.tight_layout()
+        
+        folder = f"{self.__plotFolder}/Delta {self.__ensemble.params.delta}/Single-Time"
+        os.makedirs(folder, exist_ok=True)
+        plt.savefig(f"{folder}/kx: {kx / np.pi}pi, ky: {ky / np.pi}pi.png", dpi=300)
         plt.show()
         plt.close()
         

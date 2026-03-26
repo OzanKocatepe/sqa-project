@@ -6,6 +6,14 @@ The error is systematic, a very accurate sine wave with amplitude ~0.01.
 
 # Log
 
+## Action Under Symmetry
+
+It seems that going from $k_x \mapsto -k_x$ transforms the system so that the zero frequency term for $j_x$ is flipped, and the real part of $\sigma_+, \sigma_-$ swap signs. Something similar but slightly more complicated occurs for $\sigma_z$.
+
+Under $k_y \mapsto -k_y$, we similarly get the zero frequency term for $j_y$ is flipped, and the imaginary part of $\sigma_+, \sigma_-$ swaps.
+
+Hence, if we swap both, we end upw with $j_x$ and $j_y$ having no zero frequency term, and $\sigma_+, \sigma_- \mapsto -\sigma_+, -\sigma_-$.
+
 ## Incorrect Formulae in Code
 
 At the very least, the Fourier series for $h_x(t), h_y, h_z(t), H_m(t), H_p(t), H_z(t)$ match their Fourier series in the code. Tested it at $(k_x, k_y) = (\pi / 4, -\pi / 8)$ and $(k_x, k_y) = (\pi / 4.01, -\pi / 8.07)$.
