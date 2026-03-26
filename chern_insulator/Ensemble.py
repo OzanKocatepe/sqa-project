@@ -1,6 +1,7 @@
 import numpy as np
 from functools import cached_property
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 from data import ModelParameters, EnsembleParameters, AxisData, CurrentData
 from Model import Model
@@ -71,7 +72,7 @@ class Ensemble:
 
         self.__axes = self.__CreateAxes(tauMax)
 
-        for model in self.__models.values():
+        for model in tqdm(self.__models.values()):
             model.Run(self.__axes)
 
     def SampleBrillouinZone(self, numK: int) -> None:

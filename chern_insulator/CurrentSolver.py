@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy import integrate
 
 from data import ModelParameters, Fourier
 from Hamiltonian import Hamiltonian
@@ -41,9 +42,14 @@ class CurrentSolver:
 
         current = np.zeros((2, time.size), dtype=complex)
 
-        sigmam = fourierSeries[0].Evaluate(time)
-        sigmap = fourierSeries[1].Evaluate(time)
-        sigmaz = fourierSeries[2].Evaluate(time)
+        sigma = self.__SolveSigmaNumerically(time)
+        sigmam = sigma[0, :]
+        sigmap = sigma[1, :]
+        sigmaz = sigma[2, :]
+
+        # sigmam = fourierSeries[0].Evaluate(time)
+        # sigmap = fourierSeries[1].Evaluate(time)
+        # sigmaz = fourierSeries[2].Evaluate(time)
 
         # plt.plot(time, sigmam - np.conjugate(sigmap))
         # plt.title(r"$\sigma_- - \sigma_+^*$")
@@ -59,3 +65,29 @@ class CurrentSolver:
             + self.__hamiltonian.jyz() * sigmaz
         
         return current
+    
+    def __SolveSigmaNumerically(self, time: np.ndarray[float]) -> np.ndarray[complex]:
+        """
+        Solves the sigma correlations numerically as a debug step.
+
+        Parameters
+        ----------
+        time : ndarray[float]
+            The time, in seconds, that we will evaluate the solution at.
+        
+        Returns
+        -------
+        ndarray[complex]
+            An array of shape (3, time.size) containing the evaluated sigma
+            correlations.
+        """
+
+        return integrate.solve_ivp(
+            fun = self.__hamiltonian.EquationsOfMotion,
+            t_span = (0, np.max(time)),
+            y0 = np.array([0.0, 0.0, -1.0], dtype=complex),
+            t_eval = time,
+            rtol=1e-9,
+            atol=1e-12,
+            vectorized = True
+        ).y

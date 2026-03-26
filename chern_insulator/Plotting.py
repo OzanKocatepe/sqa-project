@@ -97,7 +97,7 @@ class Plotting:
         plt.close()
         
 
-    def PlotParamagneticCurrent(self) -> None:
+    def PlotParamagneticCurrent(self, overplotNumericalSolution: bool = False) -> None:
         """Plots the paramagnetic current as a function of time."""
 
         axes = self.__ensemble.axes
