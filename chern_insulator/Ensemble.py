@@ -138,7 +138,7 @@ class Ensemble:
             freqAxis = freqAxis
         )
     
-    # @cached_property
+    @cached_property
     def totalCurrent(self) -> CurrentData:
         return np.sum([model.currentData for model in self.__models.values()])
     
