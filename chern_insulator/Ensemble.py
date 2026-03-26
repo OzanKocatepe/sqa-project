@@ -88,11 +88,16 @@ class Ensemble:
             The side length of the grid we want to sample.
         """
 
-        offsetX, offsetY = 0, 0.3
+        offsetX, offsetY = 0, 0
         print(f"x-offset: {offsetX}, y-offset: {offsetY}")
-        xPoints = np.linspace(-np.pi + offsetX, np.pi - offsetX, numK)
-        yPoints = np.linspace(-np.pi + offsetY, np.pi - offsetY, numK)
+        xPoints = np.linspace(-np.pi + offsetX, np.pi - offsetX, numK, endpoint=False) + np.pi / numK
+        yPoints = np.linspace(-np.pi + offsetY, np.pi - offsetY, numK, endpoint=False) + np.pi / numK
         x, y = np.meshgrid(xPoints, yPoints)
+
+        plt.scatter(x / np.pi, y / np.pi, s=2, color='black')
+        plt.grid(True, which='both')
+        plt.axis('equal')
+        plt.show()
 
         # Masks our the (0, 0) point, since the code breaks there.
         # Better than enforcing that numK has to be even.
