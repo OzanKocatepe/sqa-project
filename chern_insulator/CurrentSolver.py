@@ -42,14 +42,9 @@ class CurrentSolver:
 
         current = np.zeros((2, time.size), dtype=complex)
 
-        sigma = self.__SolveSigmaNumerically(time)
-        sigmam = sigma[0, :]
-        sigmap = sigma[1, :]
-        sigmaz = sigma[2, :]
-
-        # sigmam = fourierSeries[0].Evaluate(time)
-        # sigmap = fourierSeries[1].Evaluate(time)
-        # sigmaz = fourierSeries[2].Evaluate(time)
+        sigmam = fourierSeries[0].Evaluate(time)
+        sigmap = fourierSeries[1].Evaluate(time)
+        sigmaz = fourierSeries[2].Evaluate(time)
 
         # plt.plot(time, sigmam - np.conjugate(sigmap))
         # plt.title(r"$\sigma_- - \sigma_+^*$")
@@ -68,6 +63,9 @@ class CurrentSolver:
     
     def __SolveSigmaNumerically(self, time: np.ndarray[float]) -> np.ndarray[complex]:
         """
+        TO BE DEPRECATED - if this continues to exist it must be moved and integrated
+        properly into the code in another place.
+
         Solves the sigma correlations numerically as a debug step.
 
         Parameters
@@ -81,6 +79,8 @@ class CurrentSolver:
             An array of shape (3, time.size) containing the evaluated sigma
             correlations.
         """
+
+        raise DeprecationWarning("This function is deprecated.")
 
         return integrate.solve_ivp(
             fun = self.__hamiltonian.EquationsOfMotion,
