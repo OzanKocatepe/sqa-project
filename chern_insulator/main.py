@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from data import EnsembleParameters
 from Ensemble import Ensemble
 from Plotting import Plotting
+from Hamiltonian import Hamiltonian
 
 # Number of momentum points on each axis.
 numK = 20
@@ -15,6 +16,11 @@ params = EnsembleParameters(
     decayConstant = 0.2,
     maxN = 50
 )
+
+# Check the Chern number.
+print(f"Trivial Phase (Delta = 3): C = {Hamiltonian.ChernNumber(3)}")
+print(f"Trivial Phase (Delta = 1): C = {Hamiltonian.ChernNumber(1)}")
+exit()
 
 ensemble = Ensemble(params)
 ensemble.SampleBrillouinZone(numK)

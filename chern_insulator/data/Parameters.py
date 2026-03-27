@@ -54,7 +54,7 @@ class EnsembleParameters:
 
             # Samples the BZ based on the resolution. This can be very detailed since
             # it should only happen a single time in the code.
-            resolution = 25
+            resolution = 50
             axisPoints = np.linspace(-np.pi, np.pi, resolution)
             x, y = np.meshgrid(axisPoints, axisPoints)
 
@@ -86,8 +86,8 @@ class ModelParameters(EnsembleParameters):
     kx: float = field(default = None)
     ky: float = field(default = None)
 
-    @staticmethod
-    def FromEnsemble(kx: float, ky: float, params: EnsembleParameters) -> ModelParameters:
+    @classmethod
+    def FromEnsemble(cls, kx: float, ky: float, params: EnsembleParameters) -> ModelParameters:
         """
         Creates an instance of ModelParameters from an instance of EnsembleParameters.
 
@@ -108,7 +108,7 @@ class ModelParameters(EnsembleParameters):
             given kx and ky.
         """
         
-        modelParams = ModelParameters(
+        modelParams = cls(
             kx = kx,
             ky = ky,
             delta = params.delta,
