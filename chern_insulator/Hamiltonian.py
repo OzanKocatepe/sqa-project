@@ -6,6 +6,15 @@ from data import ModelParameters
 
 class Hamiltonian:
     """Contains the functions derived from the Chern Hamiltonian."""
+ 
+    sigmax = np.array([[0, 1],
+                       [1, 0]], dtype=complex)
+    
+    sigmay = np.array([[0, -1j],
+                       [1j, 0]], dtype=complex)
+
+    sigmaz = np.array([[1, 0],
+                       [0, -1]], dtype=complex)
 
     def __init__(self, params: ModelParameters) -> None:
         """
@@ -59,7 +68,7 @@ class Hamiltonian:
         """
 
         return np.sin(self.__params.kx - self.Ax(t))
-    
+ 
     @cache   
     def hy(self) -> float:
         """
@@ -144,6 +153,53 @@ class Hamiltonian:
         hz = delta + np.cos(kx) + np.cos(ky)
 
         return np.sqrt(hx**2 + hy**2 + hz**2)
+
+    def H(self, t: float | np.ndarray[float]=0) -> np.ndarray[complex]:
+        """
+        Gets the value of the Hamiltonian in the lattice basis at time t.
+
+        Parameters
+        ----------
+        t : float | ndarray[float]
+            The time, in seconds, to evaluate the Hamiltonian at.
+            If zero, this is the unperturbed Hamiltonian.
+
+        Returns
+        -------
+        ndarray[complex]:
+            The Hamiltonian evaluated at each time. Has the shape
+            (2, 2, t.size).
+        """
+
+        return self.hx(t) * self.sigmax + self.hy(t) * self.sigmay + self.hz(t) * self.sigmaz
+    
+    @cache
+    def Pp(self) -> np.ndarray[complex]:
+        """
+        Gets the P_+ projection operator. This is the projection
+        operator onto the positive eigenstate (in the band basis).
+
+        Returns
+        -------
+        ndarray[complex]:
+            An array of shape (2, 2) containing the projection operator.
+        """
+
+        return 0.5 * (np.eye(2) + self.H() / self.energy())
+
+    @cache
+    def Pm(self) -> np.ndarray[complex]:
+        """
+        Gets the P_- projection operator. This is the projection
+        operator onto the negative eigenstate (in the band basis).
+
+        Returns
+        -------
+        ndarray[complex]:
+            An array of shape (2, 2) containing the projection operator.
+        """
+
+        return 0.5 * (np.eye(2) - self.H() / self.energy())
     
     def Hm(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
         """
