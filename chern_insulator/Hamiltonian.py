@@ -230,6 +230,8 @@ class Hamiltonian:
         eigenbasisMatrix[1, 1] = np.trace(self.PMinus() @ self.H(t))
 
         # Defines our arbitrary vector numerically.
+        # Numerical uncertainty in this should not cause numerical uncertainty in our final values,
+        # since this will work for any arbitrary vector not orthogonal to either eigenvector.
         _, U = np.linalg.eigh(self.H())
         r = (U[:, 0] + U[:, 1]).reshape(2, 1) / np.sqrt(2)
 
@@ -547,6 +549,68 @@ class Hamiltonian:
 
         return coeffs
     
+    def Hn(self, n: int | np.ndarray[int]) -> np.ndarray[complex]:
+        """
+        Calculates the nth Fourier coefficient for H(t), the driven lattice basis Hamiltonian.
+        
+        Parameters
+        ----------
+        n : int | ndarray[int]
+            The index, or indices, that we will calculate the Fourier coefficients of.
+            The index corresponds to the harmonic of the base frequency.
+
+        Returns
+        -------
+        complex | ndarray[complex]:
+            The desired coefficient(s). Of the same type as n. Comes in the shape
+            (n.size, 2, 2), where the third axis disappears if n is a scalar.
+        """
+
+        return np.ndarray([[self.hzn(n), self.hxn(n) - 1j * self.hyn(n)],
+                           [self.hxn(n) + 1j * self.hyn(n), -self.hzn(n)]], dtype=complex)
+    
+    @cache
+    def EigenbasisComponentsFourier(self, n: int | np.ndarray[int]) -> np.ndarray[complex]:
+        """
+        Calculates the nth Fourier coefficient for the components of the Hamiltonian in the eigenbasis (band basis).
+        Uses no numerical approximations.
+
+        Parameters
+        ----------
+        n : int | ndarray[int]
+            The index, or indices, that we will calculate the Fourier coefficients of.
+            The index corresponds to the harmonic of the base frequency. Vectorisable.
+        
+        Returns
+        ----------
+        ndarray[complex]:
+            The components in matrix form, in the form
+            (H++, H+-,
+             H-+, H--)
+            for the nth Fourier coefficient. If n is a scalar, this is just a (2, 2) array.
+            If n is a vector, this is an array of shape (n.size, 2, 2).
+        """
+
+        np.atleast_1d(n)
+        coeffs = np.zeros((n.size, 2, 2), dtype=complex)
+
+        # Gets the diagonal components.
+        coeffs[:, 0, 0] = np.trace(self.PPlus @ self.Hn(n))
+        coeffs[:, 1, 1] = np.trace(self.PMinus @ self.Hn(n))
+
+        # Defines our arbitrary vector numerically.
+        # Numerical uncertainty in this should not cause numerical uncertainty in our final values,
+        # since this will work for any arbitrary vector not orthogonal to either eigenvector.
+        _, U = np.linalg.eigh(self.H())
+        r = (U[:, 0] + U[:, 1]).reshape(2, 1) / np.sqrt(2)
+
+        # Calculates the off-diagonal components.
+        denominator = np.sqrt( r.conj().T @ self.PPlus() @ r @ r.conj().T @ self.PMinus() @ r )
+        coeffs[:, 0, 1] = ( r.conj().T @ self.PPlus() @ self.Hn(n) @ self.PMinus() @ r ) / denominator
+        coeffs[:, 1, 0] = ( r.conj().T @ self.PMinus() @ self.Hn(n) @ self.PPlus() @ r ) / denominator
+        
+        return coeffs
+    
     def Hmn(self, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
         """
         Calculates the nth Fourier coefficient for Hm(t).
@@ -563,13 +627,7 @@ class Hamiltonian:
             The desired coefficient(s). Of the same type as n.
         """
 
-        rho = self.rho
-        energy = self.energy()
-        hx, hy, hz = self.hx(), self.hy(), self.hz()
-
-        return self.hxn(n) * (1j * hy - hx * hz / energy) / rho \
-            -1j * self.hyn(n) * (hx - 1j * hy * hz / energy) / rho \
-            + self.hzn(n) * rho / energy
+        return self.EigenbasisComponentsFourier(n)[1, 0]
 
     def Hpn(self, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
         """
@@ -587,13 +645,7 @@ class Hamiltonian:
             The desired coefficient(s). Of the same type as n.
         """
 
-        rho = self.rho
-        energy = self.energy()
-        hx, hy, hz = self.hx(), self.hy(), self.hz()
-
-        return -self.hxn(n) * (1j * hy + hx * hz / energy) / rho \
-            + 1j * self.hyn(n) * (hx + 1j * hy * hz / energy) / rho \
-            + self.hzn(n) * rho / energy
+        return self.EigenbasisComponentsFourier(n)[0, 1]
 
     def Hzn(self, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
         """
@@ -611,10 +663,9 @@ class Hamiltonian:
             The desired coefficient(s). Of the same type as n.
         """
 
-        energy = self.energy()
-        hx, hy, hz = self.hx(), self.hy(), self.hz()
+        components = self.EigenbasisComponentsFourier(n)
 
-        return (self.hxn(n) * hx + self.hyn(n) * hy + self.hzn(n) * hz) / energy
+        return 0.5 * (components[0, 0] + components[1, 1])
     
     def EquationsOfMotion(self, t: float | np.ndarray[float],
                           c: np.ndarray[complex]
