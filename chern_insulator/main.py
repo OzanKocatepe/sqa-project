@@ -11,7 +11,7 @@ numK = 20
 tauMax = 50
 
 params = EnsembleParameters(
-    delta = 1,
+    delta = 3,
     drivingAmp = 0.2,
     decayConstant = 0.2,
     maxN = 50
