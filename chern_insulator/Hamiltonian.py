@@ -228,6 +228,9 @@ class Hamiltonian:
              H-+, H--)
         """
 
+        eigs, U = np.linalg.eigh(self.H())
+        return U.conj().T @ self.H(t) @ U
+
         t = np.atleast_1d(t)
         eigenbasisMatrix = np.zeros((t.size, 2, 2), dtype=complex)
 
@@ -377,6 +380,9 @@ class Hamiltonian:
              jx-+, jx--)
         """
 
+        eigs, U = np.linalg.eigh(self.H())
+        return U.conj().T @ self.jx(t) @ U
+
         t = np.atleast_1d(t)
         eigenbasisMatrix = np.zeros((t.size, 2, 2), dtype=complex)
 
@@ -417,6 +423,9 @@ class Hamiltonian:
             (jy++, jy+-,
              jy-+, jy--)
         """
+
+        eigs, U = np.linalg.eigh(self.H())
+        return U.conj().T @ self.jy() @ U
 
         eigenbasisMatrix = np.zeros((2, 2), dtype=complex)
 
