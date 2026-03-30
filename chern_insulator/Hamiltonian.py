@@ -174,7 +174,7 @@ class Hamiltonian:
         return self.hx(t) * self.sigmax + self.hy(t) * self.sigmay + self.hz(t) * self.sigmaz
     
     @cache
-    def Pp(self) -> np.ndarray[complex]:
+    def PPlus(self) -> np.ndarray[complex]:
         """
         Gets the P_+ projection operator. This is the projection
         operator onto the positive eigenstate (in the band basis).
@@ -188,7 +188,7 @@ class Hamiltonian:
         return 0.5 * (np.eye(2) + self.H() / self.energy())
 
     @cache
-    def Pm(self) -> np.ndarray[complex]:
+    def PMinus(self) -> np.ndarray[complex]:
         """
         Gets the P_- projection operator. This is the projection
         operator onto the negative eigenstate (in the band basis).
@@ -200,6 +200,45 @@ class Hamiltonian:
         """
 
         return 0.5 * (np.eye(2) - self.H() / self.energy())
+    
+    @cache
+    def EigenbasisComponents(self, t: float | np.ndarray[float]) -> np.ndarray[complex]:
+        """
+        Gets the components of the Hamiltonian in the eigenbasis (band basis).
+        Uses no numerical approximations.
+
+        Parameters
+        ----------
+        t : float | ndarray[float]
+            The time, in seconds, to find the eigenbasis components at.
+            Can be vectorised, resulting in a vectorised output where last axis
+            is the time axis.
+        
+        Returns
+        ----------
+        ndarray[complex]:
+            The components in matrix form, in the form
+            (H++, H+-,
+             H-+, H--)
+        """
+
+        t = np.atleast_1d(t)
+        eigenbasisMatrix = np.zeros((2, 2, t.size), dtype=complex)
+
+        # Calculates the diagonal components.
+        eigenbasisMatrix[0, 0] = np.trace(self.PPlus() @ self.H(t))
+        eigenbasisMatrix[1, 1] = np.trace(self.PMinus() @ self.H(t))
+
+        # Defines our arbitrary vector numerically.
+        _, U = np.linalg.eigh(self.H())
+        r = (U[:, 0] + U[:, 1]).reshape(2, 1) / np.sqrt(2)
+
+        # Calculates the off-diagonal components.
+        denominator = np.sqrt( r.conj().T @ self.PPlus() @ r @ r.conj().T @ self.PMinus() @ r )
+        eigenbasisMatrix[0, 1] = ( r.conj().T @ self.PPlus() @ self.H(t) @ self.PMinus() @ r ) / denominator
+        eigenbasisMatrix[1, 0] = ( r.conj().T @ self.PMinus() @ self.H(t) @ self.PPlus() @ r ) / denominator
+        
+        return eigenbasisMatrix
     
     def Hm(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
         """
@@ -219,13 +258,7 @@ class Hamiltonian:
             at time(s) t. The type returned is the same as the type of t.
         """
 
-        rho = self.rho
-        energy = self.energy()
-        hx, hy, hz = self.hx(), self.hy(), self.hz()
-
-        return self.hx(t) * (1j * hy - hx * hz / energy) / rho \
-            -1j * hy * (hx - 1j * hy * hz / energy) / rho \
-            + self.hz(t) * rho / energy
+        return self.EigenbasisComponents(t)[1, 0]
     
     def Hp(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
         """
@@ -245,13 +278,7 @@ class Hamiltonian:
             at time(s) t. The type returned is the same as the type of t.
         """
 
-        rho = self.rho
-        energy = self.energy()
-        hx, hy, hz = self.hx(), self.hy(), self.hz()
-
-        return -self.hx(t) * (1j * hy + hx * hz / energy) / rho \
-            + 1j * hy * (hx + 1j * hy * hz / energy) / rho \
-            + self.hz(t) * rho / energy
+        return self.EigenbasisComponents(t)[0, 1]
     
     def Hz(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
         """
@@ -271,10 +298,8 @@ class Hamiltonian:
             at time(s) t. The type returned is the same as the type of t.
         """
 
-        energy = self.energy()
-        hx, hy, hz = self.hx(), self.hy(), self.hz()
-
-        return (self.hx(t) * hx + hy * hy + self.hz(t) * hz) / energy
+        H = self.EigenbasisComponents(t)
+        return 0.5 * (H[0, 0] + H[1, 1])
     
     def jxm(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
         """
