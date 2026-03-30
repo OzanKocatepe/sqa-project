@@ -95,10 +95,10 @@ class Ensemble:
         yPoints = np.linspace(-np.pi + offsetY, np.pi - offsetY, numK, endpoint=False) + np.pi / numK
         x, y = np.meshgrid(xPoints, yPoints)
 
-        plt.scatter(x / np.pi, y / np.pi, s=2, color='black')
-        plt.grid(True, which='both')
-        plt.axis('equal')
-        plt.show()
+        # plt.scatter(x / np.pi, y / np.pi, s=2, color='black')
+        # plt.grid(True, which='both')
+        # plt.axis('equal')
+        # plt.show()
 
         # Masks our the (0, 0) point, since the code breaks there.
         # Better than enforcing that numK has to be even.
