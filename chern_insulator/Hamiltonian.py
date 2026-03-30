@@ -223,11 +223,11 @@ class Hamiltonian:
         """
 
         t = np.atleast_1d(t)
-        eigenbasisMatrix = np.zeros((2, 2, t.size), dtype=complex)
+        eigenbasisMatrix = np.zeros((t.size, 2, 2), dtype=complex)
 
         # Calculates the diagonal components.
-        eigenbasisMatrix[0, 0] = np.trace(self.PPlus() @ self.H(t))
-        eigenbasisMatrix[1, 1] = np.trace(self.PMinus() @ self.H(t))
+        eigenbasisMatrix[:, 0, 0] = np.trace(self.PPlus() @ self.H(t))
+        eigenbasisMatrix[:, 1, 1] = np.trace(self.PMinus() @ self.H(t))
 
         # Defines our arbitrary vector numerically.
         # Numerical uncertainty in this should not cause numerical uncertainty in our final values,
@@ -237,8 +237,11 @@ class Hamiltonian:
 
         # Calculates the off-diagonal components.
         denominator = np.sqrt( r.conj().T @ self.PPlus() @ r @ r.conj().T @ self.PMinus() @ r )
-        eigenbasisMatrix[0, 1] = ( r.conj().T @ self.PPlus() @ self.H(t) @ self.PMinus() @ r ) / denominator
-        eigenbasisMatrix[1, 0] = ( r.conj().T @ self.PMinus() @ self.H(t) @ self.PPlus() @ r ) / denominator
+        eigenbasisMatrix[:, 0, 1] = ( r.conj().T @ self.PPlus() @ self.H(t) @ self.PMinus() @ r ) / denominator
+        eigenbasisMatrix[:, 1, 0] = ( r.conj().T @ self.PMinus() @ self.H(t) @ self.PPlus() @ r ) / denominator
+
+        if t.size == 1:
+            return eigenbasisMatrix[0, :, :]
         
         return eigenbasisMatrix
     
@@ -303,6 +306,122 @@ class Hamiltonian:
         H = self.EigenbasisComponents(t)
         return 0.5 * (H[0, 0] + H[1, 1])
     
+    def jx(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
+        """
+        Calculates the current operator in the x-direction
+        in the lattice basis at some time t.
+        
+        Parameters
+        ----------
+        t : float | ndarray[float]
+            The time, in seconds, at which to evaluate the current operator.
+            Accepts vectorised inputs.
+            
+        Returns
+        -------
+        complex | ndarray[complex]
+            The x-current operator at time(s) t in the lattice basis. The type returned
+            is the same type as t.
+        """
+
+        return -np.cos(self.kx - self.Ax(t)) * self.sigmax + np.sin(self.kx - self.Ax(t)) * self.sigmaz
+
+    def jy(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
+        """
+        Calculates the current operator in the y-direction
+        in the lattice basis at some time t.
+        
+        Parameters
+        ----------
+        t : float | ndarray[float]
+            The time, in seconds, at which to evaluate the current operator.
+            Accepts vectorised inputs.
+            
+        Returns
+        -------
+        complex | ndarray[complex]
+            The y-current operator at time(s) t in the lattice basis. The type returned
+            is the same type as t.
+        """
+
+        return -np.cos(self.ky) * self.sigmay + np.sin(self.ky) * self.sigmaz
+    
+    def XCurrentEigenbasisComponents(self, t: float | np.ndarray[float]) -> np.ndarray[complex]:
+        """
+        Gets the components of the x-current operator in the eigenbasis (band basis).
+        Uses no numerical approximations.
+
+        Parameters
+        ----------
+        t : float | ndarray[float]
+            The time, in seconds, to find the eigenbasis components at.
+            Can be vectorised, resulting in a vectorised output where last axis
+            is the time axis.
+        
+        Returns
+        ----------
+        ndarray[complex]:
+            The components in matrix form, in the form
+            (jx++, jx+-,
+             jx-+, jx--)
+        """
+
+        t = np.atleast_1d(t)
+        eigenbasisMatrix = np.zeros((t.size, 2, 2), dtype=complex)
+
+        # Calculates the diagonal components.
+        eigenbasisMatrix[:, 0, 0] = np.trace(self.PPlus() @ self.jx(t))
+        eigenbasisMatrix[:, 1, 1] = np.trace(self.PMinus() @ self.jx(t))
+
+        # Defines our arbitrary vector numerically.
+        # Numerical uncertainty in this should not cause numerical uncertainty in our final values,
+        # since this will work for any arbitrary vector not orthogonal to either eigenvector.
+        _, U = np.linalg.eigh(self.H())
+        r = (U[:, 0] + U[:, 1]).reshape(2, 1) / np.sqrt(2)
+
+        # Calculates the off-diagonal components.
+        denominator = np.sqrt( r.conj().T @ self.PPlus() @ r @ r.conj().T @ self.PMinus() @ r )
+        eigenbasisMatrix[:, 0, 1] = ( r.conj().T @ self.PPlus() @ self.jx(t) @ self.PMinus() @ r ) / denominator
+        eigenbasisMatrix[:, 1, 0] = ( r.conj().T @ self.PMinus() @ self.jx(t) @ self.PPlus() @ r ) / denominator
+
+        if t.size == 1:
+            return eigenbasisMatrix[0, :, :]
+        
+        return eigenbasisMatrix
+
+    def YCurrentEigenbasisComponents(self) -> np.ndarray[complex]:
+        """
+        Gets the components of the y-current operator in the eigenbasis (band basis).
+        Uses no numerical approximations.
+        
+        Returns
+        ----------
+        ndarray[complex]:
+            The components in matrix form, in the form
+            (jy++, jy+-,
+             jy-+, jy--)
+        """
+
+        t = np.atleast_1d(t)
+        eigenbasisMatrix = np.zeros((2, 2), dtype=complex)
+
+        # Calculates the diagonal components.
+        eigenbasisMatrix[0, 0] = np.trace(self.PPlus() @ self.jy())
+        eigenbasisMatrix[1, 1] = np.trace(self.PMinus() @ self.jy())
+
+        # Defines our arbitrary vector numerically.
+        # Numerical uncertainty in this should not cause numerical uncertainty in our final values,
+        # since this will work for any arbitrary vector not orthogonal to either eigenvector.
+        _, U = np.linalg.eigh(self.H())
+        r = (U[:, 0] + U[:, 1]).reshape(2, 1) / np.sqrt(2)
+
+        # Calculates the off-diagonal components.
+        denominator = np.sqrt( r.conj().T @ self.PPlus() @ r @ r.conj().T @ self.PMinus() @ r )
+        eigenbasisMatrix[0, 1] = ( r.conj().T @ self.PPlus() @ self.jy() @ self.PMinus() @ r ) / denominator
+        eigenbasisMatrix[1, 0] = ( r.conj().T @ self.PMinus() @ self.jy() @ self.PPlus() @ r ) / denominator
+        
+        return eigenbasisMatrix
+    
     def jxm(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
         """
         Returns the coefficient of sigma_- for the current operator in the
@@ -322,12 +441,7 @@ class Hamiltonian:
             The type returned is the same as the type of t.
         """
 
-        energy = self.energy()
-        hx, hy, hz = self.hx(), self.hy(), self.hz()
-        rho = self.rho
-
-        return np.cos(self.__params.kx - self.Ax(t)) * (1j * hy - hx * hz / energy) / rho \
-            - np.sin(self.__params.kx - self.Ax(t)) * rho / energy
+        return self.XCurrentEigenbasisComponents(t)[1, 0]
     
     def jxp(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
         """
@@ -348,14 +462,7 @@ class Hamiltonian:
             The type returned is the same as the type of t.
         """
 
-        # energy = self.energy()
-        # hx, hy, hz = self.hx(), self.hy(), self.hz()
-        # rho = self.rho
-
-        # return -np.cos(self.__params.kx - self.Ax(t)) * (1j * hy + hx * hz / energy) / rho \
-        #     - np.sin(self.__params.kx - self.Ax(t)) * rho / energy
-
-        return np.conjugate(self.jxm(t))
+        return self.XCurrentEigenbasisComponents(t)[0, 1]
     
     def jxz(self, t: float | np.ndarray[float]) -> float | np.ndarray[float]:
         """
@@ -376,10 +483,8 @@ class Hamiltonian:
             The type returned is the same as the type of t.
         """
 
-        energy = self.energy()
-        hx, hy, hz = self.hx(), self.hy(), self.hz()
-
-        return (np.cos(self.__params.kx - self.Ax(t)) * hx - np.sin(self.__params.kx - self.Ax(t)) * hz) / energy
+        components = self.XCurrentEigenbasisComponents(t)
+        return 0.5 * (components[0, 0] + components[1, 1])
     
     @cache
     def jym(self) -> complex:
@@ -394,12 +499,7 @@ class Hamiltonian:
             y-direction, in the band basis.
         """
 
-        energy = self.energy()
-        hx, hy, hz = self.hx(), self.hy(), self.hz()
-        rho = self.rho
-
-        return -1j * np.cos(self.__params.ky) * (hx - 1j * hy * hz / energy) / rho \
-            - np.sin(self.__params.ky) * rho / energy
+        return self.YCurrentEigenbasisComponents()[1, 0]
     
     @cache
     def jyp(self) -> complex:
@@ -414,14 +514,7 @@ class Hamiltonian:
             y-direction, in the band basis.
         """
 
-        # energy = self.energy()
-        # hx, hy, hz = self.hx(), self.hy(), self.hz()
-        # rho = self.rho
-
-        # return 1j * np.cos(self.__params.ky) * (hx + 1j * hy * hz / energy) / rho \
-        #     - np.sin(self.__params.ky) * rho / energy
-
-        return np.conjugate(self.jym())
+        return self.YCurrentEigenbasisComponents()[0, 1]
     
     @cache
     def jyz(self) -> complex:
@@ -436,10 +529,8 @@ class Hamiltonian:
             y-direction, in the band basis.
         """
 
-        energy = self.energy()
-        hx, hy, hz = self.hx(), self.hy(), self.hz()
-
-        return (np.cos(self.__params.ky) * hy - np.sin(self.__params.ky) * hz) / energy
+        components = self.YCurrentEigenbasisComponents()
+        return 0.5 * ( components[0, 0] + components[1, 1] )
     
     def hxn(self, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
         """
