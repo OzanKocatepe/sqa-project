@@ -2,3 +2,4 @@
 *.pkl.gz
 *.DS_Store
 venv
+*.egg-info
