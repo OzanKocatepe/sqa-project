@@ -1,8 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from Hamiltonian import Hamiltonian
-from data import ModelParameters
+from chern_insulator.src.hamiltonian.Hamiltonian import Hamiltonian
+from chern_insulator.src.data import ModelParameters
 
 resolution = 50
 x, y = np.meshgrid(np.linspace(-np.pi, np.pi, resolution), np.linspace(-np.pi, np.pi, resolution))

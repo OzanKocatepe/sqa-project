@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import os
 from scipy import integrate
 
-from Ensemble import Ensemble
+from chern_insulator.src.Ensemble import Ensemble
 
 class Plotting:
     """Contains the logic for plotting the results of our simulations."""
@@ -65,7 +65,7 @@ class Plotting:
                                   color = 'black', label='Fourier Series')
                 
                 if overplotNumericalSolution:
-                    from Hamiltonian import Hamiltonian
+                    from chern_insulator.src.hamiltonian.Hamiltonian import Hamiltonian
                     h = Hamiltonian(model.params)
 
                     numericalSigma = integrate.solve_ivp(

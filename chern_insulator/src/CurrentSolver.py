@@ -2,8 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import integrate
 
-from data import ModelParameters, Fourier
-from Hamiltonian import Hamiltonian
+from chern_insulator.src.data import ModelParameters
+from data import Fourier
+from chern_insulator.src.hamiltonian.Hamiltonian import Hamiltonian
 
 class CurrentSolver:
     """Contains the code for solving for single- and double- time currents."""

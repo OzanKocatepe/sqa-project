@@ -1,9 +1,10 @@
 import numpy as np
 
-from data import ModelParameters, AxisData, CorrelationData, CurrentData
-from CorrelationSolver import CorrelationSolver
-from CurrentSolver import CurrentSolver
-from Hamiltonian import Hamiltonian
+from chern_insulator.src.data import ModelParameters
+from data import AxisData, CorrelationData, CurrentData
+from chern_insulator.src.CorrelationSolver import CorrelationSolver
+from chern_insulator.src.CurrentSolver import CurrentSolver
+from chern_insulator.src.hamiltonian.Hamiltonian import Hamiltonian
 
 class Model:
     """Contains a Chern Insulator model evaluated at a single pair kx, ky."""

@@ -50,7 +50,7 @@ class EnsembleParameters:
         if self.drivingFreq is None:
             # Imports only in this local space to avoid circular dependency and incomplete import stuff.
             # I'd rather just important the function but I can't seem to do that.
-            from Hamiltonian import Hamiltonian
+            from chern_insulator.src.hamiltonian.Hamiltonian import Hamiltonian
 
             # Samples the BZ based on the resolution. This can be very detailed since
             # it should only happen a single time in the code.
