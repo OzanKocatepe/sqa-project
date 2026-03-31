@@ -10,4 +10,4 @@ version = "0.1.0"
 where = ["src"]
 
 [project.scripts]
-chern_insulator = "chern_insulator.main:main"
+chern_insulator = "core.main:main"
