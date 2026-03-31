@@ -4,6 +4,7 @@ import os
 from scipy import integrate
 
 from core import Ensemble
+from config import PLOTTING_DIR
 
 class Plotting:
     """Contains the logic for plotting the results of our simulations."""
@@ -28,7 +29,6 @@ class Plotting:
         self.__plottingLabels = ["Magnitude", "Real", "Imaginary"]
         self.__tLabel = r"$t \gamma_-$"
         self.__freqLabel = r"$f / \Omega$"
-        self.__plotFolder = "chern_insulator/plots"
 
     def PlotSingleTime(self, kx: float, ky: float, tMax: float=None, overplotNumericalSolution: bool=False) -> None:
         """
@@ -90,7 +90,7 @@ class Plotting:
         plt.suptitle(rf"Single-Time Correlations for $(k_x, k_y) = ({kx / np.pi:.2f}\pi, {ky / np.pi:.2f}\pi)$")
         plt.tight_layout()
         
-        folder = f"{self.__plotFolder}/Delta {self.__ensemble.params.delta}/Single-Time"
+        folder = f"{PLOTTING_DIR}/Delta {self.__ensemble.params.delta}/Single-Time"
         os.makedirs(folder, exist_ok=True)
         plt.savefig(f"{folder}/kx: {kx / np.pi}pi, ky: {ky / np.pi}pi.png", dpi=300)
         plt.show()
@@ -155,7 +155,7 @@ class Plotting:
             plt.suptitle(rf"Current Operator {labels[operatorIndex]} with $\Delta = {self.__ensemble.params.delta}$")
 
             # Makes subfolder if it doesn't exist.
-            folder = f"{self.__plotFolder}/Delta {self.__ensemble.params.delta}/Paramagnetic Current"
+            folder = f"{PLOTTING_DIR}/Delta {self.__ensemble.params.delta}/Paramagnetic Current"
             os.makedirs(folder, exist_ok=True)
             # Saves.
             plt.savefig(f"{folder}/J{['x', 'y'][operatorIndex]}", dpi=300)
@@ -207,7 +207,7 @@ class Plotting:
         plt.tight_layout()
 
         # Makes subfolder if it doesn't exist.
-        folder = f"{self.__plotFolder}/Delta {self.__ensemble.params.delta}/Paramagnetic Current"
+        folder = f"{PLOTTING_DIR}/Delta {self.__ensemble.params.delta}/Paramagnetic Current"
         os.makedirs(folder, exist_ok=True)
         # Saves.
         plt.savefig(f"{folder}/Current FFT", dpi=300)
