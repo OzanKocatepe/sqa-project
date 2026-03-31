@@ -2,7 +2,7 @@ import numpy as np
 from functools import cache, cached_property
 from scipy import special
 
-from chern_insulator.src.data import ModelParameters
+from data import ModelParameters
 
 class Hamiltonian:
     """Contains the functions derived from the Chern Hamiltonian."""

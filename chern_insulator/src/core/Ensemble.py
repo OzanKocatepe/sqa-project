@@ -3,9 +3,8 @@ from functools import cached_property
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-from chern_insulator.src.data import EnsembleParameters, ModelParameters
-from data import AxisData, CurrentData
-from chern_insulator.src.Model import Model
+from data import EnsembleParameters, ModelParameters, AxisData, CurrentData
+from core import Model
 
 class Ensemble:
     """Runs a collection of model instances and finds the overall results of the model."""

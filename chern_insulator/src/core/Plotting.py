@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import os
 from scipy import integrate
 
-from chern_insulator.src.Ensemble import Ensemble
+from core import Ensemble
 
 class Plotting:
     """Contains the logic for plotting the results of our simulations."""

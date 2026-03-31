@@ -1,10 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from chern_insulator.src.data import EnsembleParameters
-from chern_insulator.src.Ensemble import Ensemble
-from chern_insulator.src.Plotting import Plotting
-from chern_insulator.src.hamiltonian.Hamiltonian import Hamiltonian
+from data import EnsembleParameters
+from core import Ensemble, Plotting
+from hamiltonian import Hamiltonian
 
 # Number of momentum points on each axis.
 numK = 20
