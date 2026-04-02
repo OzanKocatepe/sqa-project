@@ -1,7 +1,14 @@
 import numpy as np
 
 class TopologyMixin:
-    """Contains all functions related to the topology of the system."""
+    """
+    Contains all functions related to the topology of the system.
+    
+    Methods
+    -------
+    BerryCurvature: Calculates the berry curvature at some momentum points, vectorised.
+    ChernNunber: Calculates the chern number of the system given some delta.
+    """
 
     @staticmethod
     def BerryCurvature(delta: float, kx: float | np.ndarray[float], ky: float | np.ndarray[float]) -> float | np.ndarray[float]:

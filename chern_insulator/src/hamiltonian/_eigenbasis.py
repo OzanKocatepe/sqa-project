@@ -1,7 +1,19 @@
 import numpy as np
 
 class EigenbasisMixin:
-    """Contains the logic for working with the Hamiltonian in its eigenbasis."""
+    """
+    Contains the logic for working with the Hamiltonian in its eigenbasis.
+
+    Methods
+    -------
+    [DEPRECATED] Hpp: Gets the H++ component of the driven Hamiltonian in the band basis.
+    [DEPRECATED] Hmm: Gets the H-- component of the driven Hamiltonian in the band basis.
+    [DEPRECATED] Hpm: Gets the H+- component of the driven Hamiltonian in the band basis.
+    [DEPRECATED] Hmp: Gets the H-+ component of the driven Hamiltonian in the band basis.
+    Hm: Gets the coefficient of sigma_- for the driven Hamiltonian in the band basis.
+    Hp: Gets the coefficient of sigma_+ for the driven Hamiltonian in the band basis.
+    Hz: Gets the coefficient of sigma_z for the driven Hamiltonian in the band basis.
+    """
 
     def Hpp(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
         """
@@ -125,7 +137,7 @@ class EigenbasisMixin:
             at time(s) t. The type returned is the same as the type of t.
         """
 
-        return self.Hmp(t)
+        self._GetMinus(self.H(t))
     
     def Hp(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
         """
@@ -145,7 +157,7 @@ class EigenbasisMixin:
             at time(s) t. The type returned is the same as the type of t.
         """
 
-        return self.Hpm(t)
+        return self._GetPlus(self.H(t))
     
     def Hz(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
         """
@@ -165,4 +177,4 @@ class EigenbasisMixin:
             at time(s) t. The type returned is the same as the type of t.
         """
 
-        return 0.5 * (self.Hpp(t) + self.Hmm(t))
+        return self._GetZ(self.H(t))

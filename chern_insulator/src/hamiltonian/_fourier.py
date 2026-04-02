@@ -5,6 +5,20 @@ class FourierMixin:
     """
     Contains all of the logic for working with the Hamiltonian in the lattice and band basis
     as a Fourier series.
+
+    Methods
+    -------
+    hxn: Calculates the Fourier series coefficients for the driven term hx(t).
+    hyn: Calculates the Fourier series coefficients for the driven term hy(t).
+    hzn: Calculates the Fourier series coefficients for the driven term hz(t).
+    Hn: Calculates the Fourier series coefficients for the driven Hamiltonian in the lattice basis.
+    [DEPRECATED] Hppn: Calculates the Fourier series coefficients for the driven term H++(t).
+    [DEPRECATED] Hmmn: Calculates the Fourier series coefficients for the driven term H--(t).
+    [DEPRECATED] Hpmn: Calculates the Fourier series coefficients for the driven term H+-(t).
+    [DEPRECATED] Hmpn: Calculates the Fourier series coefficients for the driven term H-+(t).
+    Hmn: Calculates The Fourier series coefficients for the driven term H-(t).
+    Hpn: Calculates The Fourier series coefficients for the driven term H+(t).
+    Hzn: Calculates The Fourier series coefficients for the driven term Hz(t).
     """
 
     def hxn(self, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
@@ -153,6 +167,8 @@ class FourierMixin:
             The type returned is the same as the type of n.
         """
 
+        raise DeprecationWarning()
+
         # We squeeze the result since if t has size (n,), the result will have size (n, 1).
         res = (self.plusEigenvector.conj().T @ self.Hn(n) @ self.plusEigenvector).squeeze()
 
@@ -176,6 +192,8 @@ class FourierMixin:
             The desired coefficient.
             The type returned is the same as the type of n.
         """
+
+        raise DeprecationWarning()
 
         # We squeeze the result since if t has size (n,), the result will have size (n, 1).
         res = (self.minusEigenvector.conj().T @ self.Hn(n) @ self.minusEigenvector).squeeze()
@@ -201,6 +219,8 @@ class FourierMixin:
             The type returned is the same as the type of n.
         """
 
+        raise DeprecationWarning()
+
         # We squeeze the result since if t has size (n,), the result will have size (n, 1).
         res = (self.plusEigenvector.conj().T @ self.Hn(n) @ self.minusEigenvector).squeeze()
 
@@ -225,6 +245,8 @@ class FourierMixin:
             The type returned is the same as the type of n.
         """
 
+        raise DeprecationWarning()
+
         # We squeeze the result since if t has size (n,), the result will have size (n, 1).
         res = (self.minusEigenvector.conj().T @ self.Hn(n) @ self.plusEigenvector).squeeze()
 
@@ -234,8 +256,7 @@ class FourierMixin:
 
     def Hmn(self, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
         """
-        Returns the coefficient of sigma_- in the driven Hamiltonian in the band basis,
-        at time t.
+        Returns the corresponding coefficient in the Fourier series for H-(t).
 
         Parameters
         ----------
@@ -246,16 +267,15 @@ class FourierMixin:
         Returns
         -------
         complex | ndarray[complex]:
-            The desired coefficient.
+            The desired coefficients, corresponding to the entries of n.
             The type returned is the same as the type of n.
         """
 
-        return self.Hmpn(n)
+        return self._GetMinus(self.Hn(n))
     
     def Hpn(self, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
         """
-        Returns the coefficient of sigma_- in the driven Hamiltonian in the band basis,
-        at time t.
+        Returns the corresponding coefficient in the Fourier series for H+(t).
 
         Parameters
         ----------
@@ -266,28 +286,27 @@ class FourierMixin:
         Returns
         -------
         complex | ndarray[complex]:
-            The desired coefficient.
+            The desired coefficients, corresponding to the entries of n.
             The type returned is the same as the type of n.
         """
 
-        return self.Hmpn(n)
+        return self._GetPlus(self.Hn(n))
     
-    def Hz(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
+    def Hzn(self, n : int | np.ndarray[int]) -> complex | np.ndarray[complex]:
         """
-        Returns the coefficient of sigma_z in the driven Hamiltonian in the band basis,
-        at time t.
+        Returns the corresponding coefficient in the Fourier series for Hz(t).
 
         Parameters
         ----------
-        t : float | ndarray[float]
-            The time, in seconds, at which to evaluate the Hamiltonian.
-            Accepts vectorised inputs.
+        n : int | ndarray[int]
+            The components of the Fourier series to find the coefficients for.
+            Can be vectorised, resulting in a vectorised output.
 
         Returns
         -------
         complex | ndarray[complex]:
-            The value of the coefficient of sigma_z in the driven Hamiltonian in the band basis
-            at time(s) t. The type returned is the same as the type of t.
+            The desired coefficients, corresponding to the entries of n.
+            The type returned is the same as the type of n.
         """
 
-        return 0.5 * (self.Hpp(t) + self.Hmm(t))
+        return self._GetZ(self.Hn(n))

@@ -1,9 +1,16 @@
-from typing import Callable
-import inspect
 import numpy as np
 
 class InternalMixin:
-    """Contains functions that encode similar logic, just with operators swapped out."""
+    """
+    Contains functions that encode similar logic, just with operators swapped out.
+    
+    Methods
+    -------
+    _RotateToBandBasis: Rotates an operator - (2, 2) matrix or stack of (2, 2) matrices - into the band basis.
+    _GetMinus: Gets the coefficient of sigma_- for an operator in the band basis.
+    _GetPlus: Gets the coefficient of sigma_+ for an operator in the band basis.
+    _GetZ: Gets the coefficient of sigma_z for an operator in the band basis.
+    """
 
     def _RotateToBandBasis(self,
         operator: np.ndarray[complex]

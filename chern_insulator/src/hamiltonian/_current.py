@@ -4,6 +4,25 @@ from functools import cache
 class CurrentMixin:
     """
     Contains all of the required logic for working with the current in the lattice and band bases. 
+
+    Methods:
+    --------
+    jx: Calculates the x-current operator in the lattice basis at time t.
+    jy: Calculates the y-current operator in the lattice basis at time t.
+    [DEPRECATED] jxpp: Calculates the jx++ component of the x-current in the band basis.
+    [DEPRECATED] jxmm: Calculates the jx-- component of the x-current in the band basis.
+    [DEPRECATED] jxpm: Calculates the jx+- component of the x-current in the band basis.
+    [DEPRECATED] jxmp: Calculates the jx-+ component of the x-current in the band basis.
+    [DEPRECATED] jypp: Calculates the jy++ component of the y-current in the band basis.
+    [DEPRECATED] jymm: Calculates the jy-- component of the y-current in the band basis.
+    [DEPRECATED] jypm: Calculates the jy+- component of the y-current in the band basis.
+    [DEPRECATED] jymp: Calculates the jy-+ component of the y-current in the band basis.
+    jxm: Calculates the coefficient of sigma_- for the x-current in the band basis.
+    jxp: Calculates the coefficient of sigma_+ for the x-current in the band basis.
+    jxz: Calculates the coefficient of sigma_z for the x-current in the band basis.
+    jym: Calculates the coefficient of sigma_- for the y-current in the band basis.
+    jyp: Calculates the coefficient of sigma_+ for the y-current in the band basis.
+    jyz: Calculates the coefficient of sigma_z for the y-current in the band basis.
     """
 
     def jx(self, t: float | np.ndarray[float]) -> np.ndarray[complex]:
@@ -62,6 +81,8 @@ class CurrentMixin:
             The type returned is the same as the type of t.
         """
 
+        raise DeprecationWarning()
+
         # We squeeze the result since if t has size (n,), the result will have size (n, 1).
         res = (self.plusEigenvector.conj().T @ self.jx(t) @ self.plusEigenvector).squeeze()
 
@@ -85,6 +106,8 @@ class CurrentMixin:
             The desired component at time(s) t.
             The type returned is the same as the type of t.
         """
+
+        raise DeprecationWarning()
 
         # We squeeze the result since if t has size (n,), the result will have size (n, 1).
         res = (self.minusEigenvector.conj().T @ self.jx(t) @ self.minusEigenvector).squeeze()
@@ -110,6 +133,8 @@ class CurrentMixin:
             The type returned is the same as the type of t.
         """
 
+        raise DeprecationWarning()
+
         # We squeeze the result since if t has size (n,), the result will have size (n, 1).
         res = (self.plusEigenvector.conj().T @ self.jx(t) @ self.minusEigenvector).squeeze()
 
@@ -134,6 +159,8 @@ class CurrentMixin:
             The type returned is the same as the type of t.
         """
 
+        raise DeprecationWarning()
+
         # We squeeze the result since if t has size (n,), the result will have size (n, 1).
         res = (self.minusEigenvector.conj().T @ self.jx(t) @ self.plusEigenvector).squeeze()
 
@@ -152,6 +179,8 @@ class CurrentMixin:
             The desired component.
         """
 
+        raise DeprecationWarning()
+
         # We squeeze the result since if t has size (n,), the result will have size (n, 1).
         return (self.plusEigenvector.conj().T @ self.jy() @ self.plusEigenvector).item()
 
@@ -165,6 +194,8 @@ class CurrentMixin:
         complex
             The desired component.
         """
+
+        raise DeprecationWarning()
 
         # We squeeze the result since if t has size (n,), the result will have size (n, 1).
         return (self.minusEigenvector.conj().T @ self.jy() @ self.minusEigenvector).item()
@@ -180,6 +211,8 @@ class CurrentMixin:
             The desired component.
         """
 
+        raise DeprecationWarning()
+
         # We squeeze the result since if t has size (n,), the result will have size (n, 1).
         return (self.plusEigenvector.conj().T @ self.jy() @ self.minusEigenvector).item()
     
@@ -193,6 +226,8 @@ class CurrentMixin:
         complex
             The desired component.
         """
+
+        raise DeprecationWarning()
 
         # We squeeze the result since if t has size (n,), the result will have size (n, 1).
         return (self.minusEigenvector.conj().T @ self.jy() @ self.plusEigenvector).item()
@@ -216,7 +251,7 @@ class CurrentMixin:
             The type returned is the same as the type of t.
         """
 
-        return self.jxmp(t)
+        return self._GetMinus(self.jx(t))
     
     def jxp(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
         """
@@ -237,7 +272,7 @@ class CurrentMixin:
             The type returned is the same as the type of t.
         """
 
-        return self.jxpm(t)
+        return self._GetPlus(self.jx(t))
     
     def jxz(self, t: float | np.ndarray[float]) -> float | np.ndarray[float]:
         """
@@ -258,7 +293,7 @@ class CurrentMixin:
             The type returned is the same as the type of t.
         """
 
-        return 0.5 * (self.jxpp(t) + self.jxmm(t))
+        return self._GetZ(self.jx(t))
     
     @cache
     def jym(self) -> complex:
@@ -273,7 +308,7 @@ class CurrentMixin:
             y-direction, in the band basis.
         """
 
-        return self.jymp()
+        return self._GetMinus(self.jy())
     
     @cache
     def jyp(self) -> complex:
@@ -288,7 +323,7 @@ class CurrentMixin:
             y-direction, in the band basis.
         """
 
-        return self.jypm()
+        return self._GetPlus(self.jy())
     
     @cache
     def jyz(self) -> complex:
@@ -303,4 +338,4 @@ class CurrentMixin:
             y-direction, in the band basis.
         """
 
-        return 0.5 * ( self.jypp() + self.jymm() )
+        return self._GetZ(self.jy())
