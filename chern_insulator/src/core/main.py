@@ -7,7 +7,7 @@ from hamiltonian import Hamiltonian
 
 def main():
     # Total number of momentum points to sample.
-    numK = 100
+    numK = 20
     tauMax = 50
 
     params = EnsembleParameters(
