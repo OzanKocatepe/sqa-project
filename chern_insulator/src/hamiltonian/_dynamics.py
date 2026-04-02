@@ -33,7 +33,7 @@ class DynamicsMixin:
         """
 
         Hm, Hp, Hz = self.Hm(t), self.Hp(t), self.Hz(t)
-        gamma = self.__params.decayConstant
+        gamma = self._params.decayConstant
 
         B = np.array([[-(2j * Hz + 0.5 * gamma), 0, 1j * Hp],
                       [0, 2j * Hz - 0.5 * gamma, -1j * Hm],

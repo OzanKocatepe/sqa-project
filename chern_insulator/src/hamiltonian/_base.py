@@ -68,7 +68,7 @@ class Base:
             The type returned is the same as the type of t.
         """
 
-        return self.__params.drivingAmp * np.sin(self.__params.angularFreq * t)
+        return self._params.drivingAmp * np.sin(self._params.angularFreq * t)
 
     def H(self, t: float | np.ndarray[float]=0) -> np.ndarray[complex]:
         """
@@ -115,7 +115,7 @@ class Base:
             If no t is given, returns a float.
         """
 
-        return np.sin(self.__params.kx - self.Ax(t))
+        return np.sin(self._params.kx - self.Ax(t))
  
     @cache   
     def hy(self) -> float:
@@ -130,7 +130,7 @@ class Base:
             The coefficient of sigma_y in the Hamiltonian.
         """
 
-        return np.sin(self.__params.ky)
+        return np.sin(self._params.ky)
     
     def hz(self, t: float | np.ndarray[float]=0) -> float | np.ndarray[float]:
         """
@@ -152,7 +152,7 @@ class Base:
             If no t is given, returns a float.
         """
 
-        return self.__params.delta + np.cos(self.__params.kx - self.Ax(t)) + np.cos(self.__params.ky)
+        return self._params.delta + np.cos(self._params.kx - self.Ax(t)) + np.cos(self._params.ky)
 
     @cache
     def energy(self) -> float:

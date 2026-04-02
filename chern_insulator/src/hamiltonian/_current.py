@@ -45,8 +45,8 @@ class CurrentMixin:
 
         t = np.atleast_1d(t)
 
-        jx = -np.cos(self.__params.kx - self.Ax(t))[:, np.newaxis, np.newaxis] * self.sigmax \
-            + np.sin(self.__params.kx - self.Ax(t))[:, np.newaxis, np.newaxis] * self.sigmaz
+        jx = -np.cos(self._params.kx - self.Ax(t))[:, np.newaxis, np.newaxis] * self.sigmax \
+            + np.sin(self._params.kx - self.Ax(t))[:, np.newaxis, np.newaxis] * self.sigmaz
         
         return jx.squeeze()
 
@@ -62,7 +62,7 @@ class CurrentMixin:
             Has shape (2, 2).
         """
 
-        return -np.cos(self.__params.ky) * self.sigmay + np.sin(self.__params.ky) * self.sigmaz
+        return -np.cos(self._params.ky) * self.sigmay + np.sin(self._params.ky) * self.sigmaz
 
     def jxpp(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
         """
