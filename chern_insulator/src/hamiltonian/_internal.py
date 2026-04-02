@@ -89,9 +89,9 @@ class InternalMixin:
 
         # Changes the indexing between a single operator and a stack of operators.
         if bandOperator.ndim == 2:
-            return bandOperator[1, 0]
+            return 0.5 * (bandOperator[1, 0] + np.conjugate(bandOperator[0, 1]))
         else:
-            return bandOperator[:, 1, 0]
+            return 0.5 * (bandOperator[:, 1, 0] + np.conjugate(bandOperator[:, 0, 1]))
 
     def _GetPlus(self,
         operator: np.ndarray[complex]
@@ -117,9 +117,9 @@ class InternalMixin:
 
         # Changes the indexing between a single operator and a stack of operators.
         if bandOperator.ndim == 2:
-            return bandOperator[0, 1]
+            return 0.5 * (bandOperator[0, 1] + np.conjugate(bandOperator[1, 0]))
         else:
-            return bandOperator[:, 0, 1]
+            return 0.5 * (bandOperator[:, 0, 1] + np.conjugate(bandOperator[:, 1, 0]))
 
     def _GetZ(self,
         operator: np.ndarray[complex]
