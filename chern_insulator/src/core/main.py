@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from data import EnsembleParameters
 from core import Ensemble, Plotting
 from hamiltonian import Hamiltonian
+from config import PLOTTING_DIR
 
 def main():
     # Total number of momentum points to sample.
@@ -33,14 +34,18 @@ def main():
         # ensemble.AddMomentum((-np.pi / 4, -np.pi / 8))
         ensemble.Run(tauMax)
 
-        curr = ensemble.totalCurrent
+        curr = ensemble.totalCurrent.paramagneticCurrent
         xAmplitude[i] = np.max(curr[0, -500])
         yAmplitude[i] = np.max(curr[1, -500])
 
-    plt.plot(amps, xAmplitude, label='J_x Amp')
-    plt.plot(amps, yAmplitude, label='J_y Amp')
+    plt.plot(amps, xAmplitude, label=r'$j_x$ Amp')
+    plt.plot(amps, yAmplitude, label=r'$j_y$ Amp')
     plt.xscale('log')
     plt.yscale('log')
+    plt.xlabel("Driving Amplitude")
+    plt.ylabel("Steady State Amplitude")
+    plt.legend()
+    plt.savefig("Driving Amp vs. SS Amp.png", dpi=300)
     plt.show()
 
     # plot = Plotting(ensemble)
