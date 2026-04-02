@@ -53,8 +53,7 @@ class CurrentSolver:
         
         current[0, :] = self.__hamiltonian.jxm(time) * sigmam \
             + self.__hamiltonian.jxp(time) * sigmap \
-            + self.__hamiltonian.jxz(time) * sigmaz \
-            + self.__hamiltonian.jxi(time) * 1
+            + self.__hamiltonian.jxz(time) * sigmaz
 
         # plt.plot(time, self.__hamiltonian.jxm(time).real - self.__hamiltonian.jxp(time).real)
         # # plt.plot(time, self.__hamiltonian.jxp(time).real)
@@ -66,8 +65,7 @@ class CurrentSolver:
         
         current[1, :] = self.__hamiltonian.jym() * sigmam \
             + self.__hamiltonian.jyp() * sigmap \
-            + self.__hamiltonian.jyz() * sigmaz \
-            + self.__hamiltonian.jyi() * 1
+            + self.__hamiltonian.jyz() * sigmaz
 
         # print(self.__hamiltonian.jym() - self.__hamiltonian.jyp().conj())
         # plt.show()
