@@ -39,6 +39,8 @@ class InternalMixin:
             operator = operator[np.newaxis, :, :]
 
         eigenmatrix = self.U.conj().T @ operator @ self.U
+
+        # print(np.allclose(eigenmatrix, eigenmatrix.conj().transpose(0, 2, 1)))
  
         # Squeezes eigenmatrix to deal with the case whne the shape is
         # (1, 2, 2), so we will get the matrix back as a (2, 2) matrix.

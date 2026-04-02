@@ -91,7 +91,7 @@ class Base:
 
         H = self.hx(t)[:, np.newaxis, np.newaxis] * self.sigmax \
             + (self.hy() * self.sigmay)[np.newaxis, :, :] \
-            + self.hz(t)[: np.newaxis, np.newaxis] * self.sigmaz
+            + self.hz(t)[:, np.newaxis, np.newaxis] * self.sigmaz
         
         return H.squeeze()
 
