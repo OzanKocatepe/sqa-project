@@ -44,8 +44,8 @@ class FourierMixin:
         # Calculates the relevant coefficients in a vectorised manner.
         # Not sure if scipy is actually faster vectorised, but regardless it neatens up the code.
         coeffs[oddMask] = np.sign(n[oddMask]) * 1j * special.jv(np.abs(n[oddMask]), self._params.drivingAmp) * np.cos(self._params.kx)
-        coeffs[zeroMask] = special.jv(0, self._params.drivingAmp) * np.sin(self._params.kx)
         coeffs[evenMask] = special.jv(np.abs(n[evenMask]), self._params.drivingAmp) * np.sin(self._params.kx)
+        coeffs[zeroMask] = special.jv(0, self._params.drivingAmp) * np.sin(self._params.kx)
 
         # Returns the array as a float if it has size 1.
         if coeffs.size == 1:
@@ -143,7 +143,7 @@ class FourierMixin:
         """
 
         return np.moveaxis(np.array([[self.hzn(n), self.hxn(n) - 1j * self.hyn(n)],
-                         [self.hxn(n) + 1j * self.hyn(n), -self.hzn(n)]], dtype=complex),
+                                     [self.hxn(n) + 1j * self.hyn(n), -self.hzn(n)]], dtype=complex),
                          -1, 0)
      
     def Hmn(self, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:

@@ -89,11 +89,11 @@ class Base:
 
         t = np.atleast_1d(t)
 
-        H = self.hx(t)[:, np.newaxis, np.newaxis] * self.sigmax + (self.hy() * self.sigmay)[np.newaxis, :, :] + self.hz(t)[: np.newaxis, np.newaxis] * self.sigmaz
+        H = self.hx(t)[:, np.newaxis, np.newaxis] * self.sigmax \
+            + (self.hy() * self.sigmay)[np.newaxis, :, :] \
+            + self.hz(t)[: np.newaxis, np.newaxis] * self.sigmaz
         
-        if t.size == 1:
-            return H[0, :, :]
-        return H
+        return H.squeeze()
 
     def hx(self, t: float | np.ndarray[float]=0) -> float | np.ndarray[float]:
         """
@@ -214,4 +214,10 @@ class Base:
     
     @cached_property
     def U(self) -> np.ndarray[complex]:
-        return np.column_stack((self.plusEigenvector, self.minusEigenvector))
+        U = np.column_stack((self.plusEigenvector, self.minusEigenvector))
+
+        # Raise an exception if U is not unitary.
+        if not np.allclose(U @ U.conj().T, np.eye(2)) or not np.allclose(U.conj().T @ U , np.eye(2)):
+            raise ValueError("Matrix U is not unitary.")
+        
+        return U

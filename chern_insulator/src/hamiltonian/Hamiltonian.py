@@ -16,21 +16,4 @@ class Hamiltonian(Base,
                   InternalMixin,
                   DynamicsMixin,
                   TopologyMixin):
-    """Contains the functions derived from the Chern Model Hamiltonian."""
- 
-    @cached_property
-    def rho(self) -> float:
-        """
-        Returns the value of rho, defined as sqrt(hx^2 + hy^2) where hx and hy are undriven terms.
-        This is a commonly used term in the calculations.
-        This result is cached, since rho has no time dependence.
-
-        Returns
-        -------
-        float:
-            The value of rho at this momentum point.
-        """
-
-        raise DeprecationWarning()
-
-        return np.sqrt(self.hx()**2 + self.hy()**2)
+    """Contains the functions derived from the Chern Model Hamiltonian.""" 

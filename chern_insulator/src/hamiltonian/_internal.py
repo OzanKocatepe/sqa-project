@@ -1,4 +1,5 @@
 import numpy as np
+import scipy
 
 class InternalMixin:
     """
@@ -16,7 +17,7 @@ class InternalMixin:
         operator: np.ndarray[complex]
     ) -> np.ndarray[complex]:
         """
-        Gets the operator in its eigenbasis.
+        Gets the operator in the band basis.
 
         Parameters
         ----------
@@ -37,8 +38,8 @@ class InternalMixin:
         if operator.ndim == 2:
             operator = operator[np.newaxis, :, :]
 
-        eigenmatrix = (self.U.conj().T @ operator @ self.U)
-        
+        eigenmatrix = self.U.conj().T @ operator @ self.U
+ 
         # Squeezes eigenmatrix to deal with the case whne the shape is
         # (1, 2, 2), so we will get the matrix back as a (2, 2) matrix.
         # Otherwise, returns an (n, n) matrix.
@@ -126,6 +127,6 @@ class InternalMixin:
 
         # Changes the indexing between a single operator and a stack of operators.
         if bandOperator.ndim == 2:
-            return 0.5 * (bandOperator[0, 0] + bandOperator[1, 1])
+            return 0.5 * (bandOperator[0, 0] - bandOperator[1, 1])
         else:
-            return 0.5 * (bandOperator[:, 0, 0] + bandOperator[:, 1, 1])
+            return 0.5 * (bandOperator[:, 0, 0] - bandOperator[:, 1, 1])
