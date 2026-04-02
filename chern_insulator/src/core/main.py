@@ -6,12 +6,12 @@ from core import Ensemble, Plotting
 from hamiltonian import Hamiltonian
 
 def main():
-    # Number of momentum points on each axis.
-    numK = 5
+    # Total number of momentum points to sample.
+    numK = 10
     tauMax = 50
 
     params = EnsembleParameters(
-        delta = 1.5,
+        delta = 1,
         drivingAmp = 0.2,
         decayConstant = 0.2,
         maxN = 50
