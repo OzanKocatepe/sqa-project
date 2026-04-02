@@ -96,7 +96,7 @@ class CorrelationSolver:
         return [
             Fourier(
                 freq = self.__params.drivingFreq,
-                coeffs = sigmaCoeffs[0: fullN]
+                coeffs = sigmaCoeffs[0 : fullN]
             ),
 
             Fourier(

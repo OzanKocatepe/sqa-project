@@ -38,6 +38,7 @@ class InternalMixin:
         if operator.ndim == 2:
             operator = operator[np.newaxis, :, :]
 
+        # Rotates operator numerically using the calculated U matrix.
         # eigenmatrix = self.U.conj().T @ operator @ self.U
 
         eigenmatrix = np.zeros_like(operator, dtype=complex)
@@ -57,7 +58,7 @@ class InternalMixin:
         #     print(np.abs(eigenmatrix[:, 0, 1] - np.conjugate(eigenmatrix[:, 1, 0]))[np.abs(eigenmatrix[:, 0, 1] - np.conjugate(eigenmatrix[:, 1, 0])) > 1e-1])
         #     raise ValueError("Off-diagonal components aren't conjugates.")
  
-        # Squeezes eigenmatrix to deal with the case whne the shape is
+        # Squeezes eigenmatrix to deal with the case when the shape is
         # (1, 2, 2), so we will get the matrix back as a (2, 2) matrix.
         # Otherwise, returns an (n, n) matrix.
         # Indexing can happen outside the function since we will know what the return shape will be
