@@ -70,3 +70,23 @@ class EigenbasisMixin:
         """
 
         return self._GetZ(self.H(t))
+
+    def HI(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
+        """
+        Returns the coefficient of the identity matrix in the driven Hamiltonian in the band basis,
+        at time t.
+
+        Parameters
+        ----------
+        t : float | ndarray[float]
+            The time, in seconds, at which to evaluate the Hamiltonian.
+            Accepts vectorised inputs.
+
+        Returns
+        -------
+        complex | ndarray[complex]:
+            The value of the coefficient of the identity matrix in the driven Hamiltonian in the band basis
+            at time(s) t. The type returned is the same as the type of t.
+        """
+
+        return self._GetI(self.H(t))

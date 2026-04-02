@@ -152,3 +152,31 @@ class InternalMixin:
             return 0.5 * (bandOperator[0, 0] - bandOperator[1, 1])
         else:
             return 0.5 * (bandOperator[:, 0, 0] - bandOperator[:, 1, 1])
+
+    def _GetI(self,
+        operator: np.ndarray[complex]
+    ) -> complex | np.ndarray[complex]:
+        """
+        Gets the coefficient of the identity matrix for this operator in the band basis.
+
+        Parameters
+        ----------
+        operator : ndarray[complex]
+            The operator to find the coefficient for.
+            Should be a (2, 2) matrix, or a stack of matrices of the shape
+            (n, 2, 2).
+
+        Returns
+        -------
+        complex | ndarray[complex]
+            The coefficient of the identity matrix for this operator in the band basis.
+            If the input is shape (2, 2), returns a scalar. If the input is shape (n, 2, 2), returns an array of shape (n,).
+        """
+
+        bandOperator = self._RotateToBandBasis(operator)
+
+        # Changes the indexing between a single operator and a stack of operators.
+        if bandOperator.ndim == 2:
+            return 0.5 * (bandOperator[0, 0] + bandOperator[1, 1])
+        else:
+            return 0.5 * (bandOperator[:, 0, 0] + bandOperator[:, 1, 1])

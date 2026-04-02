@@ -118,6 +118,27 @@ class CurrentMixin:
         """
 
         return self._GetZ(self.jx(t))
+
+    def jxi(self, t: float | np.ndarray[float]) -> float | np.ndarray[float]:
+        """
+        Returns the coefficient of the identity matrix for the current operator in the
+        x-direction, in the band basis, at time t.
+
+        Parameters
+        ----------
+        t : float | ndarray[float]
+            The time, in seconds, at which to evaluate the Hamiltonian.
+            Accepts vectorised inputs.
+
+        Returns
+        -------
+        float | ndarray[float]:
+            The coefficient of the identity matrix for the current operator in the
+            x-direction, in the band basis, at time t.
+            The type returned is the same as the type of t.
+        """
+
+        return self._GetI(self.jx(t))
     
     @cache
     def jym(self) -> complex:
@@ -163,3 +184,18 @@ class CurrentMixin:
         """
 
         return self._GetZ(self.jy())
+
+    @cache
+    def jyi(self) -> complex:
+        """
+        Returns the coefficient of the identity matrix for the current operator in the
+        y-direction, in the band basis.
+
+        Returns
+        -------
+        ndarray[complex]:
+            The coefficient of the identity matrix for the current operator in the
+            y-direction, in the band basis.
+        """
+
+        return self._GetI(self.jy())
