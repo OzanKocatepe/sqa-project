@@ -38,9 +38,24 @@ class InternalMixin:
         if operator.ndim == 2:
             operator = operator[np.newaxis, :, :]
 
-        eigenmatrix = self.U.conj().T @ operator @ self.U
+        # eigenmatrix = self.U.conj().T @ operator @ self.U
 
-        # print(np.allclose(eigenmatrix, eigenmatrix.conj().transpose(0, 2, 1)))
+        eigenmatrix = np.zeros_like(operator, dtype=complex)
+
+        # Calculate diagonal components.
+        eigenmatrix[:, 0, 0] = np.trace(self.PPlus @ operator, axis1=1, axis2=2)
+        eigenmatrix[:, 1, 1] = np.trace(self.PMinus @ operator, axis1=1, axis2=2)
+
+        # Pick arbitrary vector r.
+        r = 1 / np.sqrt(2) * (self.plusEigenvector + self.minusEigenvector)
+        # Calculate off-diagonal components.
+        denominator = np.sqrt(r.conj().T @ self.PPlus @ r @ r.conj().T @ self.PPlus @ r)
+        eigenmatrix[:, 0, 1] = (r.conj().T @ self.PPlus @ operator @ self.PMinus @ r).squeeze() / denominator
+        eigenmatrix[:, 1, 0] = (r.conj().T @ self.PMinus @ operator @ self.PPlus @ r).squeeze() / denominator
+
+        # if np.sum(np.abs(eigenmatrix[:, 0, 1] - np.conjugate(eigenmatrix[:, 1, 0])) > 1e-1) > 0:
+        #     print(np.abs(eigenmatrix[:, 0, 1] - np.conjugate(eigenmatrix[:, 1, 0]))[np.abs(eigenmatrix[:, 0, 1] - np.conjugate(eigenmatrix[:, 1, 0])) > 1e-1])
+        #     raise ValueError("Off-diagonal components aren't conjugates.")
  
         # Squeezes eigenmatrix to deal with the case whne the shape is
         # (1, 2, 2), so we will get the matrix back as a (2, 2) matrix.

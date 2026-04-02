@@ -221,3 +221,11 @@ class Base:
             raise ValueError("Matrix U is not unitary.")
         
         return U
+    
+    @cached_property
+    def PPlus(self) -> np.ndarray[complex]:
+        return 0.5 * (np.eye(2) + self.H() / self.energy())
+    
+    @cached_property
+    def PMinus(self) -> np.ndarray[complex]:
+        return 0.5 * (np.eye(2) - self.H() / self.energy())
