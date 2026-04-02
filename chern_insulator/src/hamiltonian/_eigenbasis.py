@@ -29,7 +29,7 @@ class EigenbasisMixin:
             at time(s) t. The type returned is the same as the type of t.
         """
 
-        self._GetMinus(self.H(t))
+        return self._GetMinus(self.H(t))
     
     def Hp(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
         """

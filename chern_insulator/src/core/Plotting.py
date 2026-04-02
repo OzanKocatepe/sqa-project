@@ -65,7 +65,7 @@ class Plotting:
                                   color = 'black', label='Fourier Series')
                 
                 if overplotNumericalSolution:
-                    from chern_insulator.src.hamiltonian.Hamiltonian import Hamiltonian
+                    from hamiltonian import Hamiltonian
                     h = Hamiltonian(model.params)
 
                     numericalSigma = integrate.solve_ivp(
