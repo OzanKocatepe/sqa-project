@@ -142,9 +142,12 @@ class FourierMixin:
             (n.size, 2, 2), where the third axis disappears if n is a scalar.
         """
 
-        return np.moveaxis(np.array([[self.hzn(n), self.hxn(n) - 1j * self.hyn(n)],
-                                     [self.hxn(n) + 1j * self.hyn(n), -self.hzn(n)]], dtype=complex),
-                         -1, 0)
+        n = np.atleast_1d(n)
+
+        H = np.array([[self.hzn(n), self.hxn(n) - 1j * self.hyn(n)],
+                      [self.hxn(n) + 1j * self.hyn(n), -self.hzn(n)]], dtype=complex)
+        
+        return np.moveaxis(H, -1, 0).squeeze()
      
     def Hmn(self, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
         """

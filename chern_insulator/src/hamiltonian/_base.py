@@ -89,9 +89,9 @@ class Base:
 
         t = np.atleast_1d(t)
 
-        H = self.hx(t)[:, np.newaxis, np.newaxis] * self.sigmax \
+        H = np.multiply.outer(self.hx(t), self.sigmax) \
             + (self.hy() * self.sigmay)[np.newaxis, :, :] \
-            + self.hz(t)[:, np.newaxis, np.newaxis] * self.sigmaz
+            + np.multiply.outer(self.hz(t), self.sigmaz)
         
         return H.squeeze()
 

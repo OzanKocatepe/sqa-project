@@ -37,8 +37,8 @@ class CurrentMixin:
 
         t = np.atleast_1d(t)
 
-        jx = -np.cos(self._params.kx - self.Ax(t))[:, np.newaxis, np.newaxis] * self.sigmax \
-            + np.sin(self._params.kx - self.Ax(t))[:, np.newaxis, np.newaxis] * self.sigmaz
+        jx = np.multiply.outer(-np.cos(self._params.kx - self.Ax(t)), self.sigmax) \
+            + np.multiply.outer(np.sin(self._params.kx - self.Ax(t)), self.sigmaz)
         
         return jx.squeeze()
 
