@@ -12,10 +12,6 @@ class FourierMixin:
     hyn: Calculates the Fourier series coefficients for the driven term hy(t).
     hzn: Calculates the Fourier series coefficients for the driven term hz(t).
     Hn: Calculates the Fourier series coefficients for the driven Hamiltonian in the lattice basis.
-    [DEPRECATED] Hppn: Calculates the Fourier series coefficients for the driven term H++(t).
-    [DEPRECATED] Hmmn: Calculates the Fourier series coefficients for the driven term H--(t).
-    [DEPRECATED] Hpmn: Calculates the Fourier series coefficients for the driven term H+-(t).
-    [DEPRECATED] Hmpn: Calculates the Fourier series coefficients for the driven term H-+(t).
     Hmn: Calculates The Fourier series coefficients for the driven term H-(t).
     Hpn: Calculates The Fourier series coefficients for the driven term H+(t).
     Hzn: Calculates The Fourier series coefficients for the driven term Hz(t).
@@ -150,110 +146,6 @@ class FourierMixin:
                          [self.hxn(n) + 1j * self.hyn(n), -self.hzn(n)]], dtype=complex),
                          -1, 0)
      
-    def Hppn(self, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
-        """
-        Gets the H++ component of the Hamiltonian in the eigenbasis (band basis).
-
-        Parameters
-        ----------
-        n : int | ndarray[int]
-            The components of the Fourier series to find the coefficients for.
-            Can be vectorised, resulting in a vectorised output.
-        
-        Returns
-        ----------
-        complex | ndarray[complex]:
-            The desired coefficient.
-            The type returned is the same as the type of n.
-        """
-
-        raise DeprecationWarning()
-
-        # We squeeze the result since if t has size (n,), the result will have size (n, 1).
-        res = (self.plusEigenvector.conj().T @ self.Hn(n) @ self.plusEigenvector).squeeze()
-
-        if res.size == 1:
-            return res.item()
-        return res
-
-    def Hmmn(self, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
-        """
-        Gets the H-- component of the Hamiltonian in the eigenbasis (band basis).
-
-        Parameters
-        ----------
-        n : int | ndarray[int]
-            The components of the Fourier series to find the coefficients for.
-            Can be vectorised, resulting in a vectorised output.
-        
-        Returns
-        ----------
-        complex | ndarray[complex]:
-            The desired coefficient.
-            The type returned is the same as the type of n.
-        """
-
-        raise DeprecationWarning()
-
-        # We squeeze the result since if t has size (n,), the result will have size (n, 1).
-        res = (self.minusEigenvector.conj().T @ self.Hn(n) @ self.minusEigenvector).squeeze()
-
-        if res.size == 1:
-            return res.item()
-        return res
-
-    def Hpmn(self, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
-        """
-        Gets the H+- component of the Hamiltonian in the eigenbasis (band basis).
-
-        Parameters
-        ----------
-        n : int | ndarray[int]
-            The components of the Fourier series to find the coefficients for.
-            Can be vectorised, resulting in a vectorised output.
-        
-        Returns
-        ----------
-        complex | ndarray[complex]:
-            The desired coefficient.
-            The type returned is the same as the type of n.
-        """
-
-        raise DeprecationWarning()
-
-        # We squeeze the result since if t has size (n,), the result will have size (n, 1).
-        res = (self.plusEigenvector.conj().T @ self.Hn(n) @ self.minusEigenvector).squeeze()
-
-        if res.size == 1:
-            return res.item()
-        return res
-
-    def Hmpn(self, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
-        """
-        Gets the H-+ component of the Hamiltonian in the eigenbasis (band basis).
-
-        Parameters
-        ----------
-        n : int | ndarray[int]
-            The components of the Fourier series to find the coefficients for.
-            Can be vectorised, resulting in a vectorised output.
-        
-        Returns
-        ----------
-        complex | ndarray[complex]:
-            The desired coefficient.
-            The type returned is the same as the type of n.
-        """
-
-        raise DeprecationWarning()
-
-        # We squeeze the result since if t has size (n,), the result will have size (n, 1).
-        res = (self.minusEigenvector.conj().T @ self.Hn(n) @ self.plusEigenvector).squeeze()
-
-        if res.size == 1:
-            return res.item()
-        return res
-
     def Hmn(self, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
         """
         Returns the corresponding coefficient in the Fourier series for H-(t).
