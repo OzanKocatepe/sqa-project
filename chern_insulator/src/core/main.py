@@ -10,11 +10,12 @@ def main():
     numK = 100
     tauMax = 50
 
-    deltas = np.linspace(0.5, 10.5, 0.5)
-    xAmps = np.zeros_like(deltas)
-    yAmps = np.zeros_like(deltas)
+    deltas = np.arange(0.5, 1.0 + 0.5, 0.5, dtype=float)
+    xAmps = np.zeros_like(deltas, dtype=float)
+    yAmps = np.zeros_like(deltas, dtype=float)
 
     for i in range(deltas.size):
+        print(f"delta = {deltas[i]}")
         params = EnsembleParameters(
             delta = deltas[i],
             drivingAmp = 0.2,
@@ -50,7 +51,7 @@ def main():
     plt.plot(deltas, yAmps, label=r'$j_y$ Amplitude', color='orange')
     plt.xlabel(r'$\Delta$')
     plt.ylabel("Amplitude of Total Current")
-    plt.suptitle(f"{numK} x {numK} Momentums in BZ, $A_0$ = {0.2}, $\gamma$ = {0.2}")
+    plt.suptitle(fr"{numK} x {numK} Momentums in BZ, $A_0$ = {0.2}, $\gamma$ = {0.2}")
     plt.show()
 
 if __name__ == "__main__":
