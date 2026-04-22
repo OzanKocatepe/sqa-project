@@ -4,18 +4,20 @@ import matplotlib.pyplot as plt
 from data import EnsembleParameters
 from core import Ensemble, Plotting
 from hamiltonian import Hamiltonian
+from config.paths import PLOTTING_DIR, STYLESHEET
 
 def main():
     # Total number of momentum points to sample.
-    numK = 100
+    numK = 10
     tauMax = 50
 
-    deltas = np.arange(0.5, 1.0 + 0.5, 0.5, dtype=float)
+    plt.style.use(STYLESHEET)
+
+    deltas = np.arange(0.5, 1.5 + 0.5, 0.5, dtype=float)
     xAmps = np.zeros_like(deltas, dtype=float)
     yAmps = np.zeros_like(deltas, dtype=float)
 
     for i in range(deltas.size):
-        print(f"delta = {deltas[i]}")
         params = EnsembleParameters(
             delta = deltas[i],
             drivingAmp = 0.2,
@@ -47,11 +49,15 @@ def main():
         # plot.PlotParamagneticCurrent()
         # plot.PlotParamagneticCurrentFFT(linearScale=False)
 
-    plt.plot(deltas, xAmps, label=r'$j_x$ Amplitude', color='blue')
-    plt.plot(deltas, yAmps, label=r'$j_y$ Amplitude', color='orange')
+    np.save(PLOTTING_DIR / "Current Amplitude vs Delta.npy", np.stack([xAmps, yAmps], axis=0))
+
+    plt.plot(deltas, xAmps, '-x', label=r'$j_x$ Amplitude', color='blue')
+    plt.plot(deltas, yAmps, '-x', label=r'$j_y$ Amplitude', color='orange')
     plt.xlabel(r'$\Delta$')
     plt.ylabel("Amplitude of Total Current")
     plt.suptitle(fr"{numK} x {numK} Momentums in BZ, $A_0$ = {0.2}, $\gamma$ = {0.2}")
+    plt.legend()
+    plt.savefig(PLOTTING_DIR / "Current Amplitude vs Delta.png", dpi=300)
     plt.show()
 
 if __name__ == "__main__":

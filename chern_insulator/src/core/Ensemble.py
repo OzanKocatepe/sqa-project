@@ -63,7 +63,7 @@ class Ensemble:
             # tuple as the key.
             self.__models[(k[0], k[1])] = Model(modelParams)
 
-    def Run(self, tauMax: float, numProcesses: int | None=6) -> None:
+    def Run(self, tauMax: float) -> None:
         """
         Runs all of the models.
 
@@ -71,70 +71,12 @@ class Ensemble:
         ----------
         tauMax : float
             The maximum non-dimensional time the system will solve for.
-        numProcesses : int | None, optional
-            The number of processes to use when running the models. If None, will use all but
-            one core (unless we only have 1 core, in which case we will use 1 core).
-            Otherwise, input will be clamped between 1 and the number of cores.
-            WARNING: It is possible to manually choose to use all cores of the machine.
         """
-
-        # Sanitizes the numProcesses input.
-        if numProcesses is None:
-            # Uses all but one core, unless we only have one core.
-            numProcesses = np.max([1, mp.cpu_count() - 1])   
-        else:
-            # Clamps the number of processes between 1 and the number of cores. 
-            # Note that it is possible to manually set the number of processes to
-            # be equal to the number of cores.
-            np.clip(numProcesses, 1, mp.cpu_count())
 
         self.__axes = self.__CreateAxes(tauMax)
 
-        # Creates the list of arguments for each model.
-        tasks = [(key, model, self.__axes) for key, model in self.__models.items()]
-
-        # Makes sure that we use 'spawn' as our start method (default on macOS and Windows).
-        ctx = mp.get_context('spawn')
-        with ctx.Pool(processes=numProcesses) as pool:
-            # Note: if very slow, worth trying map instead of imap, since
-            # appparently imap can be much slower than map.
-            results = list(tqdm(
-                            pool.imap(self._MultiProcessingRun, tasks),
-                            total=len(tasks),
-                            desc=f"Running models (Delta = {self.__params.delta})"
-                        ))
-            
-        # Writes the models back into the dictionary, since the newly ran models live
-        # in another process and so must be explicitly returned and replaced in the dictionary.
-        self.__models = {key : model for key, model in results}
-
-    def _MultiProcessingRun(self, args: tuple[tuple[float, float], Model, AxisData]) -> tuple[tuple[float, float], Model]:
-        """
-        Creates a process to run the model. Utilised by Run() to
-        run the models in parallel.
-
-        Parameters
-        ----------
-        args : tuple[tuple[float, float], Model, AxisData]
-            Contains the arguments for the function, passed in as an argument.
-            First element is the momentum tuple associated with the model. Required to
-            store the results in the correct place in self.__models.
-            Second element is the model instance to run.
-            Third element is the axis data to run the model with. Required due to
-            the fact that we cannot share self.__axes between processes. 
-
-        Returns
-        -------
-        tuple[float, float]
-            Returns the key so that we can store the results in the appropriate place in self.__models.
-        Model
-            The model instance after it has been run.
-        """
-
-        key, model, axes = args
-        
-        model.Run(axes)
-        return key, model
+        for model in tqdm(self.__models.values(), desc=f"Running models (Delta = {self.__params.delta})"):
+            model.Run(self.__axes)
 
     def SampleBrillouinZone(self, numK: int) -> None:
         """

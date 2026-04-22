@@ -4,7 +4,7 @@ import os
 from scipy import integrate
 
 from core import Ensemble
-from config import PLOTTING_DIR
+from config import PLOTTING_DIR, STYLESHEET
 
 class Plotting:
     """Contains the logic for plotting the results of our simulations."""
@@ -22,7 +22,7 @@ class Plotting:
         self.__ensemble = ensemble
 
         # Sets the style sheet.
-        plt.style.use('stylesheet.mplstyle')
+        plt.style.use(STYLESHEET)
 
         # Defines useful attributes for plotting.
         self.__plottingFunctions = [lambda z: np.abs(z), lambda z: z.real, lambda z: z.imag]
