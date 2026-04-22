@@ -7,35 +7,51 @@ from hamiltonian import Hamiltonian
 
 def main():
     # Total number of momentum points to sample.
-    numK = 20
+    numK = 100
     tauMax = 50
-    
-    params = EnsembleParameters(
-        delta = 3,
-        drivingAmp = 0.2,
-        decayConstant = 0.2,
-        maxN = 50
-    )
 
-    # Check the Chern number.
-    # print(f"Trivial Phase (Delta = 3): C = {Hamiltonian.ChernNumber(3)}")
-    # print(f"Non-trivial Phase (Delta = 1): C = {Hamiltonian.ChernNumber(1)}")
+    deltas = np.linspace(0.5, 10.5, 0.5)
+    xAmps = np.zeros_like(deltas)
+    yAmps = np.zeros_like(deltas)
 
-    ensemble = Ensemble(params)
-    ensemble.SampleBrillouinZone(numK)
-    # ensemble.AddMomentum((np.pi / 4, np.pi / 8))
-    # ensemble.AddMomentum((np.pi / 4, -np.pi / 8))
-    # ensemble.AddMomentum((-np.pi / 4, np.pi / 8))
-    # ensemble.AddMomentum((-np.pi / 4, -np.pi / 8))
-    ensemble.Run(tauMax)
+    for i in range(deltas.size):
+        params = EnsembleParameters(
+            delta = deltas[i],
+            drivingAmp = 0.2,
+            decayConstant = 0.2,
+            maxN = 50
+        )
 
-    plot = Plotting(ensemble)
-    # plot.PlotSingleTime(np.pi / 4, np.pi / 8, tMax = 20, overplotNumericalSolution=True)
-    # plot.PlotSingleTime(np.pi / 4, -np.pi / 8, tMax = 10, overplotNumericalSolution=True)
-    # plot.PlotSingleTime(-np.pi / 4, np.pi / 8, tMax = 10, overplotNumericalSolution=True)
-    # plot.PlotSingleTime(-np.pi / 4, -np.pi / 8, tMax = 10, overplotNumericalSolution=True)
-    plot.PlotParamagneticCurrent()
-    # plot.PlotParamagneticCurrentFFT(linearScale=False)
+        # Check the Chern number.
+        # print(f"Trivial Phase (Delta = 3): C = {Hamiltonian.ChernNumber(3)}")
+        # print(f"Non-trivial Phase (Delta = 1): C = {Hamiltonian.ChernNumber(1)}")
+
+        ensemble = Ensemble(params)
+        ensemble.SampleBrillouinZone(numK)
+        # ensemble.AddMomentum((np.pi / 4, np.pi / 8))
+        # ensemble.AddMomentum((np.pi / 4, -np.pi / 8))
+        # ensemble.AddMomentum((-np.pi / 4, np.pi / 8))
+        # ensemble.AddMomentum((-np.pi / 4, -np.pi / 8))
+        ensemble.Run(tauMax)
+
+        totalCurrent = ensemble.totalCurrent
+        xAmps[i] = np.max(np.abs(totalCurrent.paramagneticCurrent[0, :]))
+        yAmps[i] = np.max(np.abs(totalCurrent.paramagneticCurrent[1, :]))
+
+        # plot = Plotting(ensemble)
+        # plot.PlotSingleTime(np.pi / 4, np.pi / 8, tMax = 20, overplotNumericalSolution=True)
+        # plot.PlotSingleTime(np.pi / 4, -np.pi / 8, tMax = 10, overplotNumericalSolution=True)
+        # plot.PlotSingleTime(-np.pi / 4, np.pi / 8, tMax = 10, overplotNumericalSolution=True)
+        # plot.PlotSingleTime(-np.pi / 4, -np.pi / 8, tMax = 10, overplotNumericalSolution=True)
+        # plot.PlotParamagneticCurrent()
+        # plot.PlotParamagneticCurrentFFT(linearScale=False)
+
+    plt.plot(deltas, xAmps, label=r'$j_x$ Amplitude', color='blue')
+    plt.plot(deltas, yAmps, label=r'$j_y$ Amplitude', color='orange')
+    plt.xlabel(r'$\Delta$')
+    plt.ylabel("Amplitude of Total Current")
+    plt.suptitle(f"{numK} x {numK} Momentums in BZ, $A_0$ = {0.2}, $\gamma$ = {0.2}")
+    plt.show()
 
 if __name__ == "__main__":
     main()
