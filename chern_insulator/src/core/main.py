@@ -8,12 +8,12 @@ from config.paths import PLOTTING_DIR, STYLESHEET
 
 def main():
     # Total number of momentum points to sample.
-    numK = 10
+    numK = 100
     tauMax = 50
 
     plt.style.use(STYLESHEET)
 
-    deltas = np.arange(0.5, 1.5 + 0.5, 0.5, dtype=float)
+    deltas = np.arange(0.5, 10.5 + 0.5, 0.5, dtype=float)
     xAmps = np.zeros_like(deltas, dtype=float)
     yAmps = np.zeros_like(deltas, dtype=float)
 
@@ -49,7 +49,7 @@ def main():
         # plot.PlotParamagneticCurrent()
         # plot.PlotParamagneticCurrentFFT(linearScale=False)
 
-    np.save(PLOTTING_DIR / "Current Amplitude vs Delta.npy", np.stack([xAmps, yAmps], axis=0))
+    np.save(PLOTTING_DIR / "Current Amplitude vs Delta.npy", np.stack([deltas, xAmps, yAmps], axis=0))
 
     plt.plot(deltas, xAmps, '-x', label=r'$j_x$ Amplitude', color='blue')
     plt.plot(deltas, yAmps, '-x', label=r'$j_y$ Amplitude', color='orange')
