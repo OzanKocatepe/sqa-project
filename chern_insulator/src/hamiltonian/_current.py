@@ -7,17 +7,17 @@ class CurrentMixin:
 
     Methods:
     --------
-    jx: Calculates the x-current operator in the lattice basis at time t.
-    jy: Calculates the y-current operator in the lattice basis at time t.
-    jxm: Calculates the coefficient of sigma_- for the x-current in the band basis.
-    jxp: Calculates the coefficient of sigma_+ for the x-current in the band basis.
-    jxz: Calculates the coefficient of sigma_z for the x-current in the band basis.
-    jym: Calculates the coefficient of sigma_- for the y-current in the band basis.
-    jyp: Calculates the coefficient of sigma_+ for the y-current in the band basis.
-    jyz: Calculates the coefficient of sigma_z for the y-current in the band basis.
+    jpx: Calculates the x-current operator in the lattice basis at time t.
+    jpy: Calculates the y-current operator in the lattice basis at time t.
+    jpxm: Calculates the coefficient of sigma_- for the x-current in the band basis.
+    jpxp: Calculates the coefficient of sigma_+ for the x-current in the band basis.
+    jpxz: Calculates the coefficient of sigma_z for the x-current in the band basis.
+    jpym: Calculates the coefficient of sigma_- for the y-current in the band basis.
+    jpyp: Calculates the coefficient of sigma_+ for the y-current in the band basis.
+    jpyz: Calculates the coefficient of sigma_z for the y-current in the band basis.
     """
 
-    def jx(self, t: float | np.ndarray[float]) -> np.ndarray[complex]:
+    def jpx(self, t: float | np.ndarray[float]) -> np.ndarray[complex]:
         """
         Calculates the current operator in the x-direction
         in the lattice basis at some time t.
@@ -42,7 +42,7 @@ class CurrentMixin:
         
         return jx.squeeze()
 
-    def jy(self) -> np.ndarray[complex]:
+    def jpy(self) -> np.ndarray[complex]:
         """
         Calculates the current operator in the y-direction
         in the lattice basis.
@@ -56,7 +56,7 @@ class CurrentMixin:
 
         return -np.cos(self._params.ky) * self.sigmay + np.sin(self._params.ky) * self.sigmaz
 
-    def jxm(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
+    def jpxm(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
         """
         Returns the coefficient of sigma_- for the current operator in the
         x-direction, in the band basis, at time t.
@@ -75,9 +75,9 @@ class CurrentMixin:
             The type returned is the same as the type of t.
         """
 
-        return self._GetMinus(self.jx(t))
+        return self._GetMinus(self.jpx(t))
     
-    def jxp(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
+    def jpxp(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
         """
         Returns the coefficient of sigma_+ for the current operator in the
         x-direction, in the band basis, at time t.
@@ -96,9 +96,9 @@ class CurrentMixin:
             The type returned is the same as the type of t.
         """
 
-        return self._GetPlus(self.jx(t))
+        return self._GetPlus(self.jpx(t))
     
-    def jxz(self, t: float | np.ndarray[float]) -> float | np.ndarray[float]:
+    def jpxz(self, t: float | np.ndarray[float]) -> float | np.ndarray[float]:
         """
         Returns the coefficient of sigma_z for the current operator in the
         x-direction, in the band basis, at time t.
@@ -117,10 +117,10 @@ class CurrentMixin:
             The type returned is the same as the type of t.
         """
 
-        return self._GetZ(self.jx(t))
+        return self._GetZ(self.jpx(t))
  
     @cache
-    def jym(self) -> complex:
+    def jpym(self) -> complex:
         """
         Returns the coefficient of sigma_- for the current operator in the
         y-direction, in the band basis.
@@ -132,10 +132,10 @@ class CurrentMixin:
             y-direction, in the band basis.
         """
 
-        return self._GetMinus(self.jy())
+        return self._GetMinus(self.jpy())
     
     @cache
-    def jyp(self) -> complex:
+    def jpyp(self) -> complex:
         """
         Returns the coefficient of sigma_+ for the current operator in the
         y-direction, in the band basis.
@@ -147,10 +147,10 @@ class CurrentMixin:
             y-direction, in the band basis.
         """
 
-        return self._GetPlus(self.jy())
+        return self._GetPlus(self.jpy())
     
     @cache
-    def jyz(self) -> complex:
+    def jpyz(self) -> complex:
         """
         Returns the coefficient of sigma_z for the current operator in the
         y-direction, in the band basis.
@@ -162,4 +162,4 @@ class CurrentMixin:
             y-direction, in the band basis.
         """
 
-        return self._GetZ(self.jy())
+        return self._GetZ(self.jpy())

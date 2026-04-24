@@ -49,7 +49,7 @@ class Model:
         self.__corrData.singleTimeFourier = corrSolver.SolveSingleTimeCorrelations()
 
         currentSolver = CurrentSolver(self.__params)
-        self.__currentData.paramagneticCurrent = currentSolver.CalculateSingleTimeCurrent(self.__axes.tauAxisSec,
+        self.__currentData.paramagneticCurrent = currentSolver.CalculateParamagneticCurrent(self.__axes.tauAxisSec,
                                                                                           self.__corrData.singleTimeFourier)
 
         return self.__corrData, self.__currentData

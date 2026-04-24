@@ -21,13 +21,13 @@ class CurrentSolver:
         self.__params = params
         self.__hamiltonian = Hamiltonian(self.__params)
 
-    def CalculateSingleTimeCurrent(self, time: float | np.ndarray[float], fourierSeries: list[Fourier]) -> np.ndarray[complex]:
-        """Calculates the single time current.
+    def CalculateParamagneticCurrent(self, time: float | np.ndarray[float], fourierSeries: list[Fourier]) -> np.ndarray[complex]:
+        """Calculates the paramagnetic current.
         
         Parameters
         ----------
         time : float | ndarray[float]
-            The points in time, in seconds, to evaluate the current operator at.
+            The points in time, in seconds, to evaluate the paramagnetic current operator at.
         fourierSeries : list[Fourier]
             The list containing the Fourier series for sigma_-, sigma_+,
             and sigma_z, in that order.
@@ -35,7 +35,7 @@ class CurrentSolver:
         Returns
         -------
         ndarray[complex]:
-            The value of the current operator at the corresponding times.
+            The value of the paramagnetic current operator at the corresponding times.
             Has shape (2, time.size), where the first dimension corresponds to the
             current in the x-dimension and y-dimension for indices 0 and 1 respectively.
         """
@@ -45,32 +45,37 @@ class CurrentSolver:
         sigmam = fourierSeries[0].Evaluate(time)
         sigmap = fourierSeries[1].Evaluate(time)
         sigmaz = fourierSeries[2].Evaluate(time)
-
-        # plt.plot(time, sigmam - np.conjugate(sigmap))
-        # plt.title(r"$\sigma_- - \sigma_+^*$")
-        # plt.show()
-        # print(np.mean(sigmam - np.conjugate(sigmap)))
-        
-        current[0, :] = self.__hamiltonian.jxm(time) * sigmam \
-            + self.__hamiltonian.jxp(time) * sigmap \
-            + self.__hamiltonian.jxz(time) * sigmaz
-
-        # plt.plot(time, self.__hamiltonian.jxm(time).real - self.__hamiltonian.jxp(time).real)
-        # # plt.plot(time, self.__hamiltonian.jxp(time).real)
-        # plt.show()
-        
-        # plt.plot(time, self.__hamiltonian.jxm(time).imag - np.conjugate(self.__hamiltonian.jxp(time)).imag)
-        # # plt.plot(time, self.__hamiltonian.jxp(time).conj().imag)
-        # plt.show()
-        
-        current[1, :] = self.__hamiltonian.jym() * sigmam \
-            + self.__hamiltonian.jyp() * sigmap \
-            + self.__hamiltonian.jyz() * sigmaz
-
-        # print(self.__hamiltonian.jym() - self.__hamiltonian.jyp().conj())
-        # plt.show()
+ 
+        current[0, :] = self.__hamiltonian.jpxm(time) * sigmam \
+            + self.__hamiltonian.jpxp(time) * sigmap \
+            + self.__hamiltonian.jpxz(time) * sigmaz
+ 
+        current[1, :] = self.__hamiltonian.jpym() * sigmam \
+            + self.__hamiltonian.jpyp() * sigmap \
+            + self.__hamiltonian.jpyz() * sigmaz
         
         return current
+    
+    def CalculateDiamagneticCurrent(self, time : float | np.ndarray[float]) -> np.ndarray[complex]:
+        """Calculates the diamagnetic current.
+        
+        Parameters
+        ----------
+        time : float | ndarray[float]
+            The points in time, in seconds, to evaluate the diamagnetic current operator at.
+        fourierSeries : list[Fourier]
+            The list containing the Fourier series for sigma_-, sigma_+,
+            and sigma_z, in that order.
+
+        Returns
+        -------
+        ndarray[complex]:
+            The value of the diamagnetic current operator at the corresponding times.
+            Has shape (2, 2, time.size), where the first and second dimensions correspond
+            second and first partial derivative of H that we take respectively.
+            i.e. diagmagnetic current operator j_xy(t) would be stored at index [0, 1, :].
+        """
+        pass
     
     def __SolveSigmaNumerically(self, time: np.ndarray[float]) -> np.ndarray[complex]:
         """

@@ -25,8 +25,8 @@ for i, k in enumerate(kAxis):
     )
 
     h = Hamiltonian(params)
-    jym[i] = h.jym()
-    jyp[i] = h.jyp()
+    jym[i] = h.jpym()
+    jyp[i] = h.jpyp()
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
