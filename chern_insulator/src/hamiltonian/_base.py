@@ -16,7 +16,7 @@ class Base:
     -----------------
     plusEigenvector: The eigenvector of the unperturbed Hamiltonian corresponding to the positive energy eigenvalue.
     minusEigenvector: The eigenvector of the unperturbed Hamiltonian corresponding to the negative energy eigenvalue.
-    U: The unitary matrix constructed from these eigenvectors (first column is +, second column is -).
+    U: The unitary matrix constructed from these eigenvectors (first column is |+>, second column is |->).
     
     Methods
     -------
