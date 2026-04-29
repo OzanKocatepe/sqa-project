@@ -23,19 +23,19 @@ def main():
     # print(f"Non-trivial Phase (Delta = 1): C = {Hamiltonian.ChernNumber(1)}")
 
     ensemble = Ensemble(params)
-    ensemble.SampleBrillouinZone(numK)
-    # ensemble.AddMomentum((np.pi / 4, np.pi / 8))
-    # ensemble.AddMomentum((np.pi / 4, -np.pi / 8))
+    # ensemble.SampleBrillouinZone(numK)
+    ensemble.AddMomentum((np.pi / 4, np.pi / 8))
+    ensemble.AddMomentum((np.pi / 4, -np.pi / 8))
     # ensemble.AddMomentum((-np.pi / 4, np.pi / 8))
     # ensemble.AddMomentum((-np.pi / 4, -np.pi / 8))
     ensemble.Run(tauMax)
 
-    # plot = Plotting(ensemble)
+    plot = Plotting(ensemble)
     # plot.PlotSingleTime(np.pi / 4, np.pi / 8, tMax = 20, overplotNumericalSolution=True)
     # plot.PlotSingleTime(np.pi / 4, -np.pi / 8, tMax = 10, overplotNumericalSolution=True)
     # plot.PlotSingleTime(-np.pi / 4, np.pi / 8, tMax = 10, overplotNumericalSolution=True)
     # plot.PlotSingleTime(-np.pi / 4, -np.pi / 8, tMax = 10, overplotNumericalSolution=True)
-    # plot.PlotParamagneticCurrent()
+    plot.PlotParamagneticCurrent()
     # plot.PlotParamagneticCurrentFFT(linearScale=False)
 
 if __name__ == "__main__":
