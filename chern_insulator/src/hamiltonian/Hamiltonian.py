@@ -1,6 +1,3 @@
-import numpy as np
-from functools import cache, cached_property
-
 from hamiltonian._base import Base
 from hamiltonian._eigenbasis import EigenbasisMixin
 from hamiltonian._current import CurrentMixin
