@@ -138,7 +138,6 @@ class CurrentSolver:
         ).y.T
 
         # Reshapes rho into a matrix rather than a flattened array.
-        print(self.__params.kx, self.__params.ky)
         rho = rho.reshape((time.size, 2, 2))
 
         # Calculates our current operators at each desired time.

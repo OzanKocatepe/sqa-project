@@ -56,8 +56,16 @@ class LengthGaugeMixin:
         forwardEigenvectors[:, [0, 1]] = forwardEigenvectors[:, [1, 0]]
         backwardEigenvectors[:, [0, 1]] = backwardEigenvectors[:, [1, 0]]
 
-        print((forwardEigenvectors - backwardEigenvectors) / (2 * deltaK))
-        return(forwardEigenvectors - backwardEigenvectors) / (2 * deltaK)
+        # eigh can return the eigenvectors with any arbitrary phase, and it can vary between calls,
+        # so we fix the gauge relative to the original eigenvectors.
+        for col in range(2):
+            forward_overlap = np.vdot(self.U[:, col], forwardEigenvectors[:, col])
+            forwardEigenvectors[:, col] *= np.exp(-1j * np.angle(forward_overlap))
+
+            backward_overlap = np.vdot(self.U[:, col], backwardEigenvectors[:, col])
+            backwardEigenvectors[:, col] *= np.exp(-1j * np.angle(backward_overlap))
+
+        return (forwardEigenvectors - backwardEigenvectors) / (2 * deltaK)
 
 
     @cache
@@ -94,6 +102,15 @@ class LengthGaugeMixin:
         # Swaps eigenvectors so that they are positive first, then negative.
         forwardEigenvectors[:, [0, 1]] = forwardEigenvectors[:, [1, 0]]
         backwardEigenvectors[:, [0, 1]] = backwardEigenvectors[:, [1, 0]]
+
+        # eigh can return the eigenvectors with any arbitrary phase, and it can vary between calls,
+        # so we fix the gauge relative to the original eigenvectors.
+        for col in range(2):
+            forward_overlap = np.vdot(self.U[:, col], forwardEigenvectors[:, col])
+            forwardEigenvectors[:, col] *= np.exp(-1j * np.angle(forward_overlap))
+
+            backward_overlap = np.vdot(self.U[:, col], backwardEigenvectors[:, col])
+            backwardEigenvectors[:, col] *= np.exp(-1j * np.angle(backward_overlap))
         
         return (forwardEigenvectors - backwardEigenvectors) / (2 * deltaK)
     
@@ -231,4 +248,4 @@ class LengthGaugeMixin:
         ry = self.ry()
 
         return (-2 * energy * self.sigmay * ry[np.newaxis, :, :]
-            - 1j * np.multiply.outer(Ex, rx @ ry - ry @ rx)).squeeze()
+            + 1j * np.multiply.outer(Ex, rx @ ry - ry @ rx)).squeeze()

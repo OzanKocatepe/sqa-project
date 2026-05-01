@@ -8,7 +8,7 @@ from config.paths import PLOTTING_DIR, STYLESHEET
 
 def main():
     # Total number of momentum points to sample.
-    numK = 100
+    numK = 20
     tauMax = 50
 
     params = EnsembleParameters(
@@ -36,7 +36,7 @@ def main():
     # plot.PlotSingleTime(-np.pi / 4, np.pi / 8, tMax = 10, overplotNumericalSolution=True)
     # plot.PlotSingleTime(-np.pi / 4, -np.pi / 8, tMax = 10, overplotNumericalSolution=True)
     plot.PlotParamagneticCurrent(overplotLengthGauge=True)
-    # plot.PlotParamagneticCurrentFFT(linearScale=False)
+    plot.PlotParamagneticCurrentFFT(linearScale=False, overplotLengthGauge=True)
 
 if __name__ == "__main__":
     main()

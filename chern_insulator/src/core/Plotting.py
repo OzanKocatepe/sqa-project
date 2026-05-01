@@ -111,7 +111,7 @@ class Plotting:
         labels = [r"$\hat j_x$", r"$\hat j_y$"]
         alpha = 0.2
         colors = ['tab:blue', 'orange']
-        lengthGaugeColors = ['tab:cyan', 'yellow']
+        lengthGaugeColors = ['purple', 'red']
 
         for operatorIndex in np.arange(2).astype(int):
             # Stores the index of the operator that's going to be 
@@ -147,24 +147,24 @@ class Plotting:
                 ax[0].plot(axes.tauAxisDim,
                         lengthCurrent[operatorIndex].real,
                         color = lengthGaugeColors[operatorIndex],
-                        label = f"{labels[operatorIndex]} (Length Gauge)")
+                        label = f"{labels[operatorIndex]} (LG)")
 
                 ax[1].plot(axes.tauAxisDim,
                         lengthCurrent[operatorIndex].imag,
                         color = lengthGaugeColors[operatorIndex],
-                        label = f"{labels[operatorIndex]} (Length Gauge)")
+                        label = f"{labels[operatorIndex]} (LG)")
 
                 # Plots the other operator with small opacity.
                 ax[0].plot(axes.tauAxisDim,
                         lengthCurrent[opacityIndex].real,
                         color = colors[opacityIndex],
-                        label = f"{labels[opacityIndex]} (Length Gauge)",
+                        label = f"{labels[opacityIndex]} (LG)",
                         alpha = alpha)
 
                 ax[1].plot(axes.tauAxisDim,
                         lengthCurrent[opacityIndex].imag,
                         color = colors[opacityIndex],
-                        label = f"{labels[opacityIndex]} (Length Gauge)",
+                        label = f"{labels[opacityIndex]} (LG)",
                         alpha = alpha)
             
             # Sets x-axes to dimensionless time.
@@ -191,7 +191,7 @@ class Plotting:
             plt.close()
 
 
-    def PlotParamagneticCurrentFFT(self, linearScale: bool=False) -> None:
+    def PlotParamagneticCurrentFFT(self, linearScale: bool=False, overplotLengthGauge: bool=False) -> None:
         """Plots the FFT of the paramagnetic current as a function of frequency.
         
         Parameters
@@ -207,6 +207,9 @@ class Plotting:
         jxFFT = np.fft.fftshift(np.fft.fft(current.paramagneticCurrent[0]))
         jyFFT = np.fft.fftshift(np.fft.fft(current.paramagneticCurrent[1]))
 
+        jxLGFFT = np.fft.fftshift(np.fft.fft(current.lengthGaugeCurrent[0]))
+        jyLGFFT = np.fft.fftshift(np.fft.fft(current.lengthGaugeCurrent[1]))
+
         plt.plot(
             axes.freqAxis,
             np.abs(jxFFT),
@@ -218,6 +221,19 @@ class Plotting:
             np.abs(jyFFT),
             label=r'$\hat j_y$',
             color='orange')
+        
+        if overplotLengthGauge:
+            plt.plot(
+                axes.freqAxis,
+                np.abs(jxLGFFT),
+                label=r'$\hat j_x$ (LG)',
+                color='purple')
+
+            plt.plot(
+                axes.freqAxis,
+                np.abs(jyLGFFT),
+                label=r'$\hat j_y$ (LG)',
+                color='red')
         
         if not linearScale:
             plt.yscale('log')
