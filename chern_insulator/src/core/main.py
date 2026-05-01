@@ -12,7 +12,7 @@ def main():
     tauMax = 50
 
     params = EnsembleParameters(
-        delta = 3,
+        delta = 1,
         drivingAmp = 0.2,
         decayConstant = 0.2,
         maxN = 50
@@ -23,9 +23,9 @@ def main():
     # print(f"Non-trivial Phase (Delta = 1): C = {Hamiltonian.ChernNumber(1)}")
 
     ensemble = Ensemble(params)
-    # ensemble.SampleBrillouinZone(numK)
-    ensemble.AddMomentum((np.pi / 4, np.pi / 8))
-    ensemble.AddMomentum((np.pi / 4, -np.pi / 8))
+    ensemble.SampleBrillouinZone(numK)
+    # ensemble.AddMomentum((np.pi / 4, np.pi / 8))
+    # ensemble.AddMomentum((np.pi / 4, -np.pi / 8))
     # ensemble.AddMomentum((-np.pi / 4, np.pi / 8))
     # ensemble.AddMomentum((-np.pi / 4, -np.pi / 8))
     ensemble.Run(tauMax)
@@ -35,7 +35,7 @@ def main():
     # plot.PlotSingleTime(np.pi / 4, -np.pi / 8, tMax = 10, overplotNumericalSolution=True)
     # plot.PlotSingleTime(-np.pi / 4, np.pi / 8, tMax = 10, overplotNumericalSolution=True)
     # plot.PlotSingleTime(-np.pi / 4, -np.pi / 8, tMax = 10, overplotNumericalSolution=True)
-    plot.PlotParamagneticCurrent()
+    plot.PlotParamagneticCurrent(overplotLengthGauge=True)
     # plot.PlotParamagneticCurrentFFT(linearScale=False)
 
 if __name__ == "__main__":

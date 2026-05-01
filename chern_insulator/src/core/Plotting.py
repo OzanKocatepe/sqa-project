@@ -97,11 +97,13 @@ class Plotting:
         plt.close()
         
 
-    def PlotParamagneticCurrent(self, overplotNumericalSolution: bool = False) -> None:
+    def PlotParamagneticCurrent(self, overplotNumericalSolution: bool = False,
+                                overplotLengthGauge: bool=False) -> None:
         """Plots the paramagnetic current as a function of time."""
 
         axes = self.__ensemble.axes
         current = self.__ensemble.totalCurrent.paramagneticCurrent
+        lengthCurrent = self.__ensemble.totalCurrent.lengthGaugeCurrent
 
         print(f"Jx: {np.max(np.abs(current[0, -1000]))}")
         print(f"Jy: {np.max(np.abs(current[1, -1000]))}")
@@ -109,6 +111,7 @@ class Plotting:
         labels = [r"$\hat j_x$", r"$\hat j_y$"]
         alpha = 0.2
         colors = ['tab:blue', 'orange']
+        lengthGaugeColors = ['tab:cyan', 'yellow']
 
         for operatorIndex in np.arange(2).astype(int):
             # Stores the index of the operator that's going to be 
@@ -125,20 +128,44 @@ class Plotting:
             ax[1].plot(axes.tauAxisDim,
                        current[operatorIndex].imag,
                        color = colors[operatorIndex],
-                       label = labels[operatorIndex])
+                       label = labels[operatorIndex]) 
 
             # Plots the other operator with small opacity.
             ax[0].plot(axes.tauAxisDim,
                        current[opacityIndex].real,
-                       color = colors[opacityIndex],
+                       color = lengthGaugeColors[opacityIndex],
                        label = labels[opacityIndex],
                        alpha = alpha)
 
             ax[1].plot(axes.tauAxisDim,
                        current[opacityIndex].imag,
-                       color = colors[opacityIndex],
+                       color = lengthGaugeColors[opacityIndex],
                        label = labels[opacityIndex],
                        alpha = alpha)
+            
+            if overplotLengthGauge:
+                ax[0].plot(axes.tauAxisDim,
+                        lengthCurrent[operatorIndex].real,
+                        color = lengthGaugeColors[operatorIndex],
+                        label = f"{labels[operatorIndex]} (Length Gauge)")
+
+                ax[1].plot(axes.tauAxisDim,
+                        lengthCurrent[operatorIndex].imag,
+                        color = lengthGaugeColors[operatorIndex],
+                        label = f"{labels[operatorIndex]} (Length Gauge)")
+
+                # Plots the other operator with small opacity.
+                ax[0].plot(axes.tauAxisDim,
+                        lengthCurrent[opacityIndex].real,
+                        color = colors[opacityIndex],
+                        label = f"{labels[opacityIndex]} (Length Gauge)",
+                        alpha = alpha)
+
+                ax[1].plot(axes.tauAxisDim,
+                        lengthCurrent[opacityIndex].imag,
+                        color = colors[opacityIndex],
+                        label = f"{labels[opacityIndex]} (Length Gauge)",
+                        alpha = alpha)
             
             # Sets x-axes to dimensionless time.
             ax[0].set_xlabel(self.__tLabel)

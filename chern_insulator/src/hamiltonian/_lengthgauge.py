@@ -1,4 +1,5 @@
 import numpy as np
+from functools import cache
 
 class LengthGaugeMixin:
     """Contains logic for calculating the system in the length gauge."""
@@ -21,6 +22,7 @@ class LengthGaugeMixin:
 
         return -self._params.drivingAmp * self._params.angularFreq * np.cos(self._params.angularFreq * t)
     
+    @cache
     def XEigenvectorPartials(self) -> np.ndarray[complex]:
         """
         Returns the partial derivative of the eigenvectors with respect to kx.
@@ -41,13 +43,24 @@ class LengthGaugeMixin:
         hz = self._params.delta + np.cos(self._params.kx + deltaK) + np.cos(self._params.ky)
 
         H = hx * self.sigmax + hy * self.sigmay + hz * self.sigmaz
-        _, offsetEigenvectors = np.linalg.eigh(H) # Recall that this returns eigenvectors in ascending order of eigenvalue.
+        _, forwardEigenvectors = np.linalg.eigh(H) # Recall that this returns eigenvectors in ascending order of eigenvalue.
+
+        hx = np.sin(self._params.kx - deltaK)
+        hy = self.hy()
+        hz = self._params.delta + np.cos(self._params.kx - deltaK) + np.cos(self._params.ky)
+
+        H = hx * self.sigmax + hy * self.sigmay + hz * self.sigmaz
+        _, backwardEigenvectors = np.linalg.eigh(H) # Recall that this returns eigenvectors in ascending order of eigenvalue.
 
         # Swaps eigenvectors so that they are positive first, then negative.
-        offsetEigenvectors[:, [0, 1]] = offsetEigenvectors[:, [1, 0]]
+        forwardEigenvectors[:, [0, 1]] = forwardEigenvectors[:, [1, 0]]
+        backwardEigenvectors[:, [0, 1]] = backwardEigenvectors[:, [1, 0]]
 
-        return (offsetEigenvectors - self.U) / deltaK
+        print((forwardEigenvectors - backwardEigenvectors) / (2 * deltaK))
+        return(forwardEigenvectors - backwardEigenvectors) / (2 * deltaK)
 
+
+    @cache
     def YEigenvectorPartials(self) -> np.ndarray[complex]:
         """
         Returns the partial derivative of the eigenvectors with respect to ky.
@@ -68,13 +81,23 @@ class LengthGaugeMixin:
         hz = self._params.delta + np.cos(self._params.kx) + np.cos(self._params.ky + deltaK)
 
         H = hx * self.sigmax + hy * self.sigmay + hz * self.sigmaz
-        _, offsetEigenvectors = np.linalg.eigh(H) # Recall that this returns eigenvectors in ascending order of eigenvalue.
+        _, forwardEigenvectors = np.linalg.eigh(H) # Recall that this returns eigenvectors in ascending order of eigenvalue.
+
+        # We already have the eigenvectors, so we calculate the eigenvectors at kx + deltaK, ky.
+        hx = self.hx()
+        hy = np.sin(self._params.ky - deltaK)
+        hz = self._params.delta + np.cos(self._params.kx) + np.cos(self._params.ky - deltaK)
+
+        H = hx * self.sigmax + hy * self.sigmay + hz * self.sigmaz
+        _, backwardEigenvectors = np.linalg.eigh(H) # Recall that this returns eigenvectors in ascending order of eigenvalue.
 
         # Swaps eigenvectors so that they are positive first, then negative.
-        offsetEigenvectors[:, [0, 1]] = offsetEigenvectors[:, [1, 0]]
-
-        return (offsetEigenvectors - self.U) / deltaK
+        forwardEigenvectors[:, [0, 1]] = forwardEigenvectors[:, [1, 0]]
+        backwardEigenvectors[:, [0, 1]] = backwardEigenvectors[:, [1, 0]]
+        
+        return (forwardEigenvectors - backwardEigenvectors) / (2 * deltaK)
     
+    @cache
     def rx(self) -> np.ndarray[complex]:
         """
         Returns the matrix representation of the x-position operator,
@@ -93,11 +116,11 @@ class LengthGaugeMixin:
 
         for i in range(2):
             for j in range(2):
-                rx[i, j] = 1j * self.U[:, i].reshape(2, 1).conj().T @ kxPartials[:, j].reshape(2, 1)
+                rx[i, j] = 1j * np.vdot(self.U[:, i], kxPartials[:, j])
 
-        print(rx.shape)
         return rx
 
+    @cache
     def ry(self) -> np.ndarray[complex]:
         """
         Returns the matrix representation of the y-position operator,
@@ -116,9 +139,8 @@ class LengthGaugeMixin:
 
         for i in range(2):
             for j in range(2):
-                ry[i, j] = 1j * self.U[:, i].reshape(2, 1).conj().T @ kyPartials[:, j].reshape(2, 1)
+                ry[i, j] = 1j * np.vdot(self.U[:, i], kyPartials[:, j])
 
-        print(ry.shape)
         return ry
     
     def DensityMatrixODE(self, t: float, rho: np.ndarray[complex]) -> np.ndarray[complex]:
@@ -138,17 +160,30 @@ class LengthGaugeMixin:
             The time derivative of the density matrix at time t, represented as a 2x2 complex array.
         """
 
+        # Reshapes the rho input which was previously flattened.
+        rho = rho.reshape(2, 2)
+
         # Pulls all the parameters that we need.
         Ex = self.Ex(t)
         rx = self.rx()
         energy = self.energy()
         gamma = self._params.decayConstant
         rho_0 = np.array([[0, 0],
-                          [0, 1]], dtype=complex)
+                          [0, 1]], dtype=complex)        
 
-        return 2 * energy * self.sigmay * rho \
+        drho_dt = 2 * energy * self.sigmay * rho \
             - gamma * (rho - rho_0) \
-            + 1j * Ex * (rx @ rho - rho @ rx)
+            - 1j * Ex * (rx @ rho - rho @ rx)
+        
+        # print(rho)
+        # print(np.linalg.eigvals(drho_dt))
+        # print(rx)
+        # print(2 * energy * self.sigmay * rho)
+        # print(- gamma * (rho - rho_0))
+        # print(1j * Ex * (rx @ rho - rho @ rx))
+        # print('\n')
+         
+        return drho_dt.flatten()
     
     def jxLengthGauge(self, t: float | np.ndarray[float]) -> np.ndarray[complex]:
         """

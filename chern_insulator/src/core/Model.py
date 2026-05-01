@@ -51,6 +51,8 @@ class Model:
         currentSolver = CurrentSolver(self.__params)
         self.__currentData.paramagneticCurrent = currentSolver.CalculateParamagneticCurrent(self.__axes.tauAxisSec,
                                                                                           self.__corrData.singleTimeFourier)
+        
+        self.__currentData.lengthGaugeCurrent = currentSolver.CalculateLengthGaugeCurrent(self.__axes.tauAxisSec)
 
         return self.__corrData, self.__currentData
     

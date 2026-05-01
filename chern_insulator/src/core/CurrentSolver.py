@@ -107,3 +107,46 @@ class CurrentSolver:
             atol=1e-12,
             vectorized = True
         ).y
+    
+    def CalculateLengthGaugeCurrent(self, time: float | np.ndarray[float]) -> np.ndarray[complex]:
+        """Calculates the expectation value of the current in the length gauge.
+        
+        Parameters
+        ----------
+        time : float | ndarray[float]
+            The points in time, in seconds, to evaluate the current operator at.
+
+     
+        Returns
+        -------
+        ndarray[complex]:
+            The value of the length gauge current operator at the corresponding times.
+            Has shape (2, time.size), where the first dimension corresponds to the
+            current in the x-dimension and y-dimension for indices 0 and 1 respectively.
+        """
+
+        current = np.zeros((2, time.size), dtype=complex)
+
+        # Solves the ODE for our density matrix at the desired times.
+        rho = integrate.solve_ivp(
+            fun = self.__hamiltonian.DensityMatrixODE,
+            t_span = (0, np.max(time)),
+            y0 = np.array([0.0, 0.0, 0.0, 1.0], dtype=complex),
+            t_eval = time,
+            rtol=1e-9,
+            atol=1e-12
+        ).y.T
+
+        # Reshapes rho into a matrix rather than a flattened array.
+        print(self.__params.kx, self.__params.ky)
+        rho = rho.reshape((time.size, 2, 2))
+
+        # Calculates our current operators at each desired time.
+        jx = self.__hamiltonian.jxLengthGauge(time)
+        jy = self.__hamiltonian.jyLengthGauge(time)
+
+        # Calculates the average current.
+        current[0, :] = np.trace(jx @ rho, axis1=1, axis2=2)
+        current[1, :] = np.trace(jy @ rho, axis1=1, axis2=2)
+
+        return current
