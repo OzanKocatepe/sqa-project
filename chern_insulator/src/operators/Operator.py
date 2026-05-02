@@ -14,6 +14,15 @@ class Operator(ABC):
     If applicable, a fourier representation can also be defined.
     """
 
+    sigmax = np.array([[0, 1],
+                       [1, 0]], dtype=complex)
+    
+    sigmay = np.array([[0, -1j],
+                       [1j, 0]], dtype=complex)
+
+    sigmaz = np.array([[1, 0],
+                       [0, -1]], dtype=complex)
+
     def __init__(self, params: ModelParameters):
         """Instantiates an instance of the operator.
         
@@ -24,7 +33,7 @@ class Operator(ABC):
             this operator will act on.
         """
 
-        self.__params = params
+        self._params = params
 
     @abstractmethod
     def lattice_basis(self, t: float | np.ndarray[float]) -> np.ndarray[complex]:
