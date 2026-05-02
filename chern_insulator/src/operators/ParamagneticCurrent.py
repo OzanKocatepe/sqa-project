@@ -16,7 +16,7 @@ class ParamagneticCurrentX(Operator):
 class ParamagneticCurrentY(Operator):
     """The paramagnetic current operator in the y-direction."""
 
-    def lattice_basis(self, t: float | np.ndarray[float]) -> np.ndarray[complex]:
+    def lattice_basis(self, t: float | np.ndarray[float]=0) -> np.ndarray[complex]:
         jy = -np.cos(self._params.ky) * self.sigmay + np.sin(self._params.ky) * self.sigmaz
         
         return np.stack((jy,) * t.size, axis = 0)

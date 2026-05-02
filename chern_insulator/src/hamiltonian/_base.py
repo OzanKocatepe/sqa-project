@@ -30,21 +30,6 @@ class Base:
     StaticEnergy: Calculates the unperturbed energy of the system at a variety of momentums, vectorised.
     """
 
-    @cache
-    def energy(self) -> float:
-        """
-        Returns the unperturbed energy of the system at this momentum point.
-        This result is cached, since the unperturbed energy has no dependence on time,
-        and the momentum doesn't change once given.
-
-        Returns
-        -------
-        float:
-            The energy of the unperturbed system at this momentum.
-        """
-
-        return np.sqrt(self.hx()**2 + self.hy()**2 + self.hz()**2)
-
     @staticmethod
     def StaticEnergy(kx: float | np.ndarray[float], ky: float | np.ndarray[float], delta: float) -> float | np.ndarray[float]:
         """

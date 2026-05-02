@@ -1,10 +1,28 @@
 import numpy as np
 from functools import cache, cached_property
+from typing import override
 
 from operators import Operator
+from data import ModelParameters
 
 class Hamiltonian(Operator):
     """The Hamiltonian operator."""
+
+    def __init__(self, params: ModelParameters):
+        """Overrides the base class' initialiser.
+        
+        The Hamiltonian defines the band basis, and so it doesn't make sense
+        for it to take in a band basis and projection operators before it has
+        been defined itself.
+
+        Parameters
+        ----------
+        params : ModelParameters
+            The parameters of the model for which
+            the Hamiltonian will be calculated.
+        """
+
+        self._params = params
 
     def Ax(self, t: float | np.ndarray[float]) -> float | np.ndarray[float]:
         """
@@ -84,6 +102,21 @@ class Hamiltonian(Operator):
 
         return self._params.delta + np.cos(self._params.kx - self.Ax(t)) + np.cos(self._params.ky)
 
+    @cache
+    def energy(self) -> float:
+        """
+        Returns the unperturbed energy of the system at this momentum point.
+        This result is cached, since the unperturbed energy has no dependence on time,
+        and the momentum doesn't change once given.
+
+        Returns
+        -------
+        float:
+            The energy of the unperturbed system at this momentum.
+        """
+
+        return np.sqrt(self.hx()**2 + self.hy()**2 + self.hz()**2)
+
     def lattice_basis(self, t: float | np.ndarray[float]=0) -> np.ndarray[complex]:
         """
         Gets the value of the Hamiltonian in the lattice basis at time t.
@@ -109,14 +142,37 @@ class Hamiltonian(Operator):
         
         return H.squeeze()
     
+    @override
+    def band_basis(self, t: float | np.ndarray[float]=0) -> np.ndarray[complex]:
+        """Calculates the Hamiltonian in the band basis using an analytical formula.
+        
+        This overrides the normal function which rotates to the band basis because that first requires
+        the eigenbasis of this Hamiltonian, which is clearly not defined yet. Furthermore, because of this
+        exact reason we don't require the Hamiltonian to be given any band basis or projection operators
+        because it creates them.
+        
+        Parameters
+        ----------
+        t : float | ndarray[float]
+            The time, or times, at which to evaluate the Hamiltonian.
+        
+        Returns
+        -------
+        ndarray[complex]
+            The Hamiltonian in the band basis (its unperturbed eigenbasis). If t = 0, the operator is guaranteed to be
+            diagonal. Returns either a (n, 2, 2) array if t is a vector, or a (2, 2) array if t is a scalar.
+        """
+
+        return np.multiply.outer(self.energy(t), self.sigmaz)
+    
     @cached_property
     def plusEigenvector(self) -> np.ndarray[complex]:
-        _, U = np.linalg.eigh(self.H())
+        _, U = np.linalg.eigh(self.lattice_basis())
         return U[:, 1].reshape(2, 1)
     
     @cached_property
     def minusEigenvector(self) -> np.ndarray[complex]:
-        _, U = np.linalg.eigh(self.H())
+        _, U = np.linalg.eigh(self.lattice_basis())
         return U[:, 0].reshape(2, 1)
     
     @cached_property
@@ -130,9 +186,9 @@ class Hamiltonian(Operator):
         return U
     
     @cached_property
-    def PPlus(self) -> np.ndarray[complex]:
-        return 0.5 * (np.eye(2) + self.H() / self.energy())
+    def plusProjection(self) -> np.ndarray[complex]:
+        return 0.5 * (np.eye(2) + self.lattice_basis() / self.energy())
     
     @cached_property
-    def PMinus(self) -> np.ndarray[complex]:
-        return 0.5 * (np.eye(2) - self.H() / self.energy())
+    def minusProjection(self) -> np.ndarray[complex]:
+        return 0.5 * (np.eye(2) - self.lattice_basis() / self.energy())

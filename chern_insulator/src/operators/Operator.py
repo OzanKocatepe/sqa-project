@@ -23,7 +23,11 @@ class Operator(ABC):
     sigmaz = np.array([[1, 0],
                        [0, -1]], dtype=complex)
 
-    def __init__(self, params: ModelParameters):
+    def __init__(self, params: ModelParameters,
+                       bandBasis: np.ndarray[complex],
+                       plusProjection: np.ndarray[complex],
+                       minusProjection: np.ndarray[complex]
+                ):
         """Instantiates an instance of the operator.
         
         Parameters
@@ -31,9 +35,21 @@ class Operator(ABC):
         params : ModelParameters
             The parameters of the model for which
             this operator will act on.
+        bandBasis : ndarray[complex]
+            A (2, 2) matrix such that bandBasis[:, 0] is the positive eigenvector and
+            bandBasis[:, 1] is the negative eigenvector of the band basis.
+        plusProjection : ndarray[complex]
+            The shape (2, 2) projection operator into the positive eigenvector
+            of the band basis.
+        minusProjection : ndarray[complex]
+            The shape (2, 2) projection operator onto the negative eigenvector
+            of the band basis.
         """
 
         self._params = params
+        self._bandBasis = bandBasis
+        self._plusProjection = plusProjection
+        self._minusProjection = minusProjection
 
     @abstractmethod
     def lattice_basis(self, t: float | np.ndarray[float]) -> np.ndarray[complex]:
@@ -54,7 +70,7 @@ class Operator(ABC):
         pass
 
     def band_basis(self, t: float | np.ndarray[float]) -> np.ndarray[complex]:
-        """Gets the operator in the band basis.
+        """Rotates the operator into the band basis.
 
         Parameters
         ----------
@@ -82,15 +98,18 @@ class Operator(ABC):
         eigenmatrix = np.zeros_like(operator, dtype=complex)
 
         # Calculate diagonal components.
-        eigenmatrix[:, 0, 0] = np.trace(self.PPlus @ operator, axis1=1, axis2=2)
-        eigenmatrix[:, 1, 1] = np.trace(self.PMinus @ operator, axis1=1, axis2=2)
+        eigenmatrix[:, 0, 0] = np.trace(self._plusProjection @ operator, axis1=1, axis2=2)
+        eigenmatrix[:, 1, 1] = np.trace(self._minusProjection @ operator, axis1=1, axis2=2)
+
+        plusEigenvector = self.bandBasis[:, 0]
+        minusEigenvector = self.bandBasis[:, 1]
 
         # Pick arbitrary vector r.
-        r = 1 / np.sqrt(2) * (self.plusEigenvector + self.minusEigenvector)
+        r = 1 / np.sqrt(2) * (plusEigenvector + minusEigenvector)
         # Calculate off-diagonal components.
-        denominator = np.sqrt(r.conj().T @ self.PPlus @ r @ r.conj().T @ self.PPlus @ r)
-        eigenmatrix[:, 0, 1] = (r.conj().T @ self.PPlus @ operator @ self.PMinus @ r).squeeze() / denominator
-        eigenmatrix[:, 1, 0] = (r.conj().T @ self.PMinus @ operator @ self.PPlus @ r).squeeze() / denominator
+        denominator = np.sqrt(r.conj().T @ self._plusProjection @ r @ r.conj().T @ self._plusProjection @ r)
+        eigenmatrix[:, 0, 1] = (r.conj().T @ self._plusProjection @ operator @ self._minusProjection @ r).squeeze() / denominator
+        eigenmatrix[:, 1, 0] = (r.conj().T @ self._minusProjection @ operator @ self._plusProjection @ r).squeeze() / denominator
  
         # Squeezes eigenmatrix to deal with the case when the shape is
         # (1, 2, 2), so we will get the matrix back as a (2, 2) matrix.
