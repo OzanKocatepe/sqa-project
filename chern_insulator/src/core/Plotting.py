@@ -65,7 +65,7 @@ class Plotting:
                                   color = 'black', label='Fourier Series')
                 
                 if overplotNumericalSolution:
-                    from hamiltonian import Hamiltonian
+                    from operators import Hamiltonian
                     h = Hamiltonian(model.params)
 
                     numericalSigma = integrate.solve_ivp(
@@ -97,8 +97,7 @@ class Plotting:
         plt.close()
         
 
-    def PlotParamagneticCurrent(self, overplotNumericalSolution: bool = False,
-                                overplotLengthGauge: bool=False) -> None:
+    def PlotParamagneticCurrent(self, overplotLengthGauge: bool=False) -> None:
         """Plots the paramagnetic current as a function of time."""
 
         axes = self.__ensemble.axes
