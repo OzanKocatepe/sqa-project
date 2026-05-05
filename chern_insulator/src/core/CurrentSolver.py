@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from scipy import integrate
 
 from data import ModelParameters, Fourier
-from operators import Hamiltonian, ParamagneticCurrentX, ParamagneticCurrentY
+from operators import Hamiltonian, ParamagneticCurrentX, ParamagneticCurrentY, DiamagneticCurrentX
 from LengthGauge import LengthGauge
 
 class CurrentSolver:
@@ -21,8 +21,9 @@ class CurrentSolver:
 
         self.__params = params
         self.__hamiltonian = Hamiltonian(self.__params)
-        self.__jx = ParamagneticCurrentX(self.__params, self.__hamiltonian)
-        self.__jy = ParamagneticCurrentY(self.__params, self.__hamiltonian)
+        self.__jpx = ParamagneticCurrentX(self.__params, self.__hamiltonian)
+        self.__jpy = ParamagneticCurrentY(self.__params, self.__hamiltonian)
+        self.__jdx = DiamagneticCurrentX(self.__params, self.__hamiltonian)
 
     def CalculateParamagneticCurrent(self, time: float | np.ndarray[float], fourierSeries: list[Fourier]) -> np.ndarray[complex]:
         """Calculates the paramagnetic current.
@@ -49,18 +50,22 @@ class CurrentSolver:
         sigmap = fourierSeries[1].Evaluate(time)
         sigmaz = fourierSeries[2].Evaluate(time)
  
-        current[0, :] = self.__jx.minus(time) * sigmam \
-            + self.__jx.plus(time) * sigmap \
-            + self.__jx.z(time) * sigmaz
+        current[0, :] = (
+            self.__jpx.minus(time) * sigmam
+            + self.__jpx.plus(time) * sigmap
+            + self.__jpx.z(time) * sigmaz
+        )
  
-        current[1, :] = self.__jy.minus(time) * sigmam \
-            + self.__jy.plus(time) * sigmap \
-            + self.__jy.z(time) * sigmaz
+        current[1, :] = (
+            self.__jpy.minus(time) * sigmam
+            + self.__jpy.plus(time) * sigmap
+            + self.__jpy.z(time) * sigmaz
+        )
         
         return current
     
-    def CalculateDiamagneticCurrent(self, time : float | np.ndarray[float]) -> np.ndarray[complex]:
-        """Calculates the diamagnetic current.
+    def CalculateDiamagneticCurrent(self, time : float | np.ndarray[float], fourierSeries: list[Fourier]) -> np.ndarray[complex]:
+        """Calculates the xx-diamagnetic current.
         
         Parameters
         ----------
@@ -74,11 +79,19 @@ class CurrentSolver:
         -------
         ndarray[complex]:
             The value of the diamagnetic current operator at the corresponding times.
-            Has shape (2, 2, time.size), where the first and second dimensions correspond
-            second and first partial derivative of H that we take respectively.
-            i.e. diagmagnetic current operator j_xy(t) would be stored at index [0, 1, :].
+            Has shape (time.size,), since we only need the xx-component of the diamagnetic
+            current in our case.
         """
-        pass
+
+        sigmam = fourierSeries[0].Evaluate(time)
+        sigmap = fourierSeries[1].Evaluate(time)
+        sigmaz = fourierSeries[2].Evaluate(time)
+        
+        return (
+            self.__jdx.minus(time) * sigmam
+            + self.__jdx.plus(time) * sigmap
+            + self.__jdx.z(time) * sigmaz
+        )
     
     def __SolveSigmaNumerically(self, time: np.ndarray[float]) -> np.ndarray[complex]:
         """

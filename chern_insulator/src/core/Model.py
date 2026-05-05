@@ -2,6 +2,7 @@ import numpy as np
 
 from data import ModelParameters, AxisData, CorrelationData, CurrentData
 from core import CorrelationSolver, CurrentSolver
+from operators import Hamiltonian
 
 class Model:
     """Contains a Chern Insulator model evaluated at a single pair kx, ky."""
@@ -16,6 +17,7 @@ class Model:
         """
 
         self.__params = params
+        self.__hamiltonian = Hamiltonian(self.__params)
 
         self.__corrData = CorrelationData()
         self.__currentData = CurrentData()
@@ -53,6 +55,19 @@ class Model:
                                                                                           self.__corrData.singleTimeFourier)
         
         # self.__currentData.lengthGaugeCurrent = currentSolver.CalculateLengthGaugeCurrent(self.__axes.tauAxisSec)
+
+        self.__currentData.diamagneticCurrent = currentSolver.CalculateDiamagneticCurrent(self.__axes.tauAxisSec,
+                                                                                          self.__corrData.singleTimeFourier)
+        
+        # Calculates the total current by using the paramagnetic and diamagnetic currents.
+        # The total y-current is simply the paramagnetic y-current, since its diamagnetic term ends up being 0.
+        self.__currentData.totalCurrent = np.zeros(self.__currentData.paramagneticCurrent.shape, dtype=complex)
+
+        self.__currentData.totalCurrent[0, :] = (
+            self.__currentData.paramagneticCurrent[0, :]
+            + self.__currentData.diamagneticCurrent * self.__hamiltonian.Ax(self.__axes.tauAxisSec)
+        )
+        self.__currentData.totalCurrent[1, :] = self.__currentData.paramagneticCurrent[1, :]
 
         return self.__corrData, self.__currentData
     

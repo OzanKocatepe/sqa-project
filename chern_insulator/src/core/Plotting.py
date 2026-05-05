@@ -97,12 +97,12 @@ class Plotting:
         plt.close()
         
 
-    def PlotParamagneticCurrent(self, overplotLengthGauge: bool=False) -> None:
-        """Plots the paramagnetic current as a function of time."""
+    def PlotTotalCurrent(self, overplotLengthGauge: bool=False) -> None:
+        """Plots the total current as a function of time."""
 
         axes = self.__ensemble.axes
-        current = self.__ensemble.totalCurrent.paramagneticCurrent
-        lengthCurrent = self.__ensemble.totalCurrent.lengthGaugeCurrent
+        current = self.__ensemble.summedCurrent.totalCurrent
+        lengthCurrent = self.__ensemble.summedCurrent.lengthGaugeCurrent
 
         labels = [r"$\hat j_x$", r"$\hat j_y$"]
         alpha = 0.2
@@ -187,8 +187,8 @@ class Plotting:
             plt.close()
 
 
-    def PlotParamagneticCurrentFFT(self, linearScale: bool=False, overplotLengthGauge: bool=False) -> None:
-        """Plots the FFT of the paramagnetic current as a function of frequency.
+    def PlotTotalCurrentFFT(self, linearScale: bool=False, overplotLengthGauge: bool=False) -> None:
+        """Plots the FFT of the total current as a function of frequency.
         
         Parameters
         ----------
@@ -198,10 +198,10 @@ class Plotting:
         """
 
         axes = self.__ensemble.axes
-        current = self.__ensemble.totalCurrent
+        current = self.__ensemble.summedCurrent
 
-        jxFFT = np.fft.fftshift(np.fft.fft(current.paramagneticCurrent[0]))
-        jyFFT = np.fft.fftshift(np.fft.fft(current.paramagneticCurrent[1]))
+        jxFFT = np.fft.fftshift(np.fft.fft(current.totalCurrent[0]))
+        jyFFT = np.fft.fftshift(np.fft.fft(current.totalCurrent[1]))
 
         plt.plot(
             axes.freqAxis,

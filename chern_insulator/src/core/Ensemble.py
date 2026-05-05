@@ -214,7 +214,7 @@ class Ensemble:
         )
     
     @cached_property
-    def totalCurrent(self) -> CurrentData:
+    def summedCurrent(self) -> CurrentData:
         return np.sum([model.currentData for model in self.__models.values()])
     
     @property

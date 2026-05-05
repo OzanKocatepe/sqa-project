@@ -18,7 +18,7 @@ def main():
     plt.style.use(STYLESHEET)
 
     params = EnsembleParameters(
-        delta = 3,
+        delta = 1,
         drivingAmp = 0.2,
         decayConstant = 0.2,
         maxN = 50
@@ -37,8 +37,8 @@ def main():
     # plot.PlotSingleTime(np.pi / 4, -np.pi / 8, tMax = 10, overplotNumericalSolution=True)
     # plot.PlotSingleTime(-np.pi / 4, np.pi / 8, tMax = 10, overplotNumericalSolution=True)
     # plot.PlotSingleTime(-np.pi / 4, -np.pi / 8, tMax = 10, overplotNumericalSolution=True)
-    plot.PlotParamagneticCurrent(overplotLengthGauge=False)
-    plot.PlotParamagneticCurrentFFT(linearScale=False, overplotLengthGauge=False)
+    plot.PlotTotalCurrent(overplotLengthGauge=False)
+    plot.PlotTotalCurrentFFT(linearScale=False, overplotLengthGauge=False)
 
 if __name__ == "__main__":
     main()
