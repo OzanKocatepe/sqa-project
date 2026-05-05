@@ -8,7 +8,7 @@ from config.paths import PLOTTING_DIR, STYLESHEET
 
 def main():
     # Total number of momentum points to sample.
-    numK = 20
+    numK = 100
     tauMax = 50
 
     # Check the Chern number.
@@ -18,7 +18,7 @@ def main():
     plt.style.use(STYLESHEET)
 
     params = EnsembleParameters(
-        delta = 1,
+        delta = 3,
         drivingAmp = 0.2,
         decayConstant = 0.2,
         maxN = 50
