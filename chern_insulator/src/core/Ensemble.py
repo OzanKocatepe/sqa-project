@@ -108,7 +108,11 @@ class Ensemble:
                 # Note: if very slow, worth trying map instead of imap, since
                 # appparently imap can be much slower than map.
                 results = list(tqdm(
-                                pool.imap(self._MultiProcessingRun, tasks),
+                                pool.imap(
+                                    self._MultiProcessingRun,
+                                    tasks,
+                                    chunksize = len(tasks) // (numProcesses * 4) + 1
+                                ),
                                 total=len(tasks),
                                 desc=f"Running models (Delta = {self.__params.delta})"
                             ))

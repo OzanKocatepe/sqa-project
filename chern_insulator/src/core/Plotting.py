@@ -105,9 +105,6 @@ class Plotting:
         current = self.__ensemble.totalCurrent.paramagneticCurrent
         lengthCurrent = self.__ensemble.totalCurrent.lengthGaugeCurrent
 
-        print(f"Jx: {np.max(np.abs(current[0, -1000]))}")
-        print(f"Jy: {np.max(np.abs(current[1, -1000]))}")
-
         labels = [r"$\hat j_x$", r"$\hat j_y$"]
         alpha = 0.2
         colors = ['tab:blue', 'orange']
