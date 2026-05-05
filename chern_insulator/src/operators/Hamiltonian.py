@@ -2,10 +2,9 @@ import numpy as np
 from functools import cache, cached_property
 from typing import override
 
-from operators import Operator
 from data import ModelParameters
 
-class Hamiltonian(Operator):
+class Hamiltonian:
     """The Hamiltonian operator."""
 
     def __init__(self, params: ModelParameters):
@@ -141,30 +140,7 @@ class Hamiltonian(Operator):
             + np.multiply.outer(self.hz(t), self.sigmaz)
         
         return H.squeeze()
-    
-    @override
-    def band_basis(self, t: float | np.ndarray[float]=0) -> np.ndarray[complex]:
-        """Calculates the Hamiltonian in the band basis using an analytical formula.
-        
-        This overrides the normal function which rotates to the band basis because that first requires
-        the eigenbasis of this Hamiltonian, which is clearly not defined yet. Furthermore, because of this
-        exact reason we don't require the Hamiltonian to be given any band basis or projection operators
-        because it creates them.
-        
-        Parameters
-        ----------
-        t : float | ndarray[float]
-            The time, or times, at which to evaluate the Hamiltonian.
-        
-        Returns
-        -------
-        ndarray[complex]
-            The Hamiltonian in the band basis (its unperturbed eigenbasis). If t = 0, the operator is guaranteed to be
-            diagonal. Returns either a (n, 2, 2) array if t is a vector, or a (2, 2) array if t is a scalar.
-        """
-
-        return np.multiply.outer(self.energy(t), self.sigmaz)
-    
+     
     @cached_property
     def plusEigenvector(self) -> np.ndarray[complex]:
         _, U = np.linalg.eigh(self.lattice_basis())
