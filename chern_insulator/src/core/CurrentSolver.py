@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from scipy import integrate
 
 from data import ModelParameters, Fourier
-from hamiltonian import Hamiltonian
+from operators import Hamiltonian
 
 class CurrentSolver:
     """Contains the code for solving for single- and double- time currents."""

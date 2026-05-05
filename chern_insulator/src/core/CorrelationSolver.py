@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from data import ModelParameters, Fourier
-from hamiltonian import Hamiltonian
+from operators import Hamiltonian
 
 class CorrelationSolver:
     """Contains the relevant code for solving the single- and double- time correlations."""

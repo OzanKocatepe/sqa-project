@@ -2,8 +2,6 @@ from __future__ import annotations
 import numpy as np
 from dataclasses import dataclass, field
 
-from operators import Hamiltonian
-
 @dataclass(slots=True)
 class EnsembleParameters:
     """
@@ -55,8 +53,15 @@ class EnsembleParameters:
             resolution = 50
             axisPoints = np.linspace(-np.pi, np.pi, resolution)
             kx, ky = np.meshgrid(axisPoints, axisPoints)
+            
+            # We need to redefine energies here, because if we define it in Hamiltonian and try to import it,
+            # Hamiltonian will require importing ModelParameters, which will cause a circular import error.
+            # Its simple enough to just redefine.
+            hx = np.sin(kx)
+            hy = np.sin(ky)
+            hz = self.delta + np.cos(kx) + np.cos(ky)
 
-            energies = Hamiltonian.energy_vectorised(kx.flatten(), ky.flatten(), self.delta)
+            energies = np.sqrt(hx**2 + hy**2 + hz**2)
             bandGap = 2 * np.min(energies)
 
             # Finds the minimum band gap over the Brillouin zone.

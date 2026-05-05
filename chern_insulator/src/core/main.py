@@ -11,6 +11,10 @@ def main():
     numK = 20
     tauMax = 50
 
+    # Check the Chern number.
+    # print(f"Trivial Phase (Delta = 3): C = {ChernNumber(3)}")
+    # print(f"Non-trivial Phase (Delta = 1): C = {ChernNumber(1)}")
+
     plt.style.use(STYLESHEET)
 
     amps = np.linspace(1e-4, 1e-1, 10)
@@ -27,10 +31,6 @@ def main():
             decayConstant = 0.2,
             maxN = 50
         )
-
-        # Check the Chern number.
-        # print(f"Trivial Phase (Delta = 3): C = {ChernNumber(3)}")
-        # print(f"Non-trivial Phase (Delta = 1): C = {ChernNumber(1)}")
 
         ensemble = Ensemble(params)
         ensemble.SampleBrillouinZone(numK)
