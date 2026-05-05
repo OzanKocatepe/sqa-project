@@ -3,10 +3,19 @@ from functools import cache, cached_property
 from scipy import special
 
 from data import ModelParameters
-from operators import BandBasisProjector
+from operators.BandBasisProjector import BandBasisProjector
 
 class Hamiltonian:
     """The Hamiltonian operator."""
+
+    sigmax = np.array([[0, 1],
+                       [1, 0]], dtype=complex)
+    
+    sigmay = np.array([[0, -1j],
+                       [1j, 0]], dtype=complex)
+
+    sigmaz = np.array([[1, 0],
+                       [0, -1]], dtype=complex)
 
     def __init__(self, params: ModelParameters):
         """Initialises the Hamiltonian for a given model.        

@@ -1,8 +1,25 @@
 import numpy as np
 from functools import cache
 
-class LengthGaugeMixin:
+from operators import Hamiltonian
+from data import ModelParameters
+
+class LengthGauge:
     """Contains logic for calculating the system in the length gauge."""
+
+    def __init__(self, params: ModelParameters, hamiltonian: Hamiltonian):
+        """Instantiates the class.
+        
+        Parameters
+        ----------
+        params : ModelParameters
+            The parameters of the model.
+        hamiltonian : Hamiltonian
+            The Hamiltonian of the system.
+        """
+
+        self._params = params
+        self._hamiltonian = hamiltonian
 
     def Ex(self, t: float | np.ndarray[float]) -> float | np.ndarray[float]:
         """
@@ -39,17 +56,17 @@ class LengthGaugeMixin:
 
         # We already have the eigenvectors, so we calculate the eigenvectors at kx + deltaK, ky.
         hx = np.sin(self._params.kx + deltaK)
-        hy = self.hy()
+        hy = self._hamiltonian.hy()
         hz = self._params.delta + np.cos(self._params.kx + deltaK) + np.cos(self._params.ky)
 
-        H = hx * self.sigmax + hy * self.sigmay + hz * self.sigmaz
+        H = hx * self._hamiltonian.sigmax + hy * self._hamiltonian.sigmay + hz * self._hamiltonian.sigmaz
         _, forwardEigenvectors = np.linalg.eigh(H) # Recall that this returns eigenvectors in ascending order of eigenvalue.
 
         hx = np.sin(self._params.kx - deltaK)
-        hy = self.hy()
+        hy = self._hamiltonian.hy()
         hz = self._params.delta + np.cos(self._params.kx - deltaK) + np.cos(self._params.ky)
 
-        H = hx * self.sigmax + hy * self.sigmay + hz * self.sigmaz
+        H = hx * self._hamiltonian.sigmax + hy * self._hamiltonian.sigmay + hz * self._hamiltonian.sigmaz
         _, backwardEigenvectors = np.linalg.eigh(H) # Recall that this returns eigenvectors in ascending order of eigenvalue.
 
         # Swaps eigenvectors so that they are positive first, then negative.
@@ -59,10 +76,10 @@ class LengthGaugeMixin:
         # eigh can return the eigenvectors with any arbitrary phase, and it can vary between calls,
         # so we fix the gauge relative to the original eigenvectors.
         for col in range(2):
-            forward_overlap = np.vdot(self.U[:, col], forwardEigenvectors[:, col])
+            forward_overlap = np.vdot(self._hamiltonian.U[:, col], forwardEigenvectors[:, col])
             forwardEigenvectors[:, col] *= np.exp(-1j * np.angle(forward_overlap))
 
-            backward_overlap = np.vdot(self.U[:, col], backwardEigenvectors[:, col])
+            backward_overlap = np.vdot(self._hamiltonian.U[:, col], backwardEigenvectors[:, col])
             backwardEigenvectors[:, col] *= np.exp(-1j * np.angle(backward_overlap))
 
         return (forwardEigenvectors - backwardEigenvectors) / (2 * deltaK)
@@ -84,19 +101,19 @@ class LengthGaugeMixin:
         deltaK = 1e-5
 
         # We already have the eigenvectors, so we calculate the eigenvectors at kx + deltaK, ky.
-        hx = self.hx()
+        hx = self._hamiltonian.hx()
         hy = np.sin(self._params.ky + deltaK)
         hz = self._params.delta + np.cos(self._params.kx) + np.cos(self._params.ky + deltaK)
 
-        H = hx * self.sigmax + hy * self.sigmay + hz * self.sigmaz
+        H = hx * self._hamiltonian.sigmax + hy * self._hamiltonian.sigmay + hz * self._hamiltonian.sigmaz
         _, forwardEigenvectors = np.linalg.eigh(H) # Recall that this returns eigenvectors in ascending order of eigenvalue.
 
         # We already have the eigenvectors, so we calculate the eigenvectors at kx + deltaK, ky.
-        hx = self.hx()
+        hx = self._hamiltonian.hx()
         hy = np.sin(self._params.ky - deltaK)
         hz = self._params.delta + np.cos(self._params.kx) + np.cos(self._params.ky - deltaK)
 
-        H = hx * self.sigmax + hy * self.sigmay + hz * self.sigmaz
+        H = hx * self._hamiltonian.sigmax + hy * self._hamiltonian.sigmay + hz * self._hamiltonian.sigmaz
         _, backwardEigenvectors = np.linalg.eigh(H) # Recall that this returns eigenvectors in ascending order of eigenvalue.
 
         # Swaps eigenvectors so that they are positive first, then negative.
@@ -106,10 +123,10 @@ class LengthGaugeMixin:
         # eigh can return the eigenvectors with any arbitrary phase, and it can vary between calls,
         # so we fix the gauge relative to the original eigenvectors.
         for col in range(2):
-            forward_overlap = np.vdot(self.U[:, col], forwardEigenvectors[:, col])
+            forward_overlap = np.vdot(self._hamiltonian.U[:, col], forwardEigenvectors[:, col])
             forwardEigenvectors[:, col] *= np.exp(-1j * np.angle(forward_overlap))
 
-            backward_overlap = np.vdot(self.U[:, col], backwardEigenvectors[:, col])
+            backward_overlap = np.vdot(self._hamiltonian.U[:, col], backwardEigenvectors[:, col])
             backwardEigenvectors[:, col] *= np.exp(-1j * np.angle(backward_overlap))
         
         return (forwardEigenvectors - backwardEigenvectors) / (2 * deltaK)
@@ -133,7 +150,7 @@ class LengthGaugeMixin:
 
         for i in range(2):
             for j in range(2):
-                rx[i, j] = 1j * np.vdot(self.U[:, i], kxPartials[:, j])
+                rx[i, j] = 1j * np.vdot(self._hamiltonian.U[:, i], kxPartials[:, j])
 
         return rx
 
@@ -156,7 +173,7 @@ class LengthGaugeMixin:
 
         for i in range(2):
             for j in range(2):
-                ry[i, j] = 1j * np.vdot(self.U[:, i], kyPartials[:, j])
+                ry[i, j] = 1j * np.vdot(self._hamiltonian.U[:, i], kyPartials[:, j])
 
         return ry
     
@@ -183,22 +200,14 @@ class LengthGaugeMixin:
         # Pulls all the parameters that we need.
         Ex = self.Ex(t)
         rx = self.rx()
-        energy = self.energy()
+        energy = self._hamiltonian.energy()
         gamma = self._params.decayConstant
         rho_0 = np.array([[0, 0],
                           [0, 1]], dtype=complex)        
 
-        drho_dt = 2 * energy * self.sigmay * rho \
+        drho_dt = 2 * energy * self._hamiltonian.sigmay * rho \
             - gamma * (rho - rho_0) \
             - 1j * Ex * (rx @ rho - rho @ rx)
-        
-        # print(rho)
-        # print(np.linalg.eigvals(drho_dt))
-        # print(rx)
-        # print(2 * energy * self.sigmay * rho)
-        # print(- gamma * (rho - rho_0))
-        # print(1j * Ex * (rx @ rho - rho @ rx))
-        # print('\n')
          
         return drho_dt.flatten()
     
@@ -219,10 +228,10 @@ class LengthGaugeMixin:
             If t is vectorised, this will have shape (t.size, 2, 2).
         """
 
-        energy = self.energy()
+        energy = self._hamiltonian.energy()
         rx = self.rx()
 
-        return -2 * energy * self.sigmay * rx
+        return -2 * energy * self._hamiltonian.sigmay * rx
 
     def jyLengthGauge(self, t: float | np.ndarray[float]) -> np.ndarray[complex]:
         """
@@ -243,9 +252,9 @@ class LengthGaugeMixin:
 
         t = np.atleast_1d(t)
         Ex = self.Ex(t)
-        energy = self.energy()
+        energy = self._hamiltonian.energy()
         rx = self.rx()
         ry = self.ry()
 
-        return (-2 * energy * self.sigmay * ry[np.newaxis, :, :]
+        return (-2 * energy * self._hamiltonian.sigmay * ry[np.newaxis, :, :]
             + 1j * np.multiply.outer(Ex, rx @ ry - ry @ rx)).squeeze()

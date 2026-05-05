@@ -2,7 +2,8 @@ import numpy as np
 from abc import ABC, abstractmethod
 
 from data import ModelParameters
-from operators import Hamiltonian, BandBasisProjector
+from operators import Hamiltonian
+from operators.BandBasisProjector import BandBasisProjector
 
 class Operator(ABC):
     """Abstract base class that all operators must inherit from.
@@ -14,15 +15,6 @@ class Operator(ABC):
 
     If applicable, a fourier representation can also be defined.
     """
-
-    sigmax = np.array([[0, 1],
-                       [1, 0]], dtype=complex)
-    
-    sigmay = np.array([[0, -1j],
-                       [1j, 0]], dtype=complex)
-
-    sigmaz = np.array([[1, 0],
-                       [0, -1]], dtype=complex)
 
     def __init__(self, params: ModelParameters, hamiltonian: Hamiltonian):
         """Instantiates an instance of the operator.

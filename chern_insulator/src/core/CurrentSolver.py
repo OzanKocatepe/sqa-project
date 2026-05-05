@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 from scipy import integrate
 
 from data import ModelParameters, Fourier
-from operators import Hamiltonian
+from operators import Hamiltonian, ParamagneticCurrentX, ParamagneticCurrentY
+from LengthGauge import LengthGauge
 
 class CurrentSolver:
     """Contains the code for solving for single- and double- time currents."""
@@ -20,6 +21,8 @@ class CurrentSolver:
 
         self.__params = params
         self.__hamiltonian = Hamiltonian(self.__params)
+        self.__jx = ParamagneticCurrentX(self.__params, self.__hamiltonian)
+        self.__jy = ParamagneticCurrentY(self.__params, self.__hamiltonian)
 
     def CalculateParamagneticCurrent(self, time: float | np.ndarray[float], fourierSeries: list[Fourier]) -> np.ndarray[complex]:
         """Calculates the paramagnetic current.
@@ -46,13 +49,13 @@ class CurrentSolver:
         sigmap = fourierSeries[1].Evaluate(time)
         sigmaz = fourierSeries[2].Evaluate(time)
  
-        current[0, :] = self.__hamiltonian.jpxm(time) * sigmam \
-            + self.__hamiltonian.jpxp(time) * sigmap \
-            + self.__hamiltonian.jpxz(time) * sigmaz
+        current[0, :] = self.__jx.minus(time) * sigmam \
+            + self.__jx.plus(time) * sigmap \
+            + self.__jx.z(time) * sigmaz
  
-        current[1, :] = self.__hamiltonian.jpym() * sigmam \
-            + self.__hamiltonian.jpyp() * sigmap \
-            + self.__hamiltonian.jpyz() * sigmaz
+        current[1, :] = self.__jy.minus(time) * sigmam \
+            + self.__jy.plus(time) * sigmap \
+            + self.__jy.z(time) * sigmaz
         
         return current
     
@@ -127,9 +130,11 @@ class CurrentSolver:
 
         current = np.zeros((2, time.size), dtype=complex)
 
+        lg = LengthGauge(self.__params, self.__hamiltonian)
+
         # Solves the ODE for our density matrix at the desired times.
         rho = integrate.solve_ivp(
-            fun = self.__hamiltonian.DensityMatrixODE,
+            fun = lg.DensityMatrixODE,
             t_span = (0, np.max(time)),
             y0 = np.array([0.0, 0.0, 0.0, 1.0], dtype=complex),
             t_eval = time,
@@ -141,8 +146,8 @@ class CurrentSolver:
         rho = rho.reshape((time.size, 2, 2))
 
         # Calculates our current operators at each desired time.
-        jx = self.__hamiltonian.jxLengthGauge(time)
-        jy = self.__hamiltonian.jyLengthGauge(time)
+        jx = lg.jxLengthGauge(time)
+        jy = lg.jyLengthGauge(time)
 
         # Calculates the average current.
         current[0, :] = np.trace(jx @ rho, axis1=1, axis2=2)
