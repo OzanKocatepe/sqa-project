@@ -2,6 +2,8 @@ from __future__ import annotations
 import numpy as np
 from dataclasses import dataclass, field
 
+from operators import Hamiltonian
+
 @dataclass(slots=True)
 class EnsembleParameters:
     """
@@ -48,17 +50,13 @@ class EnsembleParameters:
         # set the drivingFreq and so we will not recalculate it.
         
         if self.drivingFreq is None:
-            # Imports only in this local space to avoid circular dependency and incomplete import stuff.
-            # I'd rather just important the function but I can't seem to do that.
-            from hamiltonian import Hamiltonian
-
             # Samples the BZ based on the resolution. This can be very detailed since
             # it should only happen a single time in the code.
             resolution = 50
             axisPoints = np.linspace(-np.pi, np.pi, resolution)
-            x, y = np.meshgrid(axisPoints, axisPoints)
+            kx, ky = np.meshgrid(axisPoints, axisPoints)
 
-            energies = Hamiltonian.StaticEnergy(x.flatten(), y.flatten(), self.delta)
+            energies = Hamiltonian.energy_vectorised(kx.flatten(), ky.flatten(), self.delta)
             bandGap = 2 * np.min(energies)
 
             # Finds the minimum band gap over the Brillouin zone.

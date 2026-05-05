@@ -97,6 +97,33 @@ class Hamiltonian:
         """
 
         return self._params.delta + np.cos(self._params.kx - self.Ax(t)) + np.cos(self._params.ky)
+    
+    @staticmethod
+    def energy_vectorised(kx: float | np.ndarray[float], ky: float | np.ndarray[float], delta: float) -> np.ndarray[float]:
+        """Calculates the unperturbed energy of a system with the given parameters.
+
+        Parameters
+        ----------
+        kx : float | ndarray[float]
+            The x-component of the momentum.
+        ky : float | ndarray[float]
+            The y-component of the momentum.
+            Must be the same type as kx.
+        delta : float
+            The value of delta.
+
+        Returns
+        -------
+        float | ndarray[float]:
+            The energy of the unperturbed system at this momentum
+            and delta. Will be the same type and shape as kx and ky.
+        """
+        
+        hx = np.sin(kx)
+        hy = np.sin(ky)
+        hz = delta + np.cos(kx) + np.cos(ky)
+
+        return np.sqrt(hx**2 + hy**2 + hz**2)
 
     @cache
     def energy(self) -> float:
@@ -111,7 +138,7 @@ class Hamiltonian:
             The energy of the unperturbed system at this momentum.
         """
 
-        return np.sqrt(self.hx()**2 + self.hy()**2 + self.hz()**2)
+        return self.energy_vectorised(self._params.kx, self._params.ky, self._params.delta)
 
     def lattice_basis(self, t: float | np.ndarray[float]=0) -> np.ndarray[complex]:
         """
