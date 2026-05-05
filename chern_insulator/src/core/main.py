@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 from data import EnsembleParameters
 from core import Ensemble, Plotting
-from hamiltonian import Hamiltonian
+from Topology import ChernNumber
 from config.paths import PLOTTING_DIR, STYLESHEET
 
 def main():
@@ -29,8 +29,8 @@ def main():
         )
 
         # Check the Chern number.
-        # print(f"Trivial Phase (Delta = 3): C = {Hamiltonian.ChernNumber(3)}")
-        # print(f"Non-trivial Phase (Delta = 1): C = {Hamiltonian.ChernNumber(1)}")
+        # print(f"Trivial Phase (Delta = 3): C = {ChernNumber(3)}")
+        # print(f"Non-trivial Phase (Delta = 1): C = {ChernNumber(1)}")
 
         ensemble = Ensemble(params)
         ensemble.SampleBrillouinZone(numK)
