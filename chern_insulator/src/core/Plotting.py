@@ -207,9 +207,6 @@ class Plotting:
         jxFFT = np.fft.fftshift(np.fft.fft(current.paramagneticCurrent[0]))
         jyFFT = np.fft.fftshift(np.fft.fft(current.paramagneticCurrent[1]))
 
-        jxLGFFT = np.fft.fftshift(np.fft.fft(current.lengthGaugeCurrent[0]))
-        jyLGFFT = np.fft.fftshift(np.fft.fft(current.lengthGaugeCurrent[1]))
-
         plt.plot(
             axes.freqAxis,
             np.abs(jxFFT),
@@ -223,6 +220,9 @@ class Plotting:
             color='orange')
         
         if overplotLengthGauge:
+            jxLGFFT = np.fft.fftshift(np.fft.fft(current.lengthGaugeCurrent[0]))
+            jyLGFFT = np.fft.fftshift(np.fft.fft(current.lengthGaugeCurrent[1]))
+
             plt.plot(
                 axes.freqAxis,
                 np.abs(jxLGFFT),
