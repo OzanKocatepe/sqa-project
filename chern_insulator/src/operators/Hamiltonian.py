@@ -1,6 +1,6 @@
 import numpy as np
 from functools import cache, cached_property
-from typing import override
+from scipy import special
 
 from data import ModelParameters
 
@@ -8,11 +8,7 @@ class Hamiltonian:
     """The Hamiltonian operator."""
 
     def __init__(self, params: ModelParameters):
-        """Overrides the base class' initialiser.
-        
-        The Hamiltonian defines the band basis, and so it doesn't make sense
-        for it to take in a band basis and projection operators before it has
-        been defined itself.
+        """Initialises the Hamiltonian for a given model.        
 
         Parameters
         ----------
@@ -140,6 +136,138 @@ class Hamiltonian:
             + np.multiply.outer(self.hz(t), self.sigmaz)
         
         return H.squeeze()
+
+    def hxn(self, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
+        """
+        Calculates the nth Fourier coefficient for the driven term hx(t).
+
+        Parameters
+        ----------
+        n : int | ndarray[int]
+            The index, or indices, that we will calculate the Fourier coefficients of.
+            The index corresponds to the harmonic of the base frequency.
+
+        Returns
+        -------
+        complex | ndarray[complex]:
+            The desired coefficient(s). Of the same type as n.
+        """
+
+        # Form numpy array so that we can iterate through n.
+        n = np.atleast_1d(n)
+        coeffs = np.zeros_like(n, dtype=complex)
+
+        zeroMask = n == 0
+        evenMask = n % 2 == 0
+        oddMask = ~evenMask
+
+        # Calculates the relevant coefficients in a vectorised manner.
+        # Not sure if scipy is actually faster vectorised, but regardless it neatens up the code.
+        coeffs[oddMask] = np.sign(n[oddMask]) * 1j * special.jv(np.abs(n[oddMask]), self._params.drivingAmp) * np.cos(self._params.kx)
+        coeffs[evenMask] = special.jv(np.abs(n[evenMask]), self._params.drivingAmp) * np.sin(self._params.kx)
+        coeffs[zeroMask] = special.jv(0, self._params.drivingAmp) * np.sin(self._params.kx)
+
+        # Returns the array as a float if it has size 1.
+        if coeffs.size == 1:
+            return coeffs[0]
+
+        return coeffs
+    
+    def hyn(self, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
+        """
+        Calculates the nth Fourier coefficient for the term hyn.
+        This is a constant term, so returning the 'Fourier coefficients' just
+        returns the value itself for n = 0, and 0 for all other n.
+        This function is just a utility to use for compatibility with the other Fourier
+        coefficient functions.
+
+        Parameters
+        ----------
+        n : int | ndarray[int]
+            The index, or indices, that we will calculate the Fourier coefficients of.
+            The index corresponds to the harmonic of the base frequency.
+
+        Returns
+        -------
+        complex | ndarray[complex]:
+            The desired coefficient(s). Of the same type as n.
+        """
+
+        # Form numpy array so that we can iterate through n.
+        n = np.atleast_1d(n)
+        coeffs = np.zeros_like(n, dtype=complex)
+
+        # Sets n = 0 to the value of the constant,
+        # otherwise leaves all other coefficients as zero.
+        coeffs[n == 0] = self.hy()
+
+        # Returns the array as a float if it has size 1.
+        if coeffs.size == 1:
+            return coeffs[0]
+
+        return coeffs
+
+
+    def hzn(self, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
+        """
+        Calculates the nth Fourier coefficient for the driven term hz(t).
+
+        Parameters
+        ----------
+        n : int | ndarray[int]
+            The index, or indices, that we will calculate the Fourier coefficients of.
+            The index corresponds to the harmonic of the base frequency.
+
+        Returns
+        -------
+        complex | ndarray[complex]:
+            The desired coefficient(s). Of the same type as n.
+        """
+
+        # Form numpy array so that we can iterate through n.
+        n = np.atleast_1d(n)
+        coeffs = np.zeros_like(n, dtype=complex)
+
+        zeroMask = n == 0
+        evenMask = n % 2 == 0
+        oddMask = ~evenMask
+
+        # Calculates the relevant coefficients in a vectorised manner.
+        # Not sure if scipy is actually faster vectorised, but regardless it neatens up the code.
+        coeffs[evenMask] = special.jv(np.abs(n[evenMask]), self._params.drivingAmp) * np.cos(self._params.kx)
+        coeffs[oddMask] = np.sign(n[oddMask]) * -1j * special.jv(np.abs(n[oddMask]), self._params.drivingAmp) * np.sin(self._params.kx)
+        coeffs[zeroMask] = self._params.delta + np.cos(self._params.kx) * special.jv(0, self._params.drivingAmp) \
+                    + np.cos(self._params.ky)
+
+        # Returns the array as a float if it has size 1.
+        if coeffs.size == 1:
+            return coeffs[0]
+
+        return coeffs
+    
+    def Hn(self, n: int | np.ndarray[int]) -> np.ndarray[complex]:
+        """
+        Calculates the nth Fourier coefficient for H(t), the driven lattice basis Hamiltonian.
+        
+        Parameters
+        ----------
+        n : int | ndarray[int]
+            The index, or indices, that we will calculate the Fourier coefficients of.
+            The index corresponds to the harmonic of the base frequency.
+
+        Returns
+        -------
+        complex | ndarray[complex]:
+            The desired coefficient(s). Of the same type as n. Comes in the shape
+            (n.size, 2, 2), where the third axis disappears if n is a scalar.
+        """
+
+        n = np.atleast_1d(n)
+
+        H = np.array([[self.hzn(n), self.hxn(n) - 1j * self.hyn(n)],
+                      [self.hxn(n) + 1j * self.hyn(n), -self.hzn(n)]], dtype=complex)
+        
+        return np.moveaxis(H, -1, 0).squeeze()
      
     @cached_property
     def plusEigenvector(self) -> np.ndarray[complex]:
