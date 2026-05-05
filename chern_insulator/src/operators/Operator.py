@@ -2,7 +2,7 @@ import numpy as np
 from abc import ABC, abstractmethod
 
 from data import ModelParameters
-from operators import Hamiltonian
+from operators import Hamiltonian, BandBasisProjector
 
 class Operator(ABC):
     """Abstract base class that all operators must inherit from.
@@ -72,36 +72,8 @@ class Operator(ABC):
             a (2, 2) matrix. If the input is shape (n, 2, 2), returns an array of shape (n, 2, 2).
         """
 
-        operator = self.lattice_basis(t)
-
-        # If we have a single operator of shape (2, 2), transforms it into
-        # shape (1, 2, 2).
-        if operator.ndim == 2:
-            operator = operator[np.newaxis, :, :]
-
-        # Rotates operator numerically using the calculated U matrix.
-        # eigenmatrix = self.U.conj().T @ operator @ self.U
-
-        # Rotates the operator numerically using the projection operators.
-        eigenmatrix = np.zeros_like(operator, dtype=complex)
-
-        # Calculate diagonal components.
-        eigenmatrix[:, 0, 0] = np.trace(self._hamiltonian.plusProjection @ operator, axis1=1, axis2=2)
-        eigenmatrix[:, 1, 1] = np.trace(self._hamiltonian.minusProjection @ operator, axis1=1, axis2=2)
-
-        # Pick arbitrary vector r.
-        r = 1 / np.sqrt(2) * (self._hamiltonian.plusEigenvector + self._hamiltonian.minusEigenvector)
-        # Calculate off-diagonal components.
-        denominator = np.sqrt(r.conj().T @ self._hamiltonian.plusProjection @ r @ r.conj().T @ self._hamiltonian.plusProjection @ r)
-        eigenmatrix[:, 0, 1] = (r.conj().T @ self._hamiltonian.plusProjection @ operator @ self._hamiltonian.minusProjection @ r).squeeze() / denominator
-        eigenmatrix[:, 1, 0] = (r.conj().T @ self._hamiltonian.minusProjection @ operator @ self._hamiltonian.plusProjection @ r).squeeze() / denominator
- 
-        # Squeezes eigenmatrix to deal with the case when the shape is
-        # (1, 2, 2), so we will get the matrix back as a (2, 2) matrix.
-        # Otherwise, returns an (n, n) matrix.
-        # Indexing can happen outside the function since we will know what the return shape will be
-        # based on our input.
-        return eigenmatrix.squeeze()
+        projector = BandBasisProjector(self._hamiltonian)
+        return projector.rotate_to_band_basis(self.lattice_basis(t))
 
     def minus(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
         """Gets the coefficient of sigma_- for this operator in the band basis.
@@ -119,12 +91,7 @@ class Operator(ABC):
         """
 
         bandOperator = self.band_basis(t)
-
-        # Changes the indexing between a single operator and a stack of operators.
-        if bandOperator.ndim == 2:
-            return bandOperator[1, 0]
-        else:
-            return bandOperator[:, 1, 0]
+        return BandBasisProjector.minus_coeff(bandOperator)
 
     def plus(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
         """Gets the coefficient of sigma_+ for this operator in the band basis.
@@ -142,12 +109,7 @@ class Operator(ABC):
         """
 
         bandOperator = self.band_basis(t)
-
-        # Changes the indexing between a single operator and a stack of operators.
-        if bandOperator.ndim == 2:
-            return bandOperator[0, 1]
-        else:
-            return bandOperator[:, 0, 1]
+        return BandBasisProjector.plus_coeff(bandOperator)
 
     def z(self, t: float | np.ndarray[float]) -> complex | np.ndarray[complex]:
         """Gets the coefficient of sigma_z for this operator in the band basis.
@@ -165,9 +127,4 @@ class Operator(ABC):
         """
 
         bandOperator = self.band_basis(t)
-
-        # Changes the indexing between a single operator and a stack of operators.
-        if bandOperator.ndim == 2:
-            return 0.5 * (bandOperator[0, 0] - bandOperator[1, 1])
-        else:
-            return 0.5 * (bandOperator[:, 0, 0] - bandOperator[:, 1, 1])
+        return BandBasisProjector.z_coeff(bandOperator)
