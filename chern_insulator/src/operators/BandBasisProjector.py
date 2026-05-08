@@ -1,11 +1,11 @@
 import numpy as np
 
-from .Hamiltonian import Hamiltonian
+from .BandBasisProtocol import BandBasisProtocol
 
 class BandBasisProjector:
     """Projects operators onto the band basis."""
 
-    def __init__(self, hamiltonian: Hamiltonian):
+    def __init__(self, hamiltonian: BandBasisProtocol):
         """Instantiates the class.
         
         Parameters

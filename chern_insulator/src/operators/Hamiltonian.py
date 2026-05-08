@@ -3,10 +3,9 @@ from functools import cache, cached_property
 from scipy import special
 
 from data import ModelParameters
-from .BandBasisProjector import BandBasisProjector
-from .Operator import Operator
+from .Operator import FourierOperator
 
-class Hamiltonian(Operator):
+class Hamiltonian(FourierOperator):
     """The Hamiltonian operator."""
 
     sigmax = np.array([[0, 1],
@@ -125,21 +124,7 @@ class Hamiltonian(Operator):
         return np.sqrt(self.hx()**2 + self.hy()**2 + self.hz()**2)
 
     def lattice_basis(self, t: float | np.ndarray[float]=0) -> np.ndarray[complex]:
-        """
-        Gets the value of the Hamiltonian in the lattice basis at time t.
-
-        Parameters
-        ----------
-        t : float | ndarray[float]
-            The time, in seconds, to evaluate the Hamiltonian at.
-            If zero, this is the unperturbed Hamiltonian.
-
-        Returns
-        -------
-        ndarray[complex]:
-            The Hamiltonian evaluated at each time. Has the shape
-            (t.size, 2, 2), or (2, 2) if t is a scalar.
-        """
+        """See parent class."""
 
         t = np.atleast_1d(t)
 
@@ -258,21 +243,7 @@ class Hamiltonian(Operator):
         return coeffs
     
     def lattice_fourier_coefficient(self, n: int | np.ndarray[int]) -> np.ndarray[complex]:
-        """
-        Calculates the nth Fourier coefficient for H(t), the driven lattice basis Hamiltonian.
-        
-        Parameters
-        ----------
-        n : int | ndarray[int]
-            The index, or indices, that we will calculate the Fourier coefficients of.
-            The index corresponds to the harmonic of the base frequency.
-
-        Returns
-        -------
-        complex | ndarray[complex]:
-            The desired coefficient(s). Of the same type as n. Comes in the shape
-            (n.size, 2, 2), where the third axis disappears if n is a scalar.
-        """
+        """See parent class."""
 
         n = np.atleast_1d(n)
 
@@ -280,86 +251,7 @@ class Hamiltonian(Operator):
                       [self.hxn(n) + 1j * self.hyn(n), -self.hzn(n)]], dtype=complex)
         
         return np.moveaxis(H, -1, 0).squeeze()
-    
-    def band_fourier_coefficient(self, n: int | np.ndarray[int]) -> np.ndarray[complex]:
-        """The nth Fourier coefficient for the driven Hamiltonian in the band basis.
-        
-        Parameters
-        ----------
-        n : int | ndarray[int]
-            The index, or indices, that we will calculate the Fourier coefficients of.
-            The index corresponds to the harmonic of the base frequency.
-
-        Returns
-        -------
-        complex | ndarray[complex]:
-            The desired coefficient(s) in the band basis. Of the same type as n. Comes in the shape
-            (n.size, 2, 2), where the third axis disappears if n is a scalar.
-        """
-
-        projector = BandBasisProjector(self)
-        return projector.rotate_to_band_basis(self.lattice_fourier_coefficient(n))
-
-    def fourier_minus(self, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
-        """
-        Returns the corresponding coefficient in the Fourier series for H-(t).
-
-        Parameters
-        ----------
-        n : int | ndarray[int]
-            The components of the Fourier series to find the coefficients for.
-            Can be vectorised, resulting in a vectorised output.
-
-        Returns
-        -------
-        complex | ndarray[complex]:
-            The desired coefficients, corresponding to the entries of n.
-            The type returned is the same as the type of n.
-        """
-
-        coeffs = self.band_fourier_coefficient(n)
-        return BandBasisProjector.minus_coeff(coeffs)
-    
-    def fourier_plus(self, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
-        """
-        Returns the corresponding coefficient in the Fourier series for H+(t).
-
-        Parameters
-        ----------
-        n : int | ndarray[int]
-            The components of the Fourier series to find the coefficients for.
-            Can be vectorised, resulting in a vectorised output.
-
-        Returns
-        -------
-        complex | ndarray[complex]:
-            The desired coefficients, corresponding to the entries of n.
-            The type returned is the same as the type of n.
-        """
-
-        coeffs = self.band_fourier_coefficient(n)
-        return BandBasisProjector.plus_coeff(coeffs)
-    
-    def fourier_z(self, n : int | np.ndarray[int]) -> complex | np.ndarray[complex]:
-        """
-        Returns the corresponding coefficient in the Fourier series for Hz(t).
-
-        Parameters
-        ----------
-        n : int | ndarray[int]
-            The components of the Fourier series to find the coefficients for.
-            Can be vectorised, resulting in a vectorised output.
-
-        Returns
-        -------
-        complex | ndarray[complex]:
-            The desired coefficients, corresponding to the entries of n.
-            The type returned is the same as the type of n.
-        """
-
-        coeffs = self.band_fourier_coefficient(n)
-        return BandBasisProjector.z_coeff(coeffs)
- 
+     
     @cached_property
     def plusEigenvector(self) -> np.ndarray[complex]:
         _, U = np.linalg.eigh(self.lattice_basis())

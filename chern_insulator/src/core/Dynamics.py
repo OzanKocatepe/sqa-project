@@ -24,7 +24,8 @@ class Dynamics:
         self._ham = hamiltonian
     
     def EquationsOfMotion(self, t: float | np.ndarray[float],
-                          c: np.ndarray[complex]
+                          c: np.ndarray[complex],
+                          inhomPart: complex,
                           ) -> np.ndarray[complex]:
         """
         Returns the right-hand side of the equations of motion for the system at time t, in seconds.
@@ -37,6 +38,9 @@ class Dynamics:
         c : ndarray[complex]
             The state of the system at time t, in the band basis.
             For single-time correlations, c should be (sigma_-, sigma_+, sigma_z).
+        inhomPart : complex
+            The inhomogenous part of the equations of motion. This will change depending on whether we
+            are solving for the single-time or double-time correlations.
 
         Returns
         -------
@@ -53,6 +57,6 @@ class Dynamics:
                       [0, 2j * Hz - 0.5 * gamma, -1j * Hm],
                       [2j * Hm, -2j * Hp, -gamma]], dtype=complex)
         
-        inhomPart = np.array([0, 0, -gamma], dtype=complex)
+        inhomPartVector = np.array([0, 0, inhomPart], dtype=complex)
  
-        return B @ c + inhomPart[:, np.newaxis]
+        return B @ c + inhomPartVector[:, np.newaxis]
