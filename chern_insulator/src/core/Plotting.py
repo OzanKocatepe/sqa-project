@@ -27,6 +27,7 @@ class Plotting:
         # Defines useful attributes for plotting.
         self.__plottingFunctions = [lambda z: np.abs(z), lambda z: z.real, lambda z: z.imag]
         self.__plottingLabels = ["Magnitude", "Real", "Imaginary"]
+        self.__tauLabel = r"$\tau \gamma_-$"
         self.__tLabel = r"$t \gamma_-$"
         self.__freqLabel = r"$f / \Omega$"
 
@@ -95,6 +96,65 @@ class Plotting:
         plt.savefig(f"{folder}/kx: {kx / np.pi}pi, ky: {ky / np.pi}pi.png", dpi=300)
         plt.show()
         plt.close()
+
+    def PlotDoubleTime(self, kx: float, ky: float) -> None:
+        """Plots the double-time correlations.
+        
+        For each double-time correlation sigma_i sigma_j, we calculate
+        and plot the connected correlators. Each connected correlators
+        has a real and imaginary part plotted side-by-side on a 2D plot.
+
+        Parameters
+        ----------
+        kx : float
+            The x-component of the momentum to plot.
+        ky : float
+            The y-component of the momentum to plot.
+        """
+
+        corr = self.__ensemble.models[(kx, ky)].correlationData
+        axes = self.__ensemble.axes
+        subscripts = ['-', '+', 'z']
+
+        for leftOperatorIndex in range(3):
+            for rightOperatorIndex in range(3):
+                leftOperator = corr.singleTimeFourier[leftOperatorIndex].Evaluate(axes.tAxisSec)
+                # Evaluates the right operator at every point (t + tau).
+                rightOperator = corr.singleTimeFourier[rightOperatorIndex].Evaluate(
+                    # Creates an object of (t.size, tau.size) containing pairs (t, t + tau).
+                    np.add.outer(axes.tAxisSec, axes.tauAxisSec)
+                )
+
+                # Left operator is evaluated at t, so stays the same as right operator changes with tau.
+                # This calcalates <sigma_i> <sigma_j> at times (t, t + tau).
+                prod = leftOperator[:, np.newaxis] * rightOperator
+                connectedCorr = corr.doubleTimeCorrelations[leftOperatorIndex, rightOperatorIndex, :, :] - prod
+
+                fig, ax = plt.subplots(1, 2)
+                funcs = self.__plottingFunctions[1:]
+                
+                for col in range(2):
+                    mesh = ax[col].pcolormesh(
+                        self.__ensemble.axes.tauAxisDim,
+                        self.__ensemble.axes.tAxisDim,
+                        funcs[col](connectedCorr),
+                        cmap = 'bwr',
+                        shading = 'nearest')
+
+                    ax[col].set_title(f"{self.__plottingLabels[col + 1]} Part")
+                    ax[col].set_xlabel(self.__tauLabel)
+                    ax[col].set_ylabel(self.__tLabel)
+                    plt.colorbar(mesh, ax=ax[col])
+
+                plt.suptitle(f"{subscripts[leftOperatorIndex]}{subscripts[rightOperatorIndex]} "
+                            + fr"Connected Correlator ($\Delta = {self.__ensemble.params.delta}$)")
+                plt.tight_layout()
+
+                subFolder = f"Delta {self.__ensemble.params.delta}/Double-Time Connected Correlators"
+                os.makedirs(f"{PLOTTING_DIR}/{subFolder}", exist_ok=True)
+                plt.savefig(f"{PLOTTING_DIR}/{subFolder}/"
+                            + f"{subscripts[leftOperatorIndex]}{subscripts[rightOperatorIndex]}.png", dpi=300)
+                plt.show()
         
 
     def PlotTotalCurrent(self, overplotLengthGauge: bool=False) -> None:
