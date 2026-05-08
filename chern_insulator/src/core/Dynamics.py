@@ -50,7 +50,7 @@ class Dynamics:
             in c.
         """
 
-        Hm, Hp, Hz = self.ham.minus(t), self.ham.plus(t), self.ham.z(t)
+        Hm, Hp, Hz = self._ham.minus(t), self._ham.plus(t), self._ham.z(t)
         gamma = self._params.decayConstant
 
         B = np.array([[-(2j * Hz + 0.5 * gamma), 0, 1j * Hp],

@@ -50,18 +50,26 @@ class Model:
         # Solves the single-time fourier series.
         corrSolver = CorrelationSolver(self.__params)
         self.__corrData.singleTimeFourier = corrSolver.SolveSingleTimeCorrelations()
-        # self.__corrData.doubleTimeCorrelations = corrSolver.SolveDoubleTimeCorrelations(self.__axes.tAxisSec,
-        #                                                                                 self.__axes.tauAxisSec,
-        #                                                                                 self.__corrData.singleTimeFourier)
+
+        # Solves the double-time correlations using scipy ODE solver (solve_ivp).
+        self.__corrData.doubleTimeCorrelations = corrSolver.SolveDoubleTimeCorrelations(
+            self.__axes.tAxisSec,
+            self.__axes.tauAxisSec,
+            self.__corrData.singleTimeFourier
+        )
 
         currentSolver = CurrentSolver(self.__params)
-        self.__currentData.paramagneticCurrent = currentSolver.CalculateParamagneticCurrent(self.__axes.tauAxisSec,
-                                                                                          self.__corrData.singleTimeFourier)
+        self.__currentData.paramagneticCurrent = currentSolver.CalculateParamagneticCurrent(
+            self.__axes.tauAxisSec,
+            self.__corrData.singleTimeFourier
+        )
         
         # self.__currentData.lengthGaugeCurrent = currentSolver.CalculateLengthGaugeCurrent(self.__axes.tauAxisSec)
 
-        self.__currentData.diamagneticCurrent = currentSolver.CalculateDiamagneticCurrent(self.__axes.tauAxisSec,
-                                                                                          self.__corrData.singleTimeFourier)
+        self.__currentData.diamagneticCurrent = currentSolver.CalculateDiamagneticCurrent(
+            self.__axes.tauAxisSec,
+            self.__corrData.singleTimeFourier
+        )
         
         self.__currentData.totalCurrent = currentSolver.CalculateTotalCurrent(
             self.__hamiltonian.Ax(self.__axes.tauAxisSec),

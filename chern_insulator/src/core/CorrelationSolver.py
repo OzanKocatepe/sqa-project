@@ -140,6 +140,7 @@ class CorrelationSolver:
         doubleTimeCorrelations = np.zeros((3, 3, tAxis.size, tauAxis.size), dtype=complex)
         # Calculates the inhomogenous parts as an array of shape (3, tAxis.size),
         # with first axis corresponding to the left-operator we chose.
+        # Remember inhom part of equation is -gamma * <sigma_i(t)>
         inhomParts = -self.__params.decayConstant * np.array([
             singleTimeFourier[0].Evaluate(tAxis),
             singleTimeFourier[1].Evaluate(tAxis),
@@ -159,11 +160,11 @@ class CorrelationSolver:
                     fun = self.__dynamics.EquationsOfMotion,
                     t_span = (0, np.max(tauAxis)),
                     y0 = initialConds[leftIndex, :, tIndex],
-                    t_eval = self.__params.tauAxis,
+                    t_eval = tauAxis,
                     rtol = 1e-11,
                     atol = 1e-12,
                     vectorized = True,
-                    # Calculates -<sigma_i(t)\rangle gamma_-, which is the inhomogenous
+                    # Uses -<sigma_i(t)\rangle gamma_- as the inhomogenous
                     # z-component.
                     args = (inhomParts[leftIndex, tIndex],)
                 ).y
