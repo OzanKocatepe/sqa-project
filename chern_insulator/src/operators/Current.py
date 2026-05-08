@@ -1,6 +1,6 @@
 import numpy as np
 
-from operators import Operator
+from .Operator import Operator
 
 class ParamagneticCurrentX(Operator):
     """The paramagnetic current operator in the x-direction."""

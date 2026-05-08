@@ -8,7 +8,7 @@ from config.paths import PLOTTING_DIR, STYLESHEET
 
 def main():
     # Total number of momentum points to sample.
-    numK = 100
+    numK = 20
     tauMax = 50
 
     # Check the Chern number.
@@ -32,13 +32,13 @@ def main():
     # ensemble.AddMomentum((-np.pi / 4, -np.pi / 8))
     ensemble.Run(tauMax, numProcesses=None)
 
-    plot = Plotting(ensemble)
+    # plot = Plotting(ensemble)
     # plot.PlotSingleTime(np.pi / 4, np.pi / 8, tMax = 20, overplotNumericalSolution=True)
     # plot.PlotSingleTime(np.pi / 4, -np.pi / 8, tMax = 10, overplotNumericalSolution=True)
     # plot.PlotSingleTime(-np.pi / 4, np.pi / 8, tMax = 10, overplotNumericalSolution=True)
     # plot.PlotSingleTime(-np.pi / 4, -np.pi / 8, tMax = 10, overplotNumericalSolution=True)
-    plot.PlotTotalCurrent(overplotLengthGauge=False)
-    plot.PlotTotalCurrentFFT(linearScale=False, overplotLengthGauge=False)
+    # plot.PlotTotalCurrent(overplotLengthGauge=False)
+    # plot.PlotTotalCurrentFFT(linearScale=False, overplotLengthGauge=False)
 
 if __name__ == "__main__":
     main()
