@@ -97,7 +97,7 @@ class Plotting:
         plt.show()
         plt.close()
 
-    def PlotDoubleTime(self, kx: float, ky: float) -> None:
+    def PlotDoubleTimeCorrelation(self, kx: float, ky: float) -> None:
         """Plots the double-time correlations.
         
         For each double-time correlation sigma_i sigma_j, we calculate
@@ -151,6 +151,45 @@ class Plotting:
                 plt.tight_layout()
 
                 subFolder = f"Delta {self.__ensemble.params.delta}/Double-Time Connected Correlators"
+                os.makedirs(f"{PLOTTING_DIR}/{subFolder}", exist_ok=True)
+                plt.savefig(f"{PLOTTING_DIR}/{subFolder}/"
+                            + f"{subscripts[leftOperatorIndex]}{subscripts[rightOperatorIndex]}.png", dpi=300)
+                plt.show()
+
+    def PlotDoubleTimeCurrent(self) -> None:
+        """Plots the double-time current.
+        
+        For each double-time current direction (xx, xy, yx, xx),
+        we plot the real and imaginary components on their own axes.
+        """
+
+        curr = self.__ensemble.summedCurrent
+        axes = self.__ensemble.axes
+        subscripts = ['x', 'y']
+
+        for leftOperatorIndex in range(2):
+            for rightOperatorIndex in range(2):
+                fig, ax = plt.subplots(1, 2)
+                funcs = self.__plottingFunctions[1:]
+                
+                for col in range(2):
+                    mesh = ax[col].pcolormesh(
+                        self.__ensemble.axes.tauAxisDim,
+                        self.__ensemble.axes.tAxisDim,
+                        funcs[col](curr.doubleTimeCurrent[leftOperatorIndex, rightOperatorIndex]),
+                        cmap = 'bwr',
+                        shading = 'nearest')
+
+                    ax[col].set_title(f"{self.__plottingLabels[col + 1]} Part")
+                    ax[col].set_xlabel(self.__tauLabel)
+                    ax[col].set_ylabel(self.__tLabel)
+                    plt.colorbar(mesh, ax=ax[col])
+
+                plt.suptitle(f"{subscripts[leftOperatorIndex]}{subscripts[rightOperatorIndex]} "
+                            + fr"Connected Correlator ($\Delta = {self.__ensemble.params.delta}$)")
+                plt.tight_layout()
+
+                subFolder = f"Delta {self.__ensemble.params.delta}/Double-Time Connected Current"
                 os.makedirs(f"{PLOTTING_DIR}/{subFolder}", exist_ok=True)
                 plt.savefig(f"{PLOTTING_DIR}/{subFolder}/"
                             + f"{subscripts[leftOperatorIndex]}{subscripts[rightOperatorIndex]}.png", dpi=300)

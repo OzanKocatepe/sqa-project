@@ -77,6 +77,13 @@ class Model:
             self.__currentData.diamagneticCurrent
         )
 
+        self.__currentData.doubleTimeCurrent = currentSolver.CalculateDoubleTimeCurrent(
+            self.__axes.tAxisSec,
+            self.__axes.tauAxisSec,
+            self.__corrData.singleTimeFourier,
+            self.__corrData.doubleTimeCorrelations
+        )
+
         return self.__corrData, self.__currentData
     
     @property

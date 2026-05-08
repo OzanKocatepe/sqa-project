@@ -130,6 +130,77 @@ class CurrentSolver:
         totalCurrent[1, :] = paramagnetic[1, :]
 
         return totalCurrent
+    
+    def CalculateDoubleTimeCurrent(self,
+        tAxis: np.ndarray[float],
+        tauAxis: np.ndarray[float],
+        singleTimeFourier: list[Fourier],
+        doubleTimeCorrelators: np.ndarrayp[complex]
+    ) -> np.ndarray[complex]:
+        """Calculates the double-time current correlators.
+
+        Parameters
+        ----------
+        tAxis : ndarray[float], shape (n,)
+            The tAxis, as stored in AxisData, in seconds.
+        tauAxis : ndarray[float], shape(n,)
+            The tauAxis, as stored in AxisData, in seconds.
+        singleTimeFourier : list[Fourier]
+            The single-time correlation Fourier series.
+        doubleTimeCorrelators : ndarray[complex], shape(3, 3, tAxis.size, tauAxis.size)
+            The double-time correlators.
+        
+        Returns
+        -------
+        ndarray[complex]
+            An array of shape (2, 2, tAxis.size, tauAxis.size) containing the double-time current correlations.
+            The first and second axes correspond to the direction of the current operator, with indices
+            0 and 1 corresponding to the x- and y- current respectively.
+            The last two axes correspond to the double-time correlator j_alpha(t) j_beta(t + tau) at times
+            t and t + tau.
+        """
+
+        doubleCurrentCorrelations = np.zeros((2, 2, tAxis.size, tauAxis.size), dtype=complex)
+        tPlusTauAxis = np.add.outer(tAxis, tauAxis)
+
+        currentOperators = [self.__jpx, self.__jpy]
+        for leftDirection in range(2):
+            for rightDirection in range(2):
+
+                # Now that we know the direction of our operators, we can calculate
+                # the coefficients individually.
+                firstOperatorCoefficients = np.array([
+                    currentOperators[leftDirection].minus(tAxis),
+                    currentOperators[leftDirection].plus(tAxis),
+                    currentOperators[leftDirection].z(tAxis),
+                ])
+
+                secondOperatorCoefficients = np.array([
+                    currentOperators[rightDirection].minus(tPlusTauAxis.flatten()).reshape(tPlusTauAxis.shape),
+                    currentOperators[rightDirection].plus(tPlusTauAxis.flatten()).reshape(tPlusTauAxis.shape),
+                    currentOperators[rightDirection].z(tPlusTauAxis.flatten()).reshape(tPlusTauAxis.shape),
+                ])
+
+                # Now we can loop through each of the possible combinations of these coefficients,
+                # and multiply by the respective connected correlator.
+                for firstCoeff in range(3):
+                    for secondCoeff in range(3):
+                        # Calculates the product term in the connected correlator.
+                        prod = (singleTimeFourier[firstCoeff].Evaluate(tAxis)[:, np.newaxis]
+                                * singleTimeFourier[secondCoeff].Evaluate(tPlusTauAxis))
+                        # Calculates the connected correlator.
+                        connected = doubleTimeCorrelators[firstCoeff, secondCoeff, :, :] - prod
+                        # Multiplies the first and second coefficient, resulting in an array of shape
+                        # (t.size, tau.size). Then, multiplies that by the connected correlator at each point.
+                        # Adds this onto the connected current correlator for this direction, so by the end
+                        # of the loop we've added on every contribution for this direction.
+                        doubleCurrentCorrelations[leftDirection, rightDirection, :, :] += (
+                            firstOperatorCoefficients[firstCoeff][:, np.newaxis]
+                            * secondOperatorCoefficients[secondCoeff]
+                            * connected
+                        )
+
+        return doubleCurrentCorrelations 
   
     def CalculateLengthGaugeCurrent(self, time: float | np.ndarray[float]) -> np.ndarray[complex]:
         """Calculates the expectation value of the current in the length gauge.

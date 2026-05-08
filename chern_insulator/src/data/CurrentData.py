@@ -20,6 +20,7 @@ class CurrentData:
     paramagneticCurrent: np.ndarray[complex] = field(default = None)
     diamagneticCurrent: np.ndarray[complex] = field(default = None)
     totalCurrent: np.ndarray[complex] = field(default = None)
+    doubleTimeCurrent: np.ndarray[complex] = field(default = None)
     lengthGaugeCurrent: np.ndarray[complex] = field(default = None)
 
     def __add__(self, other: CurrentData) -> CurrentData:
@@ -42,6 +43,7 @@ class CurrentData:
             paramagneticCurrent = self.paramagneticCurrent + other.paramagneticCurrent,
             diamagneticCurrent = self.diamagneticCurrent + other.diamagneticCurrent,
             totalCurrent = self.totalCurrent + other.totalCurrent,
+            doubleTimeCurrent = self.doubleTimeCurrent + other.doubleTimeCurrent,
             lengthGaugeCurrent = self.lengthGaugeCurrent + other.lengthGaugeCurrent
                 if self.lengthGaugeCurrent is not None and other.lengthGaugeCurrent is not None
                 else None

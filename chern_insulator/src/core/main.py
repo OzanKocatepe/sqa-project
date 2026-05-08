@@ -20,7 +20,7 @@ def main():
     plt.style.use(STYLESHEET)
 
     params = EnsembleParameters(
-        delta = 1,
+        delta = 3,
         drivingAmp = 0.2,
         decayConstant = 0.2,
         maxN = 50
@@ -39,7 +39,8 @@ def main():
     # plot.PlotSingleTime(np.pi / 4, -np.pi / 8, tMax = 10, overplotNumericalSolution=True)
     # plot.PlotSingleTime(-np.pi / 4, np.pi / 8, tMax = 10, overplotNumericalSolution=True)
     # plot.PlotSingleTime(-np.pi / 4, -np.pi / 8, tMax = 10, overplotNumericalSolution=True)
-    plot.PlotDoubleTime(np.pi / 4, np.pi / 8)
+    # plot.PlotDoubleTimeCorrelation(np.pi / 4, np.pi / 8)
+    plot.PlotDoubleTimeCurrent()
     # plot.PlotTotalCurrent(overplotLengthGauge=False)
     # plot.PlotTotalCurrentFFT(linearScale=False, overplotLengthGauge=False)
 
