@@ -50,6 +50,9 @@ class Model:
         # Solves the single-time fourier series.
         corrSolver = CorrelationSolver(self.__params)
         self.__corrData.singleTimeFourier = corrSolver.SolveSingleTimeCorrelations()
+        # self.__corrData.doubleTimeCorrelations = corrSolver.SolveDoubleTimeCorrelations(self.__axes.tAxisSec,
+        #                                                                                 self.__axes.tauAxisSec,
+        #                                                                                 self.__corrData.singleTimeFourier)
 
         currentSolver = CurrentSolver(self.__params)
         self.__currentData.paramagneticCurrent = currentSolver.CalculateParamagneticCurrent(self.__axes.tauAxisSec,
@@ -60,15 +63,11 @@ class Model:
         self.__currentData.diamagneticCurrent = currentSolver.CalculateDiamagneticCurrent(self.__axes.tauAxisSec,
                                                                                           self.__corrData.singleTimeFourier)
         
-        # Calculates the total current by using the paramagnetic and diamagnetic currents.
-        # The total y-current is simply the paramagnetic y-current, since its diamagnetic term ends up being 0.
-        self.__currentData.totalCurrent = np.zeros(self.__currentData.paramagneticCurrent.shape, dtype=complex)
-
-        self.__currentData.totalCurrent[0, :] = (
-            self.__currentData.paramagneticCurrent[0, :]
-            + self.__currentData.diamagneticCurrent * self.__hamiltonian.Ax(self.__axes.tauAxisSec)
+        self.__currentData.totalCurrent = currentSolver.CalculateTotalCurrent(
+            self.__hamiltonian.Ax(self.__axes.tauAxisSec),
+            self.__currentData.paramagneticCurrent,
+            self.__currentData.diamagneticCurrent
         )
-        self.__currentData.totalCurrent[1, :] = self.__currentData.paramagneticCurrent[1, :]
 
         return self.__corrData, self.__currentData
     

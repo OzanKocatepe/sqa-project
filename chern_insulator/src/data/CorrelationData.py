@@ -19,4 +19,4 @@ class CorrelationData:
     """
 
     singleTimeFourier: list[Fourier] = field(init = False)
-    doubleTimeCorrelations: np.ndarray[complex]
+    doubleTimeCorrelations: np.ndarray[complex] = field(init = False)

@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import integrate
+from typing import Callable
 
 from data import ModelParameters, Fourier
 from operators import Hamiltonian, ParamagneticCurrentX, ParamagneticCurrentY, DiamagneticCurrentX
@@ -92,6 +93,43 @@ class CurrentSolver:
             + self.__jdx.plus(time) * sigmap
             + self.__jdx.z(time) * sigmaz
         )
+    
+    def CalculateTotalCurrent(self,
+        Ax: np.ndarray[float],
+        paramagnetic: np.ndarray[complex],
+        diamagnetic: np.ndarray[complex]
+    ) -> np.ndarray[complex]:
+        """Calculates the total current given the paramagnetic and diamagnetic current.
+        
+        Parameters
+        ----------
+        Ax : ndarray[float], shape (n,)
+            The driving vector potential calculated at each time in the tauAxis, such that
+            each index here corresponds to the vector potential that was applied at the same index
+            (corresponding to the same time) in the paramagentic and diamagnetic currents.
+        paramagnetic : ndarray[complex], shape(2, n)
+            The paramagentic current array, as stored in CurrentData and calculated in
+            CalculateParamagneticCurrent.
+        diamagnetic : ndarray[complex], shape(n,)
+            The diamagnetic current array, as stored in CurrentData and calculated in
+            CalculateDiamagneticCurrent.
+
+        Returns
+        -------
+        ndarray[complex]:
+            An array of shape (2, n) containing the total current in each direction. In the x-direcition
+            this is a combination of the paramagnetic and diamagnetic currents. In the y-direction, this is
+            just the paramagnetic current.
+        """
+
+        totalCurrent = np.zeros(paramagnetic.shape, dtype=complex)
+
+        # Total x-current depends on paramagnetic and diamagnetic x-currents, along with vector potential.
+        totalCurrent[0, :] = paramagnetic[0, :] + diamagnetic * Ax
+        # Total y-current remains just the paramagnetic y-current.
+        totalCurrent[1, :] = paramagnetic[1, :]
+
+        return totalCurrent
   
     def CalculateLengthGaugeCurrent(self, time: float | np.ndarray[float]) -> np.ndarray[complex]:
         """Calculates the expectation value of the current in the length gauge.
