@@ -23,7 +23,7 @@ class CorrelationSolver:
 
         self.__params = params
         self.__hamiltonian = Hamiltonian(params)
-        self.__dynamics = Dynamics(params, self.__hamiltonian)
+        self.__dynamics = Dynamics(params)
 
     def __SingleTimeFourierMatrix(self) -> np.ndarray[complex]:
         """
@@ -181,10 +181,19 @@ class CorrelationSolver:
             # ).y
 
         for tIndex in tqdm(range(tAxis.size)):
-            doubleTimeCorrelations[:, :, tIndex, :] = integrate.solve_ivp(
+            # Calculates the correlation, but bc of the way matrix multiplication works
+            # the input has to be given indexed as [rightOperator, leftOperator], while
+            # we want our final array to have input [leftOperator, rightOperator].
+
+            # Hence, we transpose the initial conditions we put in, and then
+            # transpose the final results we get out.
+            correlation = integrate.solve_ivp(
                 fun = self.__dynamics.EquationsOfMotion,
                 t_span = (tAxis[tIndex], tAxis[tIndex] + np.max(tauAxis)),
-                y0 = initialConds[:, :, tIndex].ravel(),
+                # We want our matrix to have its columns have the same left operator
+                # (i.e. each column should act like a non-batched input),
+                # so we need to tranpose the axes of the initial conditions.
+                y0 = initialConds[:, :, tIndex].T.ravel(),
                 method = 'DOP853',
                 t_eval = tAxis[tIndex] + tauAxis,
                 rtol = 1e-11,
@@ -194,6 +203,10 @@ class CorrelationSolver:
                 # z-component.
                 args = (inhomParts[:, tIndex],)
             ).y.reshape(3, 3, -1)
+
+            # Here is where the last transpose happens. The last matrix stays the same, but the first
+            # two axes are swapped, so the matrix at each time is transposed.
+            doubleTimeCorrelations[:, :, tIndex, :] = np.transpose(correlation, (1, 0, 2))
 
         return doubleTimeCorrelations
 

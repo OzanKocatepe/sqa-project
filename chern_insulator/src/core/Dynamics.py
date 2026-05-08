@@ -8,20 +8,17 @@ class Dynamics:
     equations of motion for single- and double-time correlations.
     """
 
-    def __init__(self, params: ModelParameters, hamiltonian: Hamiltonian):
+    def __init__(self, params: ModelParameters):
         """Initialises the instance.
         
         Parameters
         ----------
         params : ModelParameters
             The parameters of the model.
-        hamiltonian : Hamiltonian
-            The Hamiltonian of the system, which is used to compute
-            the time-dependent coefficients in the equations of motion.
         """
 
         self._params = params
-        self._ham = hamiltonian
+        self._ham = Hamiltonian(self._params)
     
     def EquationsOfMotion(self, t: float | np.ndarray[float],
                           c: np.ndarray[complex],
@@ -65,6 +62,8 @@ class Dynamics:
         B = np.array([[-(2j * Hz + 0.5 * gamma), 0, 1j * Hp],
                       [0, 2j * Hz - 0.5 * gamma, -1j * Hm],
                       [2j * Hm, -2j * Hp, -gamma]], dtype=complex)
+
+        # B = np.eye(3)
         
         # If the solution is not batched, just solve the ODE normally.
         if c.shape[0] == 3:
@@ -85,11 +84,11 @@ class Dynamics:
             # We will form our inhomogenous part from the inhomPart vector, which we will in this case assume has 3 components
             # which form the bottom row of our matrix.
             inhomPartMatrix = np.zeros((3, 3), dtype=complex)
+            inhomPartMatrix[2, :] = inhomPart
 
             # We can now calculate our matrix multiplications.
             # Since B is simply (3, 3), numpy performs stacked matrix multiplication forming a final matrix of
             # (k, 3, 3), where k is due to the vectorised input.
-
             # Then, we add our inhomogenous part to each of those matrices in the stack.
             # This ends up being a (k, 3, 3) stack of matrices.
             dcdt = B @ c + inhomPartMatrix[np.newaxis, :, :]
