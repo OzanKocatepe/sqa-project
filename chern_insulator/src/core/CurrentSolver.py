@@ -92,38 +92,7 @@ class CurrentSolver:
             + self.__jdx.plus(time) * sigmap
             + self.__jdx.z(time) * sigmaz
         )
-    
-    def __SolveSigmaNumerically(self, time: np.ndarray[float]) -> np.ndarray[complex]:
-        """
-        TO BE DEPRECATED - if this continues to exist it must be moved and integrated
-        properly into the code in another place.
-
-        Solves the sigma correlations numerically as a debug step.
-
-        Parameters
-        ----------
-        time : ndarray[float]
-            The time, in seconds, that we will evaluate the solution at.
-        
-        Returns
-        -------
-        ndarray[complex]
-            An array of shape (3, time.size) containing the evaluated sigma
-            correlations.
-        """
-
-        raise DeprecationWarning("This function is deprecated.")
-
-        return integrate.solve_ivp(
-            fun = self.__hamiltonian.EquationsOfMotion,
-            t_span = (0, np.max(time)),
-            y0 = np.array([0.0, 0.0, -1.0], dtype=complex),
-            t_eval = time,
-            rtol=1e-9,
-            atol=1e-12,
-            vectorized = True
-        ).y
-    
+  
     def CalculateLengthGaugeCurrent(self, time: float | np.ndarray[float]) -> np.ndarray[complex]:
         """Calculates the expectation value of the current in the length gauge.
         

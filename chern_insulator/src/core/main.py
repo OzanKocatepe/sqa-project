@@ -10,6 +10,7 @@ from config.paths import PLOTTING_DIR, STYLESHEET
 def main():
     # Total number of momentum points to sample.
     numK = 20
+    numT = 10
     tauMax = 50
 
     # Check the Chern number.
@@ -31,7 +32,7 @@ def main():
     # ensemble.AddMomentum((np.pi / 4, -np.pi / 8))
     # ensemble.AddMomentum((-np.pi / 4, np.pi / 8))
     # ensemble.AddMomentum((-np.pi / 4, -np.pi / 8))
-    ensemble.Run(tauMax, numProcesses=None)
+    ensemble.Run(tauMax, numT, numProcesses=None)
 
     # plot = Plotting(ensemble)
     # plot.PlotSingleTime(np.pi / 4, np.pi / 8, tMax = 20, overplotNumericalSolution=True)

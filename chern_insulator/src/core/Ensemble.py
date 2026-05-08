@@ -63,7 +63,7 @@ class Ensemble:
             # tuple as the key.
             self.__models[(k[0], k[1])] = Model(modelParams)
 
-    def Run(self, tauMax: float, numProcesses: int | None=1) -> None:
+    def Run(self, tauMax: float, numT: float, numProcesses: int | None=1) -> None:
         """
         Runs all of the models.
 
@@ -71,6 +71,9 @@ class Ensemble:
         ----------
         tauMax : float
             The maximum non-dimensional time the system will solve for.
+        numT : float
+            The number of points within one period of the driving to evaluate
+            to use as the starting points for the double-time correlations.
         numProcesses : int | None, optional
             The number of processes to use when running the models. If None, will use all but
             one core (unless we only have 1 core, in which case we will use 1 core).
@@ -93,7 +96,7 @@ class Ensemble:
             # be equal to the number of cores.
             np.clip(numProcesses, 1, mp.cpu_count())
 
-        self.__axes = self.__CreateAxes(tauMax)
+        self.__axes = self.__CreateAxes(tauMax, numT)
 
         if numProcesses == 1:
             for model in tqdm(self.__models.values(), desc=f"Running models (Delta = {self.__params.delta})"):
@@ -186,7 +189,7 @@ class Ensemble:
         # Adds the momentum points to the ensemble.
         self.AddMomentum(momentums)
 
-    def __CreateAxes(self, tauMax: float) -> AxisData:
+    def __CreateAxes(self, tauMax: float, numT: float) -> AxisData:
         """
         Creates the axis data used for each model.
         
@@ -194,6 +197,9 @@ class Ensemble:
         ----------
         tauMax : float
             The maximum non-dimensional time the system will solve for.
+        numT : float
+            The number of points within one period of the driving to evaluate
+            to use as the starting points for the double-time correlations.
 
         Returns
         -------
@@ -204,12 +210,20 @@ class Ensemble:
         tauAxisDim = np.linspace(0, tauMax, 4000)
         tauAxisSec = tauAxisDim / self.__params.decayConstant
 
+        # The tAxis is numT points from time 0 to the first period of the driving.
+        # This doesn't include the endpoint, since that is already considered by the point at time 0,
+        # since the single-time correlations are periodic.
+        tAxisSec = np.linspace(0, 1 / self.__params.drivingFreq, numT, endpoint=False)
+        tAxisDim = tAxisSec / self.__params.decayConstant
+
         sampleSpacing = (np.max(tauAxisSec) - np.min(tauAxisSec)) / tauAxisSec.size
         freqAxis = np.fft.fftshift(np.fft.fftfreq(tauAxisSec.size, sampleSpacing)) / self.__params.drivingFreq
 
         return AxisData(
             tauAxisDim = tauAxisDim,
             tauAxisSec = tauAxisSec,
+            tAxisDim = tAxisDim,
+            tAxisSec = tAxisSec,
             freqAxis = freqAxis
         )
     

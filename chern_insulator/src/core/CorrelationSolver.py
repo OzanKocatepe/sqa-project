@@ -110,3 +110,6 @@ class CorrelationSolver:
                 coeffs = sigmaCoeffs[2 * fullN:]
             ) 
         ]
+
+    def DoubleTimeCorrelations(self):
+        """Calculates the double-time correlations."""
