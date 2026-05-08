@@ -170,6 +170,7 @@ class CorrelationSolver:
                 fun = self.__dynamics.EquationsOfMotion,
                 t_span = (tAxis[tIndex], tAxis[tIndex] + np.max(tauAxis)),
                 y0 = initialConds[leftIndex, :, tIndex],
+                method = 'DOP853',
                 t_eval = tAxis[tIndex] + tauAxis,
                 rtol = 1e-11,
                 atol = 1e-12,
