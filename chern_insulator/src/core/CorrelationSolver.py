@@ -150,31 +150,6 @@ class CorrelationSolver:
 
         initialConds = self.__DoubleTimeInitialConditions(tAxis, singleTimeFourier)
 
-        # def SolveSingleTPoint(tIndex):
-        #     correlation = integrate.solve_ivp(
-        #         fun = self.__dynamics.EquationsOfMotion,
-        #         t_span = (tAxis[tIndex], tAxis[tIndex] + np.max(tauAxis)),
-        #         y0 = initialConds[:, :, tIndex].T.ravel(),
-        #         method = 'DOP853',
-        #         t_eval = tAxis[tIndex] + tauAxis,
-        #         rtol = 1e-11,
-        #         atol = 1e-12,
-        #         vectorized = True,
-        #         args = (inhomParts[:, tIndex],)
-        #     ).y.reshape(3, 3, -1)
-
-        #     return tIndex, np.transpose(correlation, (1, 0, 2))
-
-        # with ThreadPoolExecutor(max_workers=5) as executor:
-        #     for tIndex, result in tqdm(
-        #         executor.map(SolveSingleTPoint, range(tAxis.size),),
-        #         total = tAxis.size,
-        #         desc = "Solving double-time correlations",
-        #         leave = False,
-        #         position = 1
-        #     ):
-        #         doubleTimeCorrelations[:, :, tIndex, :] = result
-
         for tIndex in tqdm(range(tAxis.size),
                            desc = "Solving double-time correlations",
                            position = 1,
