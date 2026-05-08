@@ -20,7 +20,7 @@ def main():
     plt.style.use(STYLESHEET)
 
     params = EnsembleParameters(
-        delta = 3,
+        delta = 1,
         drivingAmp = 0.2,
         decayConstant = 0.2,
         maxN = 50

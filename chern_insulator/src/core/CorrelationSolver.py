@@ -168,9 +168,9 @@ class CorrelationSolver:
             # and all times t + tau.
             doubleTimeCorrelations[leftIndex, :, tIndex, :] = integrate.solve_ivp(
                 fun = self.__dynamics.EquationsOfMotion,
-                t_span = (0, np.max(tauAxis)),
+                t_span = (tAxis[tIndex], tAxis[tIndex] + np.max(tauAxis)),
                 y0 = initialConds[leftIndex, :, tIndex],
-                t_eval = tauAxis,
+                t_eval = tAxis[tIndex] + tauAxis,
                 rtol = 1e-11,
                 atol = 1e-12,
                 vectorized = True,
