@@ -157,19 +157,34 @@ class CorrelationSolver:
         indicesIterable = zip(leftIndexGrid.flatten(), tIndexGrid.flatten())
 
         # Index of the left operator. and index of the 'initial' time t.
-        for leftIndex, tIndex in tqdm(indicesIterable,
-                                      desc = 'Solving double-time correlations',
-                                      position = 1,
-                                      leave = False,
-                                      total = 3 * tAxis.size):
+        # for leftIndex, tIndex in tqdm(indicesIterable,
+        #                               desc = 'Solving double-time correlations',
+        #                               position = 1,
+        #                               leave = False,
+        #                               total = 3 * tAxis.size):
         # for leftIndex, tIndex in indicesIterable:
             # For the given left-operator and time t, calculates
             # the correlation functions for all right operators
             # and all times t + tau.
-            doubleTimeCorrelations[leftIndex, :, tIndex, :] = integrate.solve_ivp(
+            # doubleTimeCorrelations[leftIndex, :, tIndex, :] = integrate.solve_ivp(
+            #     fun = self.__dynamics.EquationsOfMotion,
+            #     t_span = (tAxis[tIndex], tAxis[tIndex] + np.max(tauAxis)),
+            #     y0 = initialConds[leftIndex, :, tIndex],
+            #     method = 'DOP853',
+            #     t_eval = tAxis[tIndex] + tauAxis,
+            #     rtol = 1e-11,
+            #     atol = 1e-12,
+            #     vectorized = True,
+            #     # Uses -<sigma_i(t)\rangle gamma_- as the inhomogenous
+            #     # z-component.
+            #     args = (inhomParts[leftIndex, tIndex],)
+            # ).y
+
+        for tIndex in tqdm(range(tAxis.size)):
+            doubleTimeCorrelations[:, :, tIndex, :] = integrate.solve_ivp(
                 fun = self.__dynamics.EquationsOfMotion,
                 t_span = (tAxis[tIndex], tAxis[tIndex] + np.max(tauAxis)),
-                y0 = initialConds[leftIndex, :, tIndex],
+                y0 = initialConds[:, :, tIndex].ravel(),
                 method = 'DOP853',
                 t_eval = tAxis[tIndex] + tauAxis,
                 rtol = 1e-11,
@@ -177,8 +192,8 @@ class CorrelationSolver:
                 vectorized = True,
                 # Uses -<sigma_i(t)\rangle gamma_- as the inhomogenous
                 # z-component.
-                args = (inhomParts[leftIndex, tIndex],)
-            ).y
+                args = (inhomParts[:, tIndex],)
+            ).y.reshape(3, 3, -1)
 
         return doubleTimeCorrelations
 
