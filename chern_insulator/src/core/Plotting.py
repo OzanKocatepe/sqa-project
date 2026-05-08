@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import os
 from scipy import integrate
 
-from core import Ensemble
+from .Ensemble import Ensemble
 from config import PLOTTING_DIR, STYLESHEET
 
 class Plotting:

@@ -1,6 +1,6 @@
 import numpy as np
 
-from operators import Hamiltonian
+from .Hamiltonian import Hamiltonian
 
 class BandBasisProjector:
     """Projects operators onto the band basis."""

@@ -2,7 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from data import EnsembleParameters
-from core import Ensemble, Plotting
+from .Ensemble import Ensemble
+from .Plotting import Plotting
 from Topology import ChernNumber
 from config.paths import PLOTTING_DIR, STYLESHEET
 

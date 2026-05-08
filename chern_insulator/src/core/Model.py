@@ -1,7 +1,8 @@
 import numpy as np
 
 from data import ModelParameters, AxisData, CorrelationData, CurrentData
-from core import CorrelationSolver, CurrentSolver
+from .CorrelationSolver import CorrelationSolver
+from .CurrentSolver import CurrentSolver
 from operators import Hamiltonian
 
 class Model:

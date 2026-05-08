@@ -2,8 +2,8 @@ import numpy as np
 from abc import ABC, abstractmethod
 
 from data import ModelParameters
-from operators import Hamiltonian
-from operators.BandBasisProjector import BandBasisProjector
+from .Hamiltonian import Hamiltonian
+from .BandBasisProjector import BandBasisProjector
 
 class Operator(ABC):
     """Abstract base class that all operators must inherit from.

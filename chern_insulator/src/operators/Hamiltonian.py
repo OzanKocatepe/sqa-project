@@ -3,8 +3,8 @@ from functools import cache, cached_property
 from scipy import special
 
 from data import ModelParameters
-from operators.BandBasisProjector import BandBasisProjector
-from operators.Operator import Operator
+from .BandBasisProjector import BandBasisProjector
+from .Operator import Operator
 
 class Hamiltonian(Operator):
     """The Hamiltonian operator."""

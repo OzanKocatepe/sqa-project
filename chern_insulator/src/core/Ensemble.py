@@ -7,7 +7,7 @@ from tqdm import tqdm
 import multiprocessing as mp
 
 from data import EnsembleParameters, ModelParameters, AxisData, CurrentData
-from core import Model
+from .Model import Model
 
 class Ensemble:
     """Runs a collection of model instances and finds the overall results of the model."""
