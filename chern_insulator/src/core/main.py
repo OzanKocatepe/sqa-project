@@ -9,7 +9,7 @@ from config.paths import PLOTTING_DIR, STYLESHEET
 
 def main():
     # Total number of momentum points to sample.
-    numK = 20
+    numK = 3
     numT = 5
     tauMax = 20
 
@@ -27,20 +27,20 @@ def main():
     )
 
     ensemble = Ensemble(params)
-    # ensemble.SampleBrillouinZone(numK)
-    ensemble.AddMomentum((np.pi / 4, np.pi / 8))
+    ensemble.SampleBrillouinZone(numK)
+    # ensemble.AddMomentum((np.pi / 4, np.pi / 8))
     # ensemble.AddMomentum((np.pi / 4, -np.pi / 8))
     # ensemble.AddMomentum((-np.pi / 4, np.pi / 8))
     # ensemble.AddMomentum((-np.pi / 4, -np.pi / 8))
-    ensemble.Run(tauMax, numT, numProcesses=None)
+    ensemble.Run(tauMax, numT, numProcesses=1)
 
-    plot = Plotting(ensemble)
+    # plot = Plotting(ensemble)
     # plot.PlotSingleTime(np.pi / 4, np.pi / 8, tMax = 20, overplotNumericalSolution=True)
     # plot.PlotSingleTime(np.pi / 4, -np.pi / 8, tMax = 10, overplotNumericalSolution=True)
     # plot.PlotSingleTime(-np.pi / 4, np.pi / 8, tMax = 10, overplotNumericalSolution=True)
     # plot.PlotSingleTime(-np.pi / 4, -np.pi / 8, tMax = 10, overplotNumericalSolution=True)
     # plot.PlotDoubleTimeCorrelation(np.pi / 4, np.pi / 8)
-    plot.PlotDoubleTimeCurrent()
+    # plot.PlotDoubleTimeCurrent()
     # plot.PlotTotalCurrent(overplotLengthGauge=False)
     # plot.PlotTotalCurrentFFT(linearScale=False, overplotLengthGauge=False)
 
