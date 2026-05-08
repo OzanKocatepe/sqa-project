@@ -150,37 +150,10 @@ class CorrelationSolver:
 
         initialConds = self.__DoubleTimeInitialConditions(tAxis, singleTimeFourier)
 
-        # Creates an iterable that contains tuples (leftIndex, tIndex) for
-        # every possible combination of the index of the left operator (0, 1, 2)
-        # and the index of the 'initial' time t (anything in tAxis.size).
-        leftIndexGrid, tIndexGrid = np.meshgrid(range(3), range(tAxis.size))
-        indicesIterable = zip(leftIndexGrid.flatten(), tIndexGrid.flatten())
-
-        # Index of the left operator. and index of the 'initial' time t.
-        # for leftIndex, tIndex in tqdm(indicesIterable,
-        #                               desc = 'Solving double-time correlations',
-        #                               position = 1,
-        #                               leave = False,
-        #                               total = 3 * tAxis.size):
-        # for leftIndex, tIndex in indicesIterable:
-            # For the given left-operator and time t, calculates
-            # the correlation functions for all right operators
-            # and all times t + tau.
-            # doubleTimeCorrelations[leftIndex, :, tIndex, :] = integrate.solve_ivp(
-            #     fun = self.__dynamics.EquationsOfMotion,
-            #     t_span = (tAxis[tIndex], tAxis[tIndex] + np.max(tauAxis)),
-            #     y0 = initialConds[leftIndex, :, tIndex],
-            #     method = 'DOP853',
-            #     t_eval = tAxis[tIndex] + tauAxis,
-            #     rtol = 1e-11,
-            #     atol = 1e-12,
-            #     vectorized = True,
-            #     # Uses -<sigma_i(t)\rangle gamma_- as the inhomogenous
-            #     # z-component.
-            #     args = (inhomParts[leftIndex, tIndex],)
-            # ).y
-
-        for tIndex in tqdm(range(tAxis.size)):
+        for tIndex in tqdm(range(tAxis.size),
+                           desc = "Solving double-time correlations",
+                           position = 1,
+                           leave = False):
             # Calculates the correlation, but bc of the way matrix multiplication works
             # the input has to be given indexed as [rightOperator, leftOperator], while
             # we want our final array to have input [leftOperator, rightOperator].
