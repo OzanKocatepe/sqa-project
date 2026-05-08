@@ -10,8 +10,8 @@ from config.paths import PLOTTING_DIR, STYLESHEET
 def main():
     # Total number of momentum points to sample.
     numK = 20
-    numT = 10
-    tauMax = 50
+    numT = 2
+    tauMax = 10
 
     # Check the Chern number.
     # print(f"Trivial Phase (Delta = 3): C = {ChernNumber(3)}")
@@ -27,19 +27,19 @@ def main():
     )
 
     ensemble = Ensemble(params)
-    ensemble.SampleBrillouinZone(numK)
-    # ensemble.AddMomentum((np.pi / 4, np.pi / 8))
+    # ensemble.SampleBrillouinZone(numK)
+    ensemble.AddMomentum((np.pi / 4, np.pi / 8))
     # ensemble.AddMomentum((np.pi / 4, -np.pi / 8))
     # ensemble.AddMomentum((-np.pi / 4, np.pi / 8))
     # ensemble.AddMomentum((-np.pi / 4, -np.pi / 8))
     ensemble.Run(tauMax, numT, numProcesses=None)
 
-    plot = Plotting(ensemble)
+    # plot = Plotting(ensemble)
     # plot.PlotSingleTime(np.pi / 4, np.pi / 8, tMax = 20, overplotNumericalSolution=True)
     # plot.PlotSingleTime(np.pi / 4, -np.pi / 8, tMax = 10, overplotNumericalSolution=True)
     # plot.PlotSingleTime(-np.pi / 4, np.pi / 8, tMax = 10, overplotNumericalSolution=True)
     # plot.PlotSingleTime(-np.pi / 4, -np.pi / 8, tMax = 10, overplotNumericalSolution=True)
-    plot.PlotTotalCurrent(overplotLengthGauge=False)
+    # plot.PlotTotalCurrent(overplotLengthGauge=False)
     # plot.PlotTotalCurrentFFT(linearScale=False, overplotLengthGauge=False)
 
 if __name__ == "__main__":

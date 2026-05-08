@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from functools import cache
 from scipy import integrate
+from tqdm import tqdm
 
 from data import ModelParameters, Fourier, AxisData
 from operators import Hamiltonian
@@ -149,25 +150,34 @@ class CorrelationSolver:
 
         initialConds = self.__DoubleTimeInitialConditions(tAxis, singleTimeFourier)
 
-        # Index of the left operator.
-        for leftIndex in range(3):
-            # Index of the time in the tAxis.
-            for tIndex in range(tAxis.size):
-                # For the given left-operator and time t, calculates
-                # the correlation functions for all right operators
-                # and all times t + tau.
-                doubleTimeCorrelations[leftIndex, :, tIndex, :] = integrate.solve_ivp(
-                    fun = self.__dynamics.EquationsOfMotion,
-                    t_span = (0, np.max(tauAxis)),
-                    y0 = initialConds[leftIndex, :, tIndex],
-                    t_eval = tauAxis,
-                    rtol = 1e-11,
-                    atol = 1e-12,
-                    vectorized = True,
-                    # Uses -<sigma_i(t)\rangle gamma_- as the inhomogenous
-                    # z-component.
-                    args = (inhomParts[leftIndex, tIndex],)
-                ).y
+        # Creates an iterable that contains tuples (leftIndex, tIndex) for
+        # every possible combination of the index of the left operator (0, 1, 2)
+        # and the index of the 'initial' time t (anything in tAxis.size).
+        leftIndexGrid, tIndexGrid = np.meshgrid(range(3), range(tAxis.size))
+        indicesIterable = zip(leftIndexGrid.flatten(), tIndexGrid.flatten())
+
+        # Index of the left operator. and index of the 'initial' time t.
+        for leftIndex, tIndex in tqdm(indicesIterable,
+                                      desc = 'Solving double-time correlations',
+                                      position = 1,
+                                      leave = False,
+                                      total = 3 * tAxis.size):
+        # for leftIndex, tIndex in indicesIterable:
+            # For the given left-operator and time t, calculates
+            # the correlation functions for all right operators
+            # and all times t + tau.
+            doubleTimeCorrelations[leftIndex, :, tIndex, :] = integrate.solve_ivp(
+                fun = self.__dynamics.EquationsOfMotion,
+                t_span = (0, np.max(tauAxis)),
+                y0 = initialConds[leftIndex, :, tIndex],
+                t_eval = tauAxis,
+                rtol = 1e-11,
+                atol = 1e-12,
+                vectorized = True,
+                # Uses -<sigma_i(t)\rangle gamma_- as the inhomogenous
+                # z-component.
+                args = (inhomParts[leftIndex, tIndex],)
+            ).y
 
         return doubleTimeCorrelations
 

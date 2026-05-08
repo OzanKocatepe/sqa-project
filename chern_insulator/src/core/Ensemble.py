@@ -94,7 +94,11 @@ class Ensemble:
             # Clamps the number of processes between 1 and the number of cores. 
             # Note that it is possible to manually set the number of processes to
             # be equal to the number of cores.
-            np.clip(numProcesses, 1, mp.cpu_count())
+            numProcesses = np.clip(numProcesses, 1, mp.cpu_count())
+
+        # Limits the number of allowed processes to be less than or equal to the number of models we have.
+        # No point in creating processes for models we don't have.
+        numProcesses = np.clip(numProcesses, 1, len(self.__models))
 
         self.__axes = self.__CreateAxes(tauMax, numT)
 
@@ -117,7 +121,8 @@ class Ensemble:
                                     chunksize = len(tasks) // (numProcesses * 4) + 1
                                 ),
                                 total=len(tasks),
-                                desc=f"Running models (Delta = {self.__params.delta})"
+                                desc=f"Running models (Delta = {self.__params.delta})",
+                                position=0
                             ))
                 
             # Writes the models back into the dictionary, since the newly ran models live
