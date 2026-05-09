@@ -74,6 +74,16 @@ class CorrelationSolver:
 
         return M
     
+    # def __DoubleTimeFourierMatrix(self, t_prime: float) -> np.ndarray[complex]:
+        """Creates the matrix used to solve for the Fourier series of the double-time correlations.
+        
+        The full ODE for the double-time correlation functions is a function of t and t'. By making our
+        double-time correlation functions into Fourier series' in t, we only need to find the 2N + 1
+        coefficients of the Fourier series'. However, each coefficient is a function of t', so we each coefficient
+        into a Fourier series in t', and then solve the matrix ODE to find the Fourier series.
+        
+        Hence, this matrix lets us find the coefficients of the Fourier series' for """
+    
     def SolveSingleTimeCorrelations(self) -> list[Fourier]:
         """Solves the single time correlations as Fourier series.
         
@@ -115,6 +125,83 @@ class CorrelationSolver:
                 coeffs = sigmaCoeffs[2 * fullN:]
             ) 
         ]
+
+    def SolveDoubleTimeCorrelationsFourier(self, tAxis: np.ndarray[float], tauAxis: np.ndarray[float], singleTimeFourier: list[Fourier]) -> np.ndarray[complex]:
+        """Calculates the double-time correlations.
+
+        WARNING: CURRENTLY WORK IN PROGRESS.
+
+        Parameters
+        ----------
+        tAxis : ndarray[float], shape (n,)
+            The tAxis, as stored in AxisData, in seconds.
+        tauAxis : ndarray[float], shape(n,)
+            The tauAxis, as stored in AxisData, in seconds.
+        singleTimeFourier : list[Fourier]
+            A list containing the single-time fourier series, in the order sigma_-, sigma_+, sigma_z.
+
+        Returns
+        -------
+        ndarray[complex]:
+            The double-time correlations as an array of shape (3, 3, t.size, tau.size). The first and second axes
+            correspond to the left and right operator respectively, with indices 0, 1, and 2 corresponding
+            to sigma_-, sigma_+, and sigma_z for both axes. The third axis and fourth axis correspond to the times
+            t and tau that the correlation has been evaluated at. Remember that the correlation functions are functions
+            sigma_i(t) sigma_j(t + tau).
+        """
+
+        n = self.__params.maxN
+        fullN = 2 * n + 1
+        tPlusTauAxis = np.add.outer(tAxis, tauAxis)
+        # We use the exact same B matrix as the single-time case, since we are still expanding the same
+        # ODE matrix w.r.t. t'.
+        M = self.__SingleTimeFourierMatrix()
+
+        # Creates the right hand side of the equation Mx = b.
+        b = np.zeros((3 * fullN), dtype=complex)
+
+        doubleTimeCorrelations = np.zeros((3, 3, tAxis.size, tauAxis.size), dtype=complex)
+
+        # Loops through the left-opeator.
+        for leftOperatorIndex in range(3):
+            # Stores the coefficients for the corresponding right operator. 
+            # For example, rightOperatorCoeffs[1, 5] contains the coefficient of the 5th harmonic
+            # in the Fourier series
+
+            # Loops through all the coefficients for this operator.
+            for m in range(-n, n + 1):
+                # Corresponds to the inhomogenous part -gamma in the ODEs.
+                b[2 * fullN + n] = -self.__params.decayConstant * singleTimeFourier[leftOperatorIndex][m]
+
+                # This stores the coefficients for the Fourier series which makes up the nth coefficient of
+                # the full Fourier series for our functions. The first, second, and third portions of this contain
+                # the coefficients for sigma_i sigma_-, sigma_i sigma_+, and sigma_i sigma_z respectively.
+                nth_coefficient_coefficients = np.linalg.solve(M, b)
+
+                # Fourier series for the nth coefficient, as a function of t'.
+                c_m_coeffs = [
+                    Fourier(
+                        freq = self.__params.drivingFreq,
+                        coeffs = nth_coefficient_coefficients[0 : fullN]
+                    ),
+
+                    Fourier(
+                        freq = self.__params.drivingFreq,
+                        coeffs = nth_coefficient_coefficients[fullN : 2*fullN]
+                    ),
+
+                    Fourier(
+                        freq = self.__params.drivingFreq,
+                        coeffs = nth_coefficient_coefficients[2 * fullN:]
+                    ) 
+                ]
+
+                for rightOperatorIndex in range(3):
+                    # Calculates the mth coefficient for this right operator at time(s) t' = t + tau.
+                    c_m = c_m_coeffs[rightOperatorIndex].Evaluate(tPlusTauAxis)
+                    doubleTimeCorrelations[leftOperatorIndex, rightOperatorIndex, :, :] += c_m * np.exp(1j * m * self.__params.angularFreq * tAxis)[:, np.newaxis]
+
+        return doubleTimeCorrelations
 
     def SolveDoubleTimeCorrelations(self, tAxis: np.ndarray[float], tauAxis: np.ndarray[float], singleTimeFourier: list[Fourier]) -> np.ndarray[complex]:
         """Calculates the double-time correlations.

@@ -1,4 +1,5 @@
 import numpy as np
+from numba import jit
 
 from data import ModelParameters
 from operators import Hamiltonian
@@ -20,6 +21,7 @@ class Dynamics:
         self._params = params
         self._ham = Hamiltonian(self._params)
     
+    @jit
     def EquationsOfMotion(self, t: float | np.ndarray[float],
                           c: np.ndarray[complex],
                           inhomPart: complex | np.ndarray[complex],
