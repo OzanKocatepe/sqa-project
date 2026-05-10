@@ -1,5 +1,5 @@
 import numpy as np
-from numba import jit, njit
+from numba import jit
 
 from data import ModelParameters
 from operators import Hamiltonian
@@ -21,11 +21,11 @@ class Dynamics:
         self._params = params
         self._ham = Hamiltonian(self._params)
     
-    def EquationsOfMotion(self,
-        t: float | np.ndarray[float],
-        c: np.ndarray[complex],
-        inhomPart: complex | np.ndarray[complex],
-    ) -> np.ndarray[complex]:
+    @jit
+    def EquationsOfMotion(self, t: float | np.ndarray[float],
+                          c: np.ndarray[complex],
+                          inhomPart: complex | np.ndarray[complex],
+                          ) -> np.ndarray[complex]:
         """
         Returns the right-hand side of the equations of motion for the system at time t, in seconds.
 
@@ -61,150 +61,39 @@ class Dynamics:
         Hm, Hp, Hz = self._ham.minus(t), self._ham.plus(t), self._ham.z(t)
         gamma = self._params.decayConstant
 
-        # If the solution is not batched, just solve the ODE normally.
-        if c.shape[0] == 3: 
-            return Dynamics.EquationsOfMotionCore(
-                c,
-                inhomPart,
-                Hm,
-                Hp,
-                Hz,
-                gamma
-            )
-
-        # If the solution is batched, we basically have to solve 3 components simultaneously.
-        if c.shape[0] == 9:
-            return Dynamics.EquationsOfMotionBatched(
-                c,
-                inhomPart,
-                Hm,
-                Hp,
-                Hz,
-                gamma
-            )
-
-    @staticmethod
-    @jit
-    def EquationsOfMotionCore(
-        c: np.ndarray[complex],
-        inhomPart: complex,
-        Hm: complex,
-        Hp: complex,
-        Hz: complex,
-        gamma : float
-    ) -> np.ndarray[complex]:
-        """The core for the equations of motion.
-        
-        The normal EquationsOfMotion function calls this function as a static function,
-        so that it can be jit compiled. The normal EquationsOfMotion cannot be since it accepts
-        self as an arbitrary python object input.
-
-        Parameters
-        ----------
-        c : np.ndarray[complex]
-            See EquationsOfMotion, should be passed directly from there.
-        inhomPart: complex
-            See EquationsOfMotion, should be passed directly from there.
-            This is the scalar case.
-        Hm: complex
-            The Hm(t) value calculated in EquationsOfMotion.
-        Hp: complex
-            The Hp(t) value calculated in EquationsOfMotion.
-        Hz: complex
-            The Hz(t) value calculated in EquationsOfMotion.
-        gamma : float
-            The value of the decay constant.
-
-        Returns
-        -------
-        ndarray[complex]:
-            The right hand side of the equations of motion. If the input is vectorised, the output
-            will also be vectorised, with the first axis having size 3, corresponding to the different operators
-            in c.
-        """
-
         B = np.array([[-(2j * Hz + 0.5 * gamma), 0, 1j * Hp],
                       [0, 2j * Hz - 0.5 * gamma, -1j * Hm],
-                      [2j * Hm, -2j * Hp, -gamma]], dtype=np.complex128)
+                      [2j * Hm, -2j * Hp, -gamma]], dtype=complex)
 
         # B = np.eye(3)
         
-        inhomPartVector = np.zeros((3,), dtype=np.complex128)
-        inhomPartVector[2] = inhomPart
-
-        dcdt = np.zeros((3, c.shape[1]))
-        for i in range(dcdt.shape[0]):
-            dcdt[:, i] = B @ c[:, i] + inhomPartVector
-    
-    @staticmethod
-    @njit(cache=True)
-    def EquationsOfMotionBatched(
-        c: np.ndarray[complex],
-        inhomPart: np.ndarray[complex],
-        Hm: complex,
-        Hp: complex,
-        Hz: complex,
-        gamma : float
-    ) -> np.ndarray[complex]:
-        """The core for the equations of motion.
+        # If the solution is not batched, just solve the ODE normally.
+        if c.shape[0] == 3:
+            inhomPartVector = np.array([0, 0, inhomPart], dtype=complex)
+            return B @ c + inhomPartVector[:, np.newaxis]
         
-        The normal EquationsOfMotion function calls this function as a static function,
-        so that it can be jit compiled. The normal EquationsOfMotion cannot be since it accepts
-        self as an arbitrary python object input.
+        # If the solution is batched, we basically have to solve 3 components simultaneously.
+        if c.shape[0] == 9:
+            # If we have batched, we will have formed a 3x3 array with the columns corresponding
+            # to the same left-operator, which we would have then .ravel()-ed. Therefore, if we just
+            # reshape (3, 3, -1) (with the last axis dealing with the fact that our input may be vectorised),
+            # we will get back our stack of 3 x 3 matrices.
+            c = c.reshape(3, 3, -1)
+            # Moves the matrices stored in the first two axes to be stored in the last two axes,
+            # which is the shape numpy expects when doing stacked matrix multiplication.
+            c = np.moveaxis(c, [0, 1], [1, 2])
 
-        Parameters
-        ----------
-        c : np.ndarray[complex]
-            See EquationsOfMotion, should be passed directly from there.
-        inhomPart: ndarray[complex]
-            See EquationsOfMotion, should be passed directly from there.
-            This is the vector case.
-        Hm: complex
-            The Hm(t) value calculated in EquationsOfMotion.
-        Hp: complex
-            The Hp(t) value calculated in EquationsOfMotion.
-        Hz: complex
-            The Hz(t) value calculated in EquationsOfMotion.
-        gamma : float
-            The value of the decay constant.
+            # We will form our inhomogenous part from the inhomPart vector, which we will in this case assume has 3 components
+            # which form the bottom row of our matrix.
+            inhomPartMatrix = np.zeros((3, 3), dtype=complex)
+            inhomPartMatrix[2, :] = inhomPart
 
-        Returns
-        -------
-        ndarray[complex]:
-            The right hand side of the equations of motion. If the input is vectorised, the output
-            will also be vectorised, with the first axis having size 3, corresponding to the different operators
-            in c.
-        """
+            # We can now calculate our matrix multiplications.
+            # Since B is simply (3, 3), numpy performs stacked matrix multiplication forming a final matrix of
+            # (k, 3, 3), where k is due to the vectorised input.
+            # Then, we add our inhomogenous part to each of those matrices in the stack.
+            # This ends up being a (k, 3, 3) stack of matrices.
+            dcdt = B @ c + inhomPartMatrix[np.newaxis, :, :]
 
-        B = np.array(
-            [[-(2j * Hz + 0.5 * gamma), 0, 1j * Hp],
-             [0, 2j * Hz - 0.5 * gamma, -1j * Hm],
-             [2j * Hm, -2j * Hp, -gamma]],
-        dtype=np.complex128)
-            
-        # If we have batched, we will have formed a 3x3 array with the columns corresponding
-        # to the same left-operator, which we would have then .ravel()-ed. Therefore, if we just
-        # reshape (3, 3, -1) (with the last axis dealing with the fact that our input may be vectorised),
-        # we will get back our stack of 3 x 3 matrices.
-        c = c.reshape(3, 3, -1)
-        # Moves the matrices stored in the first two axes to be stored in the last two axes,
-        # which is the shape numpy expects when doing stacked matrix multiplication.
-        c = np.ascontiguousarray(np.transpose(c, (2, 0, 1)))
-
-        # We will form our inhomogenous part from the inhomPart vector, which we will in this case assume has 3 components
-        # which form the bottom row of our matrix.
-        inhomPartMatrix = np.zeros((3, 3), dtype=np.complex128)
-        inhomPartMatrix[2, :] = inhomPart
-
-        # We can now calculate our matrix multiplications.
-        # Since B is simply (3, 3), numpy performs stacked matrix multiplication forming a final matrix of
-        # (k, 3, 3), where k is due to the vectorised input.
-        # Then, we add our inhomogenous part to each of those matrices in the stack.
-        # This ends up being a (k, 3, 3) stack of matrices.
-        dcdt = np.zeros((c.shape[0], 3, 3), dtype=np.complex128)
-        for i in range(dcdt.shape[0]):
-            dcdt[i] = B @ c[i] + inhomPartMatrix
-
-        # Now, we reshape our matrix to be back in the shape (9, k), which is what scipy expects.
-        transposed = np.ascontiguousarray(np.transpose(dcdt, (1, 2, 0)))
-        return transposed.reshape(9, -1)
+            # Now, we reshape our matrix to be back in the shape (9, k), which is what scipy expects.
+            return np.moveaxis(dcdt, [1, 2], [0, 1]).reshape(9, -1)
