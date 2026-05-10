@@ -240,9 +240,11 @@ class CorrelationSolver:
         initialConds = self.__DoubleTimeInitialConditions(tAxis, singleTimeFourier)
 
         for tIndex in tqdm(range(tAxis.size),
-                           desc = "Solving double-time correlations",
-                           position = 1,
-                           leave = False):
+            disable = True,
+            desc = "Solving double-time correlations",
+            position = 1,
+            leave = False
+        ):
             # Calculates the correlation, but bc of the way matrix multiplication works
             # the input has to be given indexed as [rightOperator, leftOperator], while
             # we want our final array to have input [leftOperator, rightOperator].

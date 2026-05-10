@@ -10,7 +10,7 @@ from config.paths import PLOTTING_DIR, STYLESHEET, DATA_DIR
 
 def main():
     # Total number of momentum points to sample.
-    numK = 2
+    numK = 100
     numT = 20
     tauMax = 20
 
@@ -33,7 +33,7 @@ def main():
     # ensemble.AddMomentum((np.pi / 4, -np.pi / 8))
     # ensemble.AddMomentum((-np.pi / 4, np.pi / 8))
     # ensemble.AddMomentum((-np.pi / 4, -np.pi / 8))
-    ensemble.Run(tauMax, numT, numProcesses=1)
+    ensemble.Run(tauMax, numT, numProcesses=None)
     np.save(DATA_DIR / f"D={params.delta}, k={numK}", ensemble.summedCurrent.doubleTimeCurrent)
 
     # plot = Plotting(ensemble)

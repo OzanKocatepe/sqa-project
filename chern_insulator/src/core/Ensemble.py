@@ -103,7 +103,12 @@ class Ensemble:
         self.__axes = self.__CreateAxes(tauMax, numT)
 
         if numProcesses == 1:
-            for model in tqdm(self.__models.values(), desc=f"Running models (Delta = {self.__params.delta})"):
+            for model in tqdm(
+                self.__models.values(),
+                # disable = True,
+                mininterval = 5,
+                desc=f"Running models (Delta = {self.__params.delta})"
+            ):
                 model.Run(self.__axes)
 
         else:
@@ -122,6 +127,8 @@ class Ensemble:
                                 ),
                                 total=len(tasks),
                                 desc=f"Running models (Delta = {self.__params.delta})",
+                                # disable = True,
+                                mininterval = 5,
                                 position=0
                             ))
                 
