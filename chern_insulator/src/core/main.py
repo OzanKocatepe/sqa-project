@@ -41,7 +41,7 @@ def main():
     # plot.PlotSingleTime(-np.pi / 4, np.pi / 8, tMax = 10, overplotNumericalSolution=True)
     # plot.PlotSingleTime(-np.pi / 4, -np.pi / 8, tMax = 10, overplotNumericalSolution=True)
     # plot.PlotDoubleTimeCorrelation(np.pi / 4, np.pi / 8)
-    plot.PlotDoubleTimeCurrent()
+    # plot.PlotDoubleTimeCurrent()
     # plot.PlotTotalCurrent(overplotLengthGauge=False)
     # plot.PlotTotalCurrentFFT(linearScale=False, overplotLengthGauge=False)
 
