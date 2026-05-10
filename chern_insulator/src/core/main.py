@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import cProfile
 
 from data import EnsembleParameters
 from core.Ensemble import Ensemble
@@ -45,4 +46,5 @@ def main():
     # plot.PlotTotalCurrentFFT(linearScale=False, overplotLengthGauge=False)
 
 if __name__ == "__main__":
+    # cProfile.run(main())
     main()

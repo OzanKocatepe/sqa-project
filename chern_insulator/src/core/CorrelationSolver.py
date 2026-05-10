@@ -256,8 +256,8 @@ class CorrelationSolver:
                 y0 = initialConds[:, :, tIndex].T.ravel(),
                 method = 'DOP853',
                 t_eval = tAxis[tIndex] + tauAxis,
-                rtol = 1e-11,
-                atol = 1e-12,
+                rtol = 1e-3,
+                atol = 1e-6,
                 vectorized = True,
                 # Uses -<sigma_i(t)\rangle gamma_- as the inhomogenous
                 # z-component.
