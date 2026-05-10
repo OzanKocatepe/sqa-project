@@ -8,17 +8,19 @@ class Dynamics:
     equations of motion for single- and double-time correlations.
     """
 
-    def __init__(self, params: ModelParameters):
+    def __init__(self, params: ModelParameters, hamiltonian: Hamiltonian):
         """Initialises the instance.
         
         Parameters
         ----------
         params : ModelParameters
             The parameters of the model.
+        ham: Hamiltonian
+            The hamiltonian of the model.
         """
 
         self._params = params
-        self._ham = Hamiltonian(self._params)
+        self._ham = hamiltonian
     
     def EquationsOfMotion(self, t: float | np.ndarray[float],
                           c: np.ndarray[complex],

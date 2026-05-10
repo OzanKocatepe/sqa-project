@@ -48,7 +48,7 @@ class Model:
         self.__axes = axes
         
         # Solves the single-time fourier series.
-        corrSolver = CorrelationSolver(self.__params)
+        corrSolver = CorrelationSolver(self.__params, self.__hamiltonian)
         self.__corrData.singleTimeFourier = corrSolver.SolveSingleTimeCorrelations()
 
         # Solves the double-time correlations using scipy ODE solver (solve_ivp).
@@ -58,7 +58,7 @@ class Model:
             self.__corrData.singleTimeFourier
         )
 
-        currentSolver = CurrentSolver(self.__params)
+        currentSolver = CurrentSolver(self.__params, self.__hamiltonian)
         self.__currentData.paramagneticCurrent = currentSolver.CalculateParamagneticCurrent(
             self.__axes.tauAxisSec,
             self.__corrData.singleTimeFourier

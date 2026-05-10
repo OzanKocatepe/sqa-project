@@ -11,7 +11,7 @@ from .Dynamics import Dynamics
 class CorrelationSolver:
     """Contains the relevant code for solving the single- and double- time correlations."""
 
-    def __init__(self, params: ModelParameters) -> None:
+    def __init__(self, params: ModelParameters, hamiltonian: Hamiltonian) -> None:
         """
         Initialises the instance.
         
@@ -19,11 +19,13 @@ class CorrelationSolver:
         ----------
         params : ModelParameters
             The parameters of the model we are solving the correlations for.
+        hamiltonian: Hamiltonian
+            The hamiltonian of the system.
         """
 
         self.__params = params
-        self.__hamiltonian = Hamiltonian(params)
-        self.__dynamics = Dynamics(params)
+        self.__hamiltonian = hamiltonian
+        self.__dynamics = Dynamics(params, self.__hamiltonian)
 
     def __SingleTimeFourierMatrix(self) -> np.ndarray[complex]:
         """

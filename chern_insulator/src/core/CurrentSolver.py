@@ -10,7 +10,7 @@ from LengthGauge import LengthGauge
 class CurrentSolver:
     """Contains the code for solving for single- and double- time currents."""
 
-    def __init__(self, params: ModelParameters) -> None:
+    def __init__(self, params: ModelParameters, hamiltonian: Hamiltonian) -> None:
         """
         Initialises the current solver.
 
@@ -18,10 +18,12 @@ class CurrentSolver:
         ----------
         params : ModelParameters
             The parameters of the model we are solving the correlations for.
+        hamiltonian: Hamiltonian
+            The hamiltonian of the system.
         """
 
         self.__params = params
-        self.__hamiltonian = Hamiltonian(self.__params)
+        self.__hamiltonian = hamiltonian
         self.__jpx = ParamagneticCurrentX(self.__params, self.__hamiltonian)
         self.__jpy = ParamagneticCurrentY(self.__params, self.__hamiltonian)
         self.__jdx = DiamagneticCurrentX(self.__params, self.__hamiltonian)
