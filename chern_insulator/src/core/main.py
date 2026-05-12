@@ -10,8 +10,8 @@ from config.paths import PLOTTING_DIR, STYLESHEET, DATA_DIR
 
 def main():
     # Total number of momentum points to sample.
-    numK = 100
-    numT = 20
+    numK = 5
+    numT = 5
     tauMax = 20
 
     # Check the Chern number.
@@ -34,16 +34,16 @@ def main():
     # ensemble.AddMomentum((-np.pi / 4, np.pi / 8))
     # ensemble.AddMomentum((-np.pi / 4, -np.pi / 8))
     ensemble.Run(tauMax, numT, numProcesses=None)
-    np.save(DATA_DIR / f"D={params.delta}, k={numK}", ensemble.summedCurrent.doubleTimeCurrent)
+    # np.save(DATA_DIR / f"D={params.delta}, k={numK}", ensemble.summedCurrent.doubleTimeCurrent)
 
-    # plot = Plotting(ensemble)
+    plot = Plotting(ensemble)
     # plot.PlotSingleTime(np.pi / 4, np.pi / 8, tMax = 20, overplotNumericalSolution=True)
     # plot.PlotSingleTime(np.pi / 4, -np.pi / 8, tMax = 10, overplotNumericalSolution=True)
     # plot.PlotSingleTime(-np.pi / 4, np.pi / 8, tMax = 10, overplotNumericalSolution=True)
     # plot.PlotSingleTime(-np.pi / 4, -np.pi / 8, tMax = 10, overplotNumericalSolution=True)
     # plot.PlotDoubleTimeCorrelation(np.pi / 4, np.pi / 8)
     # plot.PlotDoubleTimeCurrent()
-    # plot.PlotTotalCurrent(overplotLengthGauge=False)
+    plot.PlotTotalCurrent(overplotLengthGauge=False)
     # plot.PlotTotalCurrentFFT(linearScale=False, overplotLengthGauge=False)
 
 if __name__ == "__main__":

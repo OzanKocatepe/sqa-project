@@ -241,7 +241,7 @@ class Ensemble:
     
     @cached_property
     def summedCurrent(self) -> CurrentData:
-        return np.sum([model.currentData for model in self.__models.values()])
+        return np.mean([model.currentData for model in self.__models.values()])
     
     @property
     def axes(self) -> AxisData:

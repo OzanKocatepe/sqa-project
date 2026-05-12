@@ -48,3 +48,32 @@ class CurrentData:
                 if self.lengthGaugeCurrent is not None and other.lengthGaugeCurrent is not None
                 else None
         )
+    
+    def __truediv__(self, other: int) -> CurrentData:
+        """Divides the instance by an int.
+
+        We do not require other instances of division in this code currently.
+        
+        Parameters
+        ----------
+        other : int
+            The integer to divide by.
+            
+        Returns
+        -------
+        CurrentData
+            A new instance with each component divided by the int.
+        """
+        
+        # No checks since we only divide in one place, and if we need to do another division
+        # I trust myself to know that it passes directly to the inner arrays.
+        # Could add checks later.
+        return CurrentData(
+            paramagneticCurrent = self.paramagneticCurrent / other,
+            diamagneticCurrent = self.diamagneticCurrent / other,
+            totalCurrent = self.totalCurrent / other,
+            doubleTimeCurrent = self.doubleTimeCurrent / other,
+            lengthGaugeCurrent = self.lengthGaugeCurrent / other
+                if self.lengthGaugeCurrent is not None
+                else None
+        )
