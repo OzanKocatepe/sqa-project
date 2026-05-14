@@ -263,6 +263,7 @@ class CorrelationSolver:
                 rtol = 1e-3,
                 atol = 1e-6,
                 vectorized = True,
+                max_step = 1 / (20 * self.__params.drivingFreq),
                 # Uses -<sigma_i(t)\rangle gamma_- as the inhomogenous
                 # z-component.
                 args = (inhomParts[:, tIndex],)
