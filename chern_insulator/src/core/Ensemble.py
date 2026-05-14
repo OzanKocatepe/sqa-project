@@ -1,10 +1,10 @@
-from multiprocessing import pool
-
 import numpy as np
 from functools import cached_property
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 import multiprocessing as mp
+from config.paths import DATA_DIR
+import os
 
 from data import EnsembleParameters, ModelParameters, AxisData, CurrentData
 from .Model import Model
@@ -200,6 +200,16 @@ class Ensemble:
 
         # Adds the momentum points to the ensemble.
         self.AddMomentum(momentums)
+
+    def SaveCurrent(self) -> None:
+        """Saves the current to disk.
+        
+        Saves the summed current object to the data/ folder. If this folder doesn't exist,
+        it is created.
+        """
+
+        os.makedirs(DATA_DIR, exist_ok = True)
+        np.save(DATA_DIR / f"D={self.__params.delta}, k={int(np.sqrt(len(self.__models)))}", self.summedCurrent)
 
     def __CreateAxes(self, tauMax: float, numT: float) -> AxisData:
         """

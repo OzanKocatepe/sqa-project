@@ -39,6 +39,13 @@ def main() -> None:
         type = int,
         required = True
     )
+    parser.add_argument(
+        "-s",
+        "--save",
+        help = "Tells the script to save the total current object to disk." \
+        " Saves to data/, which will be created if it doesn't already exist.",
+        action = "store_true"
+    )
 
     # Parse the arguments.
     args = parser.parse_args()
@@ -69,7 +76,8 @@ def main() -> None:
     # ensemble.AddMomentum((-np.pi / 4, np.pi / 8))
     # ensemble.AddMomentum((-np.pi / 4, -np.pi / 8))
     ensemble.Run(tauMax, numT, numProcesses=numProcesses)
-    # np.save(DATA_DIR / f"D={params.delta}, k={numK}", ensemble.summedCurrent.doubleTimeCurrent)
+    if args.save:
+        ensemble.SaveCurrent()
 
     # plot = Plotting(ensemble)
     # plot.PlotSingleTime(np.pi / 4, np.pi / 8, tMax = 20, overplotNumericalSolution=True)
