@@ -26,6 +26,7 @@ class Fourier:
 
     angularFreq: float = field(init = False)
     n: int = field(init = False)
+    precomputedExponents: np.ndarray[complex] = field(init = False)
 
     def __post_init__(self):
         """Defines any derived terms after initialisation."""
@@ -33,6 +34,7 @@ class Fourier:
         self.coeffs = np.array(self.coeffs, dtype=complex)
         self.angularFreq = 2 * np.pi * self.freq
         self.n = (self.coeffs.size - 1) // 2
+        self.precomputedExponents = 1j * self.angularFreq * np.arange(-self.n, self.n + 1)
 
     def __add__(self, other: Fourier) -> Fourier:
         """
@@ -198,7 +200,6 @@ class Fourier:
         tPoints: np.ndarray[float] = np.atleast_1d(tPoints)
 
         # Calculates terms $-in\omega, \dots, in\omega = -2i\pi nf, \dots, 2i\pi nf$..
-        expTerms: np.ndarray[complex] = 1j * self.angularFreq * np.arange(-self.n, self.n + 1)
 
         r"""
         Takes the outer product with $t_0, \dots, t_m$ so that we get an array of shape
@@ -207,7 +208,7 @@ class Fourier:
         """
         # Uses outer product to multiply every possible harmonic term by every possible tPoint.
         # However, if tPoints is more than one-dimensional, np.outer flattens it.
-        expTerms = np.outer(tPoints, expTerms)
+        expTerms = np.outer(tPoints, self.precomputedExponents)
         # Makes the terms actually exponential.
         expTerms = np.exp(expTerms, dtype=complex)
 
