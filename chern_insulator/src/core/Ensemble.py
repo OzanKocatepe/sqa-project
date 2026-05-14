@@ -209,7 +209,8 @@ class Ensemble:
         """
 
         os.makedirs(DATA_DIR, exist_ok = True)
-        np.save(DATA_DIR / f"D={self.__params.delta}, k={int(np.sqrt(len(self.__models)))}", self.summedCurrent)
+        file = DATA_DIR / f"D={self.__params.delta}, k={int(np.sqrt(len(self.__models)))}"
+        np.save(file, (self.__axes, self.summedCurrent))
 
     def __CreateAxes(self, tauMax: float, numT: float) -> AxisData:
         """
