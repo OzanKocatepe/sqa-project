@@ -25,7 +25,7 @@ class Ensemble:
         self.__params = params
 
         # Stores the models in a dictionary.
-        self.__models: dict[tuple[float, float], Model] = {}
+        self.__models: dict[tuple[float, float], Model | None] = {}
         # The axis data shared by the system.
         self.__axes = None
         # Stores the final current information.
@@ -158,6 +158,8 @@ class Ensemble:
                     # Increments progress bar manually, because larger batchsizes don't mess up
                     # the automatic incrementing.
                     pbar.update(1)
+
+        self.meanCurrent / len(self.__models)
  
     def _MultiProcessingRun(self, args: tuple[tuple[float, float], Model, AxisData]) -> tuple[tuple[float, float], Model]:
         """
