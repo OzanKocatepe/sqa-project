@@ -28,6 +28,8 @@ class Ensemble:
         self.__models: dict[tuple[float, float], Model] = {}
         # The axis data shared by the system.
         self.__axes = None
+        # Stores the final current information.
+        self.meanCurrent = None
 
     def AddMomentum(self, kValues: tuple[float, float] | list[tuple[float, float]] | np.ndarray[float]) -> None:
         """
@@ -110,6 +112,7 @@ class Ensemble:
                 desc=f"Running models (Delta = {self.__params.delta})"
             ):
                 model.Run(self.__axes)
+                self._AccumulateAndFree(model)
 
         else:
             # Creates the list of arguments for each model.
@@ -135,6 +138,36 @@ class Ensemble:
             # Writes the models back into the dictionary, since the newly ran models live
             # in another process and so must be explicitly returned and replaced in the dictionary.
             self.__models = {key : model for key, model in results}
+
+    def _AccumulateAndFree(self, model: Model) -> None:
+        """Adds the models current to summedCurrent and frees the memory.
+
+        Storing each model's current separately becomes infeasible, so once
+        a model has calculated it's current, we add it to the summed current and then
+        set the models correlation and current data instances to None.
+
+        These should be the only references to this data, so the garbage collector
+        should free the memory once we do this.
+
+        Since we are running the models in separate processes, the data
+        may disappear when the process ends, but this function guarantees that
+        the memory is cleared, and does it as each individual model ends, which is
+        better in case we choose a very high batchsize which may keep a lot of models
+        alive in a single process before it closes.
+        
+        Parameters
+        ----------
+        model : Model
+            The model which we are going to add the current of.
+        """
+
+        if self.meanCurrent == None:
+            self.meanCurrent = model.currentData
+        else:
+            self.meanCurrent = self.meanCurrent + model.currentData
+
+        model.correlationData = None
+        model.currentData = None
 
     def _MultiProcessingRun(self, args: tuple[tuple[float, float], Model, AxisData]) -> tuple[tuple[float, float], Model]:
         """
@@ -162,6 +195,7 @@ class Ensemble:
         key, model, axes = args
         
         model.Run(axes)
+        self._AccumulateAndFree(model)
         return key, model
 
     def SampleBrillouinZone(self, numK: int) -> None:
@@ -210,7 +244,7 @@ class Ensemble:
 
         os.makedirs(DATA_DIR, exist_ok = True)
         file = DATA_DIR / f"D={self.__params.delta}, k={int(np.sqrt(len(self.__models)))}"
-        np.save(file, (self.__axes, self.summedCurrent))
+        np.save(file, (self.__axes, self.meanCurrent))
 
     def __CreateAxes(self, tauMax: float, numT: float) -> AxisData:
         """
@@ -249,11 +283,7 @@ class Ensemble:
             tAxisSec = tAxisSec,
             freqAxis = freqAxis
         )
-    
-    @cached_property
-    def summedCurrent(self) -> CurrentData:
-        return np.mean([model.currentData for model in self.__models.values()])
-    
+     
     @property
     def axes(self) -> AxisData:
         return self.__axes

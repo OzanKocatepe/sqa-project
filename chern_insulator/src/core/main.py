@@ -13,7 +13,7 @@ from core.Plotting import Plotting
 from Topology import ChernNumber
 from config.paths import PLOTTING_DIR, STYLESHEET, DATA_DIR
 
-def log_memory(interval_seconds=300, log_file=DATA_DIR / "memory_log.txt"):
+def log_memory(interval_seconds=5, log_file=DATA_DIR / "memory_log.txt"):
     process = psutil.Process(os.getpid())
 
     while True:

@@ -20,8 +20,8 @@ class Model:
         self.__params = params
         self.__hamiltonian = Hamiltonian(self.__params)
 
-        self.__corrData = CorrelationData()
-        self.__currentData = CurrentData()
+        self.correlationData = CorrelationData()
+        self.currentData = CurrentData()
 
         # Will be given in the Run() function.
         self.__axes = None
@@ -49,50 +49,50 @@ class Model:
         
         # Solves the single-time fourier series.
         corrSolver = CorrelationSolver(self.__params, self.__hamiltonian)
-        self.__corrData.singleTimeFourier = corrSolver.SolveSingleTimeCorrelations()
+        self.correlationData.singleTimeFourier = corrSolver.SolveSingleTimeCorrelations()
 
         # Solves the double-time correlations using scipy ODE solver (solve_ivp).
-        self.__corrData.doubleTimeCorrelations = corrSolver.SolveDoubleTimeCorrelations(
+        self.correlationData.doubleTimeCorrelations = corrSolver.SolveDoubleTimeCorrelations(
             self.__axes.tAxisSec,
             self.__axes.tauAxisSec,
-            self.__corrData.singleTimeFourier
+            self.correlationData.singleTimeFourier
         )
 
         currentSolver = CurrentSolver(self.__params, self.__hamiltonian)
-        self.__currentData.paramagneticCurrent = currentSolver.CalculateParamagneticCurrent(
+        self.currentData.paramagneticCurrent = currentSolver.CalculateParamagneticCurrent(
             self.__axes.tauAxisSec,
-            self.__corrData.singleTimeFourier
+            self.correlationData.singleTimeFourier
         )
         
         # self.__currentData.lengthGaugeCurrent = currentSolver.CalculateLengthGaugeCurrent(self.__axes.tauAxisSec)
 
-        self.__currentData.diamagneticCurrent = currentSolver.CalculateDiamagneticCurrent(
+        self.currentData.diamagneticCurrent = currentSolver.CalculateDiamagneticCurrent(
             self.__axes.tauAxisSec,
-            self.__corrData.singleTimeFourier
+            self.correlationData.singleTimeFourier
         )
         
-        self.__currentData.totalCurrent = currentSolver.CalculateTotalCurrent(
+        self.currentData.totalCurrent = currentSolver.CalculateTotalCurrent(
             self.__hamiltonian.Ax(self.__axes.tauAxisSec),
-            self.__currentData.paramagneticCurrent,
-            self.__currentData.diamagneticCurrent
+            self.currentData.paramagneticCurrent,
+            self.currentData.diamagneticCurrent
         )
 
-        self.__currentData.doubleTimeCurrent = currentSolver.CalculateDoubleTimeCurrent(
+        self.currentData.doubleTimeCurrent = currentSolver.CalculateDoubleTimeCurrent(
             self.__axes.tAxisSec,
             self.__axes.tauAxisSec,
-            self.__corrData.singleTimeFourier,
-            self.__corrData.doubleTimeCorrelations
+            self.correlationData.singleTimeFourier,
+            self.correlationData.doubleTimeCorrelations
         )
 
-        return self.__corrData, self.__currentData
+        return self.correlationData, self.currentData
     
-    @property
-    def currentData(self) -> CurrentData:
-        return self.__currentData
+    # @property
+    # def currentData(self) -> CurrentData:
+    #     return self.__currentData
     
-    @property
-    def correlationData(self) -> CorrelationData:
-        return self.__corrData
+    # @property
+    # def correlationData(self) -> CorrelationData:
+    #     return self.__corrData
     
     @property
     def params(self) -> ModelParameters:

@@ -163,7 +163,7 @@ class Plotting:
         we plot the real and imaginary components on their own axes.
         """
 
-        curr = self.__ensemble.summedCurrent
+        curr = self.__ensemble.meanCurrent
         axes = self.__ensemble.axes
         subscripts = ['x', 'y']
 
@@ -200,8 +200,8 @@ class Plotting:
         """Plots the total current as a function of time."""
 
         axes = self.__ensemble.axes
-        current = self.__ensemble.summedCurrent.totalCurrent
-        lengthCurrent = self.__ensemble.summedCurrent.lengthGaugeCurrent
+        current = self.__ensemble.meanCurrent.totalCurrent
+        lengthCurrent = self.__ensemble.meanCurrent.lengthGaugeCurrent
 
         labels = [r"$\hat j_x$", r"$\hat j_y$"]
         alpha = 0.2
@@ -297,7 +297,7 @@ class Plotting:
         """
 
         axes = self.__ensemble.axes
-        current = self.__ensemble.summedCurrent
+        current = self.__ensemble.meanCurrent
 
         jxFFT = np.fft.fftshift(np.fft.fft(current.totalCurrent[0]))
         jyFFT = np.fft.fftshift(np.fft.fft(current.totalCurrent[1]))
