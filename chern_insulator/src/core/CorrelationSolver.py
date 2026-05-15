@@ -3,10 +3,13 @@ import matplotlib.pyplot as plt
 from scipy import integrate
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor
+import diffrax
+import jax
+import jax.numpy as jnp
 
-from data import ModelParameters, Fourier, AxisData
+from data import ModelParameters, Fourier, AxisData, DoubleTimeODEParams
 from operators import Hamiltonian
-from .Dynamics import Dynamics
+from . import Dynamics
 
 class CorrelationSolver:
     """Contains the relevant code for solving the single- and double- time correlations."""
@@ -25,7 +28,6 @@ class CorrelationSolver:
 
         self.__params = params
         self.__hamiltonian = hamiltonian
-        self.__dynamics = Dynamics(params, self.__hamiltonian)
 
     def __SingleTimeFourierMatrix(self) -> np.ndarray[complex]:
         """
@@ -227,51 +229,81 @@ class CorrelationSolver:
             sigma_i(t) sigma_j(t + tau).
         """
 
-        doubleTimeCorrelations = np.zeros((3, 3, tAxis.size, tauAxis.size), dtype=complex)
+        tAxis = jnp.array(tAxis)
+        tauAxis = jnp.array(tauAxis)
+
+        doubleTimeCorrelations = jnp.zeros((3, 3, tAxis.size, tauAxis.size), dtype=complex)
         # Calculates the inhomogenous parts as an array of shape (3, tAxis.size),
         # with first axis corresponding to the left-operator we chose.
         # Remember inhom part of equation is -gamma * <sigma_i(t)>
-        inhomParts = -self.__params.decayConstant * np.array([
+        inhomParts = -self.__params.decayConstant * jnp.array([
             singleTimeFourier[0].Evaluate(tAxis),
             singleTimeFourier[1].Evaluate(tAxis),
             singleTimeFourier[2].Evaluate(tAxis)
         ])
 
         initialConds = self.__DoubleTimeInitialConditions(tAxis, singleTimeFourier)
+        odeParams = DoubleTimeODEParams.build_from_params(self.__params, self.__hamiltonian)
 
-        for tIndex in tqdm(range(tAxis.size),
-            disable = True,
-            desc = "Solving double-time correlations",
-            position = 1,
-            leave = False
-        ):
-            # Calculates the correlation, but bc of the way matrix multiplication works
-            # the input has to be given indexed as [rightOperator, leftOperator], while
-            # we want our final array to have input [leftOperator, rightOperator].
+        def rhs(t, c, inhom_part):
+            return Dynamics.EquationsOfMotion(t, c, inhom_part, odeParams)
 
-            # Hence, we transpose the initial conditions we put in, and then
-            # transpose the final results we get out.
-            correlation = integrate.solve_ivp(
-                fun = self.__dynamics.EquationsOfMotion,
-                t_span = (tAxis[tIndex], tAxis[tIndex] + np.max(tauAxis)),
-                # We want our matrix to have its columns have the same left operator
-                # (i.e. each column should act like a non-batched input),
-                # so we need to tranpose the axes of the initial conditions.
-                y0 = initialConds[:, :, tIndex].T.ravel(),
-                method = 'DOP853',
-                t_eval = tAxis[tIndex] + tauAxis,
-                rtol = 1e-3,
-                atol = 1e-6,
-                vectorized = True,
-                max_step = 1 / (20 * self.__params.drivingFreq),
-                # Uses -<sigma_i(t)\rangle gamma_- as the inhomogenous
-                # z-component.
-                args = (inhomParts[:, tIndex],)
-            ).y.reshape(3, 3, -1)
+        def SolveSingleTPoint(initialConditions, inhom_part, initialTime):
+            return diffrax.diffeqsolve(
+                diffrax.ODETerm(rhs),
+                diffrax.Dopri8(),
+                t0 = initialTime,
+                t1 = initialTime + jnp.max(tauAxis),
+                dt0 = None,
+                y0 = initialConditions,
+                args = inhom_part,
+                saveat = diffrax.SaveAt(ts = initialTime + tauAxis),
+                stepsize_controller = diffrax.PIDController(rtol=1e-3, atol=1e-6)
+            ).ys
+ 
+        # vmap over all the taxis initial points.
+        solve_all = jax.vmap(SolveSingleTPoint)
+        results = solve_all(
+            initialConds.transpose(2, 1, 0).reshape(tAxis.size, 9, 1),
+            inhomParts.T,
+            tAxis
+        )
 
-            # Here is where the last transpose happens. The last matrix stays the same, but the first
-            # two axes are swapped, so the matrix at each time is transposed.
-            doubleTimeCorrelations[:, :, tIndex, :] = np.transpose(correlation, (1, 0, 2))
+        doubleTimeCorrelations = np.array(results.reshape(tAxis.size, tauAxis.size, 3, 3).transpose(3, 2, 0, 1))
+
+        # for tIndex in tqdm(range(tAxis.size),
+        #     disable = True,
+        #     desc = "Solving double-time correlations",
+        #     position = 1,
+        #     leave = False
+        # ):
+        #     # Calculates the correlation, but bc of the way matrix multiplication works
+        #     # the input has to be given indexed as [rightOperator, leftOperator], while
+        #     # we want our final array to have input [leftOperator, rightOperator].
+
+        #     # Hence, we transpose the initial conditions we put in, and then
+        #     # transpose the final results we get out.
+        #     correlation = integrate.solve_ivp(
+        #         fun = self.__dynamics.EquationsOfMotion,
+        #         t_span = (tAxis[tIndex], tAxis[tIndex] + np.max(tauAxis)),
+        #         # We want our matrix to have its columns have the same left operator
+        #         # (i.e. each column should act like a non-batched input),
+        #         # so we need to tranpose the axes of the initial conditions.
+        #         y0 = initialConds[:, :, tIndex].T.ravel(),
+        #         method = 'DOP853',
+        #         t_eval = tAxis[tIndex] + tauAxis,
+        #         rtol = 1e-3,
+        #         atol = 1e-6,
+        #         vectorized = True,
+        #         max_step = 1 / (20 * self.__params.drivingFreq),
+        #         # Uses -<sigma_i(t)\rangle gamma_- as the inhomogenous
+        #         # z-component.
+        #         args = (inhomParts[:, tIndex],)
+        #     ).y.reshape(3, 3, -1)
+
+        #     # Here is where the last transpose happens. The last matrix stays the same, but the first
+        #     # two axes are swapped, so the matrix at each time is transposed.
+        #     doubleTimeCorrelations[:, :, tIndex, :] = np.transpose(correlation, (1, 0, 2))
 
         return doubleTimeCorrelations
 
@@ -310,10 +342,10 @@ class CorrelationSolver:
         sigmap = singleTimeFourier[1].Evaluate(t)
         sigmaz = singleTimeFourier[2].Evaluate(t)
 
-        return np.array([
+        return jnp.array([
             # Left operator is sigma_-
             [
-                np.zeros(t.size, dtype=complex),
+                np.zeros(t.size, dtype=jnp.complex64),
                 -0.5 * (sigmaz - 1),
                 sigmam
             ],
@@ -321,7 +353,7 @@ class CorrelationSolver:
             # Left operator is sigma_+
             [
                 0.5 * (sigmaz + 1),
-                np.zeros(t.size, dtype=complex),
+                np.zeros(t.size, dtype=jnp.complex64),
                 -sigmap
             ],
 
@@ -329,6 +361,6 @@ class CorrelationSolver:
             [
                 -sigmam,
                 sigmap,
-                np.ones(t.size, dtype=complex)
+                np.ones(t.size, dtype=jnp.complex64)
             ]
         ])
