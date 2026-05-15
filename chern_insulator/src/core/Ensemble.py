@@ -159,7 +159,7 @@ class Ensemble:
                     # the automatic incrementing.
                     pbar.update(1)
 
-        self.meanCurrent / len(self.__models)
+        self.meanCurrent = self.meanCurrent / len(self.__models)
  
     def _MultiProcessingRun(self, args: tuple[tuple[float, float], Model, AxisData]) -> tuple[tuple[float, float], Model]:
         """

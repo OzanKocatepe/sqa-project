@@ -43,7 +43,9 @@ class CurrentData:
             paramagneticCurrent = self.paramagneticCurrent + other.paramagneticCurrent,
             diamagneticCurrent = self.diamagneticCurrent + other.diamagneticCurrent,
             totalCurrent = self.totalCurrent + other.totalCurrent,
-            doubleTimeCurrent = self.doubleTimeCurrent + other.doubleTimeCurrent,
+            doubleTimeCurrent = self.doubleTimeCurrent + other.doubleTimeCurrent
+                if self.doubleTimeCurrent is not None and other.doubleTimeCurrent is not None
+                else None,
             lengthGaugeCurrent = self.lengthGaugeCurrent + other.lengthGaugeCurrent
                 if self.lengthGaugeCurrent is not None and other.lengthGaugeCurrent is not None
                 else None
@@ -72,7 +74,9 @@ class CurrentData:
             paramagneticCurrent = self.paramagneticCurrent / other,
             diamagneticCurrent = self.diamagneticCurrent / other,
             totalCurrent = self.totalCurrent / other,
-            doubleTimeCurrent = self.doubleTimeCurrent / other,
+            doubleTimeCurrent = self.doubleTimeCurrent / other
+                if self.doubleTimeCurrent is not None
+                else None,
             lengthGaugeCurrent = self.lengthGaugeCurrent / other
                 if self.lengthGaugeCurrent is not None
                 else None
