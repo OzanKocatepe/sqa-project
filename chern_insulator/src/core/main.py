@@ -33,10 +33,6 @@ def log_memory(interval_seconds=300, log_file=DATA_DIR / "memory_log.txt"):
         threading.Event().wait(interval_seconds)
 
 def main() -> None:
-    # Start logging thread.
-    t = threading.Thread(target=log_memory, daemon=True)
-    t.start()
-
     # Create the parser.
     parser = argparse.ArgumentParser(
         description = "Solves for the first- and second- order correlation functions for " \
@@ -80,17 +76,36 @@ def main() -> None:
         " Saves to data/, which will be created if it doesn't already exist.",
         action = "store_true"
     )
+    parser.add_argument(
+        "--log-memory",
+        help = "Whether to log the memory usage to disk in 5 minute intervals.",
+        action = "store_true",
+    )
+    parser.add_argument(
+        "--use-apple-silicon",
+        help = "Whether to use apple-silicon GPU acceleration.",
+        action = "store_true",
+    )
+
 
     # Parse the arguments.
     args = parser.parse_args()
+    print(args)
+    quit()
 
     # Defines our values.
     numK = args.numK
     numT = args.numT
     numProcesses = args.cores
     delta = args.delta
-    save = args.save
-    tauMax = 20
+    save_flag = args.save
+    log_memory_flag = args.log_memory
+    use_diffrax = args.use_apple_silicon
+
+    if log_memory_flag:
+        # Start the logging thread.
+        t = threading.Thread(target=log_memory, daemon=True)
+        t.start()
 
     # Check the Chern number.
     # print(f"Trivial Phase (Delta = 3): C = {ChernNumber(3)}")
@@ -104,6 +119,7 @@ def main() -> None:
         decayConstant = 0.2,
         maxN = 50
     )
+    tauMax = 20
 
     ensemble = Ensemble(params)
     ensemble.SampleBrillouinZone(numK)
@@ -112,7 +128,7 @@ def main() -> None:
     # ensemble.AddMomentum((-np.pi / 4, np.pi / 8))
     # ensemble.AddMomentum((-np.pi / 4, -np.pi / 8))
     ensemble.Run(tauMax, numT, numProcesses=numProcesses)
-    if save:
+    if save_flag:
         ensemble.SaveCurrent()
 
     # plot = Plotting(ensemble)
