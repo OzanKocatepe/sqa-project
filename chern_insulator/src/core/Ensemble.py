@@ -105,14 +105,22 @@ class Ensemble:
         self.__axes = self.__CreateAxes(tauMax, numT)
 
         if numProcesses == 1:
-            for model in tqdm(
-                self.__models.values(),
+            for key, model in tqdm(
+                self.__models.items(),
                 # disable = True,
                 mininterval = 5,
                 desc=f"Running models (Delta = {self.__params.delta})"
             ):
                 model.Run(self.__axes)
-                self._AccumulateAndFree(model)
+
+                # Adds current to mean current.
+                if self.meanCurrent is None:
+                    self.meanCurrent = model.currentData
+                else:
+                    self.meanCurrent = self.meanCurrent + model.currentData
+
+                # Deletes the model to free memory.
+                self.__models[key] = None
 
         else:
             # Creates the list of arguments for each model.
@@ -122,53 +130,27 @@ class Ensemble:
             with ctx.Pool(processes=numProcesses) as pool:
                 # Note: if very slow, worth trying map instead of imap, since
                 # appparently imap can be much slower than map.
-                results = list(tqdm(
-                                pool.imap(
-                                    self._MultiProcessingRun,
-                                    tasks,
-                                    chunksize = len(tasks) // (numProcesses * 8) + 1
-                                ),
-                                total=len(tasks),
-                                desc=f"Running models (Delta = {self.__params.delta})",
-                                # disable = True,
-                                mininterval = 5,
-                                position=0
-                            ))
-                
-            # Writes the models back into the dictionary, since the newly ran models live
-            # in another process and so must be explicitly returned and replaced in the dictionary.
-            self.__models = {key : model for key, model in results}
+                for key, currentData in tqdm(
+                    pool.imap(
+                        self._MultiProcessingRun,
+                        tasks,
+                        chunksize = len(tasks) // (numProcesses * 8) + 1
+                    ),
+                    total=len(tasks),
+                    desc=f"Running models (Delta = {self.__params.delta})",
+                    # disable = True,
+                    mininterval = 5,
+                    position=0
+                ):
+                    # Adds the current to the total current.
+                    if self.meanCurrent is None:
+                        self.meanCurrent = currentData
+                    else:
+                        self.meanCurrent = self.meanCurrent + currentData
 
-    def _AccumulateAndFree(self, model: Model) -> None:
-        """Adds the models current to summedCurrent and frees the memory.
-
-        Storing each model's current separately becomes infeasible, so once
-        a model has calculated it's current, we add it to the summed current and then
-        set the models correlation and current data instances to None.
-
-        These should be the only references to this data, so the garbage collector
-        should free the memory once we do this.
-
-        Since we are running the models in separate processes, the data
-        may disappear when the process ends, but this function guarantees that
-        the memory is cleared, and does it as each individual model ends, which is
-        better in case we choose a very high batchsize which may keep a lot of models
-        alive in a single process before it closes.
-        
-        Parameters
-        ----------
-        model : Model
-            The model which we are going to add the current of.
-        """
-
-        if self.meanCurrent == None:
-            self.meanCurrent = model.currentData
-        else:
-            self.meanCurrent = self.meanCurrent + model.currentData
-
-        model.correlationData = None
-        model.currentData = None
-
+                    # Frees reference to the model to free memory.
+                    self.__models[key] = None
+ 
     def _MultiProcessingRun(self, args: tuple[tuple[float, float], Model, AxisData]) -> tuple[tuple[float, float], Model]:
         """
         Creates a process to run the model. Utilised by Run() to
@@ -195,8 +177,7 @@ class Ensemble:
         key, model, axes = args
         
         model.Run(axes)
-        self._AccumulateAndFree(model)
-        return key, model
+        return key, model.currentData
 
     def SampleBrillouinZone(self, numK: int) -> None:
         """
