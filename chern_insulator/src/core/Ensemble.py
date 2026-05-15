@@ -123,24 +123,29 @@ class Ensemble:
                 self.__models[key] = None
 
         else:
-            # Creates the list of arguments for each model.
-            tasks = [(key, model, self.__axes) for key, model in self.__models.items()]
-
             ctx = mp.get_context('fork')
             with ctx.Pool(processes=numProcesses) as pool:
-                # Note: if very slow, worth trying map instead of imap, since
-                # appparently imap can be much slower than map.
-                for key, currentData in tqdm(
-                    pool.imap(
-                        self._MultiProcessingRun,
-                        tasks,
-                        chunksize = len(tasks) // (numProcesses * 8) + 1
-                    ),
-                    total=len(tasks),
+                # Creates a generator for the tasks so not all models have to be built at once.
+                tasks = (
+                    (key, model, self.__axes)
+                    for key, model in self.__models.items()
+                )
+
+                # Creates progress bar.
+                pbar = tqdm(
+                    total=len(self.__models),
                     desc=f"Running models (Delta = {self.__params.delta})",
                     # disable = True,
                     mininterval = 5,
                     position=0
+                )
+
+                # Evaluates models in parallel - returns values as they come in.
+                for key, currentData in pool.imap(
+                    self._MultiProcessingRun,
+                    tasks,
+                    # chunksize = len(self.__models) // (numProcesses * 8) + 1
+                    chunksize = 1
                 ):
                     # Adds the current to the total current.
                     if self.meanCurrent is None:
@@ -150,6 +155,9 @@ class Ensemble:
 
                     # Frees reference to the model to free memory.
                     self.__models[key] = None
+                    # Increments progress bar manually, because larger batchsizes don't mess up
+                    # the automatic incrementing.
+                    pbar.update(1)
  
     def _MultiProcessingRun(self, args: tuple[tuple[float, float], Model, AxisData]) -> tuple[tuple[float, float], Model]:
         """
@@ -170,8 +178,8 @@ class Ensemble:
         -------
         tuple[float, float]
             Returns the key so that we can store the results in the appropriate place in self.__models.
-        Model
-            The model instance after it has been run.
+        CurrentData
+            The current data calculated from this model.
         """
 
         key, model, axes = args
