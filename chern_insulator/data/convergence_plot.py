@@ -17,4 +17,5 @@ plt.plot(kVals, yAmplitude - np.mean(yAmplitude), color='orange', label='y', mar
 plt.xlabel("Sampling Density")
 plt.ylabel("Current Amplitude")
 plt.legend()
+plt.savefig(DATA_DIR / "Mean Offset Convergence.png", dpi=300)
 plt.show()
