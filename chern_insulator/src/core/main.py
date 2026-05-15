@@ -90,8 +90,6 @@ def main() -> None:
 
     # Parse the arguments.
     args = parser.parse_args()
-    print(args)
-    quit()
 
     # Defines our values.
     numK = args.numK
