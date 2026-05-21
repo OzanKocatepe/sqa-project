@@ -90,6 +90,13 @@ class Model:
             self.currentData.doubleTimeCurrent
         )
 
+        self.currentData.spectralNoiseTensor = currentSolver.CalculateSpectralNoiseTensor(
+            self.__params.drivingFreq,
+            self.__axes.tauAxisSec,
+            self.currentData.doubleTimeCurrent,
+            self.__params.maxN
+        )
+
         return self.correlationData, self.currentData
     
     # @property

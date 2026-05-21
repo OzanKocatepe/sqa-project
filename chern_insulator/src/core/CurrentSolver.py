@@ -274,3 +274,49 @@ class CurrentSolver:
             x = tAxis,
             axis = 2
         )
+    
+    def CalculateSpectralNoiseTensor(self,
+        angularFreq: float,
+        tauAxis: np.ndarray[float],
+        doubleTimeCurrent: np.ndarray[complex],
+        n: int
+    ) -> np.ndarray[complex]:
+        """Calculates the Fourier transform at the harmonics of the second-order current w.r.t. tau.
+        
+        Parameters
+        ----------
+        angularFreq: float
+            The angular driving frequency, in rad/s, of the pumping, which is also the frequency of the system
+            in steady state.
+        tauAxis : ndarray[float]
+            The tauAxis in seconds.
+        doubleTimeCurrent : ndarray[complex]
+            The second order current, with shape (2, 2, t.size, tau.size).
+        n : int
+            The number of harmonics to calculate.
+
+        Returns
+        -------
+        ndarray[complex]
+            The spectral correlation tensor, with shape (2, 2, 2 * n + 1, t.size), where the third axis corresponds to the harmonics
+            at -n to n times the driving frequency and the fourth corresponds to the t-axis. This is a function of t.
+        """
+     
+        # Creates harmonics [omega_{-n}, ..., omega_n], where omega_i = i * angularFreq
+        harmonic_freqs = np.arange(-n, n + 1) * angularFreq
+        # Creates array of shape (2n + 1, tauAxis.size), containing exponents -1j * omega_n * tau.
+        exponentials = -1j * np.multiply.outer(harmonic_freqs, tauAxis)
+        exponentials = np.exp(exponentials)
+
+        # Final shape is of integrand is (2, 2, 2n+1, t.size, tauAxis.size), corresponding to indices of correlation tensor,
+        # chosen harmonic, and then the t and tau axes.
+        # The correlation tensor part of the integrand is the same for all harmonics, so we insert a new axis on the harmonic axis.
+        # The exponential part of the integrand is the same for all indices of the correlation tensor, and the chosen initial condition,
+        # so we add axes for the correlation tensor indices and the t axis.
+        integrand = doubleTimeCurrent[:, :, np.newaxis, :, :] * exponentials[np.newaxis, np.newaxis, :, np.newaxis, :]
+
+        return np.trapezoid(
+            y = integrand,
+            x = tauAxis,
+            axis = 4
+        )

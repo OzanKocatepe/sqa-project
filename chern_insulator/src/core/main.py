@@ -52,7 +52,7 @@ def main() -> None:
         "--numK",
         help = "The number of momentum points on each axis to sample the Brillouin Zone with.",
         type = int,
-        required = True
+        default = 61
     )
     parser.add_argument(
         "-t",
@@ -60,7 +60,7 @@ def main() -> None:
         help = "The number of initial conditions within one driving period to use for the" \
         "second-order correlation functions.",
         type = int,
-        required = True
+        default = 21
     )
     parser.add_argument(
         "-c",
@@ -126,6 +126,7 @@ def main() -> None:
     # ensemble.AddMomentum((-np.pi / 4, np.pi / 8))
     # ensemble.AddMomentum((-np.pi / 4, -np.pi / 8))
     ensemble.Run(tauMax, numT, numProcesses=numProcesses)
+    print(ensemble.meanCurrent.spectralNoiseTensor.shape)
     if save_flag:
         ensemble.SaveCurrent()
 
