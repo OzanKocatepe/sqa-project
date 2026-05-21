@@ -25,6 +25,10 @@ class CurrentData:
         The first-order current calculated in the length gauge.
     meanSecondOrderCurrent : ndarray[complex]
         The double-time current integrated along the t axis, with shape (2, 2, tau.size).
+    secondOrderHarmonics : ndarray[complex]
+        The fourier transforms at the harmonics of the driving frequency of the mean second order current
+        (correlation tensor). Of shape (2, 2, 2 * maxN + 1), where the first two axes correspond to the subscripts of
+        the correlation tensor and the last axis corresponds to the harmonics, from -maxN to maxN.
     """
 
     paramagneticCurrent: np.ndarray[complex] = field(default = None)
@@ -33,6 +37,7 @@ class CurrentData:
     doubleTimeCurrent: np.ndarray[complex] = field(default = None)
     lengthGaugeCurrent: np.ndarray[complex] = field(default = None)
     meanSecondOrderCurrent: np.ndarray[complex] = field(default = None)
+    secondOrderHarmonics: np.ndarray[complex] = field(default = None)
 
     def __add__(self, other: CurrentData) -> CurrentData:
         """
@@ -60,7 +65,8 @@ class CurrentData:
             lengthGaugeCurrent = self.lengthGaugeCurrent + other.lengthGaugeCurrent
                 if self.lengthGaugeCurrent is not None and other.lengthGaugeCurrent is not None
                 else None,
-            meanSecondOrderCurrent = self.meanSecondOrderCurrent + other.meanSecondOrderCurrent
+            meanSecondOrderCurrent = self.meanSecondOrderCurrent + other.meanSecondOrderCurrent,
+            secondOrderHarmonics = self.secondOrderHarmonics + other.secondOrderHarmonics
         )
     
     def __truediv__(self, other: int) -> CurrentData:
@@ -92,5 +98,6 @@ class CurrentData:
             lengthGaugeCurrent = self.lengthGaugeCurrent / other
                 if self.lengthGaugeCurrent is not None
                 else None,
-            meanSecondOrderCurrent = self.meanSecondOrderCurrent / other
+            meanSecondOrderCurrent = self.meanSecondOrderCurrent / other,
+            secondOrderHarmonics = self.secondOrderHarmonics / other
         )
