@@ -77,17 +77,7 @@ class CorrelationSolver:
         M[2 * fullN:, 2 * fullN:] = deriv + gamma * np.eye(fullN)
 
         return M
-    
-    # def __DoubleTimeFourierMatrix(self, t_prime: float) -> np.ndarray[complex]:
-        """Creates the matrix used to solve for the Fourier series of the double-time correlations.
-        
-        The full ODE for the double-time correlation functions is a function of t and t'. By making our
-        double-time correlation functions into Fourier series' in t, we only need to find the 2N + 1
-        coefficients of the Fourier series'. However, each coefficient is a function of t', so we each coefficient
-        into a Fourier series in t', and then solve the matrix ODE to find the Fourier series.
-        
-        Hence, this matrix lets us find the coefficients of the Fourier series' for """
-    
+     
     def SolveSingleTimeCorrelations(self) -> list[Fourier]:
         """Solves the single time correlations as Fourier series.
         
@@ -153,6 +143,8 @@ class CorrelationSolver:
             t and tau that the correlation has been evaluated at. Remember that the correlation functions are functions
             sigma_i(t) sigma_j(t + tau).
         """
+
+        raise PendingDeprecationWarning("SolveDoubleTimeCorrelationsFourier is incomplete and may be deleted.")
 
         n = self.__params.maxN
         fullN = 2 * n + 1
@@ -244,6 +236,9 @@ class CorrelationSolver:
 
         initialConds = self.__DoubleTimeInitialConditions(tAxis, singleTimeFourier)
         odeParams = DoubleTimeODEParams.build_from_params(self.__params, self.__hamiltonian)
+
+        # The following code is very messy, but it speeds up the code by like 20% so I'm leaving it
+        # until I can clean it up.
 
         def rhs(t, c, inhom_part):
             return Dynamics.EquationsOfMotion(t, c, inhom_part, odeParams)
