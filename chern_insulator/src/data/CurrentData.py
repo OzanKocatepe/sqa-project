@@ -14,7 +14,17 @@ class CurrentData:
         the first dimension differentiates between the x-component (index 0) and
         the y-component (index 1) of the current operator.
     diamagneticCurrent : ndarray[complex]
-        Stores the diamagnetic current in an array of shape (time.size).
+        Stores the xx-diamagnetic current in an array of shape (time.size,).
+    totalCurrent : ndarray[complex]
+        The total current, calculated from diamagnetic and paramagnetic currents,
+        with shape (2, time.size).
+    doubleTimeCurrent : ndarray[complex]
+        Stores the double-time currents in an array of shape (2, 2, t.size, tau.size),
+        with the first two axes corresponding to the left and right current direction respectively.
+    lengthGaugeCurrent : ndarray[complex]
+        The first-order current calculated in the length gauge.
+    meanSecondOrderCurrent : ndarray[complex]
+        The double-time current integrated along the t axis, with shape (2, 2, tau.size).
     """
 
     paramagneticCurrent: np.ndarray[complex] = field(default = None)
@@ -22,6 +32,7 @@ class CurrentData:
     totalCurrent: np.ndarray[complex] = field(default = None)
     doubleTimeCurrent: np.ndarray[complex] = field(default = None)
     lengthGaugeCurrent: np.ndarray[complex] = field(default = None)
+    meanSecondOrderCurrent: np.ndarray[complex] = field(default = None)
 
     def __add__(self, other: CurrentData) -> CurrentData:
         """
@@ -48,7 +59,8 @@ class CurrentData:
                 else None,
             lengthGaugeCurrent = self.lengthGaugeCurrent + other.lengthGaugeCurrent
                 if self.lengthGaugeCurrent is not None and other.lengthGaugeCurrent is not None
-                else None
+                else None,
+            meanSecondOrderCurrent = self.meanSecondOrderCurrent + other.meanSecondOrderCurrent
         )
     
     def __truediv__(self, other: int) -> CurrentData:
@@ -79,5 +91,6 @@ class CurrentData:
                 else None,
             lengthGaugeCurrent = self.lengthGaugeCurrent / other
                 if self.lengthGaugeCurrent is not None
-                else None
+                else None,
+            meanSecondOrderCurrent = self.meanSecondOrderCurrent / other
         )

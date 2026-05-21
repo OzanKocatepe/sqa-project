@@ -229,7 +229,7 @@ class Ensemble:
     def SaveCurrent(self) -> None:
         """Saves the current to disk.
         
-        Saves the summed current object to the data/ folder. If this folder doesn't exist,
+        Saves the mean current object to the data/ folder. If this folder doesn't exist,
         it is created.
         """
 

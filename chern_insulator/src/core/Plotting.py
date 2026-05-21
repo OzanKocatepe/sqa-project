@@ -285,6 +285,72 @@ class Plotting:
             plt.show()
             plt.close()
 
+    def PlotIntegratedSecondOrderCurrent(self) -> None:
+        """Plots the integrated second order currents on a single plot, but saves/shows
+        it as four separate plots with different currents highlighted.
+        """
+
+        alpha = 0.2
+        labels = [r"$\langle D_{x, x} \rangle_t$", r"$\langle D_{x, y} \rangle_t$", r"$\langle D_{y, x} \rangle_t$", r"$\langle D_{y, y} \rangle_t$"]
+        fileNames = ["xx", "xy", "yx", "yy"]
+        colors = ['tab:blue', 'orange', 'purple', 'red']
+        indices = [(0, 0), (0, 1), (1, 0), (1, 1)]
+
+        axes = self.__ensemble.axes
+        current = self.__ensemble.meanCurrent.meanSecondOrderCurrent
+        
+        for highlightedIndex in range(4):
+            fig, ax = plt.subplots(2, 1)
+
+            # Plots the highlighted operator with full transparency.
+            ax[0].plot(
+                axes.tauAxisDim,
+                current[indices[highlightedIndex]].real,
+                color = colors[highlightedIndex],
+                label = labels[highlightedIndex]
+            )
+
+            ax[1].plot(
+                axes.tauAxisDim,
+                current[indices[highlightedIndex]].imag,
+                color = colors[highlightedIndex],
+                label = labels[highlightedIndex]
+            )
+
+            for otherIndex in range(4):
+                # Skips the highlighted index.
+                if otherIndex == highlightedIndex:
+                    continue
+
+                ax[0].plot(
+                    axes.tauAxisDim,
+                    current[indices[otherIndex]].real,
+                    color = colors[otherIndex],
+                    label = labels[otherIndex],
+                    alpha = alpha
+                )
+
+                ax[1].plot(
+                    axes.tauAxisDim,
+                    current[indices[otherIndex]].imag,
+                    color = colors[otherIndex],
+                    label = labels[otherIndex],
+                    alpha = alpha
+                )
+
+            ax[0].legend()
+            ax[0].set_xlabel(self.__tauLabel)
+            ax[0].set_ylabel("Real Part")
+
+            ax[1].legend()
+            ax[1].set_xlabel(self.__tauLabel)
+            ax[1].set_ylabel("Imaginary Part")
+
+            plt.tight_layout()
+            folder = PLOTTING_DIR / f"Delta {self.__ensemble.params.delta}/Int. 2nd Order Current"
+            os.makedirs(folder, exist_ok=True)
+            plt.savefig(f"{folder}/{fileNames[highlightedIndex]}.png", dpi=300)
+            plt.show() 
 
     def PlotTotalCurrentFFT(self, linearScale: bool=False, overplotLengthGauge: bool=False) -> None:
         """Plots the FFT of the total current as a function of frequency.

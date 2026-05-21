@@ -247,3 +247,30 @@ class CurrentSolver:
         current[1, :] = np.trace(jy @ rho, axis1=1, axis2=2)
 
         return current
+    
+    def IntegrateSecondOrderCurrent(self, drivingFreq: float, tAxis: np.ndarray[float], doubleTimeCurrent: np.ndarray[complex]) -> np.ndarray[complex]:
+        """Integrates the second-order current functions over the t-axis.
+
+        Parameters
+        ----------
+        drivingFreq: float
+            The driving frequency, in Hz, of the pumping, which is also the frequency of the system
+            in steady state.
+        tAxis : ndarray[float]
+            The tAxis in seconds.
+        doubleTimeCurrent : ndarray[complex]
+            The second-order current values, of shape (2, 2, t.size, tau.size), where
+            the first two axes are the left and right current direction.
+
+        Returns
+        -------
+        ndarray[complex]
+            The doubleTimeCurrent, integrated over the t-axis (axis 2) and divided by the driving period,
+            in order to get the mean current at each tau, resulting in an array of shape (2, 2, tau.size).
+        """
+
+        return (1 / drivingFreq) * np.trapezoid(
+            y = doubleTimeCurrent,
+            x = tAxis,
+            axis = 2
+        )

@@ -52,11 +52,11 @@ class Model:
         self.correlationData.singleTimeFourier = corrSolver.SolveSingleTimeCorrelations()
 
         # Solves the double-time correlations using scipy ODE solver (solve_ivp).
-        # self.correlationData.doubleTimeCorrelations = corrSolver.SolveDoubleTimeCorrelations(
-        #     self.__axes.tAxisSec,
-        #     self.__axes.tauAxisSec,
-        #     self.correlationData.singleTimeFourier
-        # )
+        self.correlationData.doubleTimeCorrelations = corrSolver.SolveDoubleTimeCorrelations(
+            self.__axes.tAxisSec,
+            self.__axes.tauAxisSec,
+            self.correlationData.singleTimeFourier
+        )
 
         currentSolver = CurrentSolver(self.__params, self.__hamiltonian)
         self.currentData.paramagneticCurrent = currentSolver.CalculateParamagneticCurrent(
@@ -77,12 +77,18 @@ class Model:
             self.currentData.diamagneticCurrent
         )
 
-        # self.currentData.doubleTimeCurrent = currentSolver.CalculateDoubleTimeCurrent(
-        #     self.__axes.tAxisSec,
-        #     self.__axes.tauAxisSec,
-        #     self.correlationData.singleTimeFourier,
-        #     self.correlationData.doubleTimeCorrelations
-        # )
+        self.currentData.doubleTimeCurrent = currentSolver.CalculateDoubleTimeCurrent(
+            self.__axes.tAxisSec,
+            self.__axes.tauAxisSec,
+            self.correlationData.singleTimeFourier,
+            self.correlationData.doubleTimeCorrelations
+        )
+
+        self.currentData.meanSecondOrderCurrent = currentSolver.IntegrateSecondOrderCurrent(
+            self.__params.drivingFreq,
+            self.__axes.tAxisSec,
+            self.currentData.doubleTimeCurrent
+        )
 
         return self.correlationData, self.currentData
     
