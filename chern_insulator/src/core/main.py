@@ -142,5 +142,4 @@ def main() -> None:
     plot.PlotIntegratedSecondOrderCurrent()
 
 if __name__ == "__main__":
-    # Runs the main function.
     main()
