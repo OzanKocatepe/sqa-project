@@ -76,20 +76,20 @@ class Model:
             self.currentData.diamagneticCurrent
         )
 
-        self.currentData.doubleTimeCurrent = CurrentSolver.calculate_double_time_current(
+        self.currentData.doubleTimeCurrent = current_solver.calculate_double_time_current(
             self.__axes.tAxisSec,
             self.__axes.tauAxisSec,
             self.correlationData.singleTimeFourier,
             self.correlationData.doubleTimeCorrelations
         )
 
-        self.currentData.meanSecondOrderCurrent = CurrentSolver.integrate_second_order_current(
+        self.currentData.meanSecondOrderCurrent = current_solver.integrate_second_order_current(
             self.__params.drivingFreq,
             self.__axes.tAxisSec,
             self.currentData.doubleTimeCurrent
         )
 
-        self.currentData.spectralNoiseTensor = CurrentSolver.calculate_spectral_noise_tensor(
+        self.currentData.spectralNoiseTensor = current_solver.calculate_spectral_noise_tensor(
             self.__params.drivingFreq,
             self.__axes.tauAxisSec,
             self.currentData.doubleTimeCurrent,
