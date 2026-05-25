@@ -125,7 +125,6 @@ def main() -> None:
     # ensemble.AddMomentum((-np.pi / 4, np.pi / 8))
     # ensemble.AddMomentum((-np.pi / 4, -np.pi / 8))
     ensemble.Run(tauMax, numT, numProcesses=numProcesses)
-    print(ensemble.meanCurrent.spectralNoiseTensor.shape)
     if save_flag:
         ensemble.SaveCurrent()
 
@@ -136,9 +135,9 @@ def main() -> None:
     # plot.PlotSingleTime(-np.pi / 4, -np.pi / 8, tMax = 10, overplotNumericalSolution=True)
     # plot.PlotDoubleTimeCorrelation(np.pi / 4, np.pi / 8)
     # plot.PlotDoubleTimeCurrent()
-    # plot.PlotTotalCurrent(overplotLengthGauge=False)
-    # plot.PlotTotalCurrentFFT(linearScale=False, overplotLengthGauge=False)
-    plot.PlotIntegratedSecondOrderCurrent()
+    plot.PlotTotalCurrent(overplotLengthGauge=False)
+    plot.PlotTotalCurrentFFT(linearScale=False, overplotLengthGauge=False)
+    # plot.PlotIntegratedSecondOrderCurrent()
 
 if __name__ == "__main__":
     main()

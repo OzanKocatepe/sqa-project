@@ -59,6 +59,7 @@ class Model:
         )
 
         self.currentData.paramagneticCurrent = current_solver.calculate_paramagnetic_current(
+            self.__params,
             self.__axes.tauAxisSec,
             self.correlationData.singleTimeFourier
         )
@@ -66,6 +67,7 @@ class Model:
         # self.__currentData.lengthGaugeCurrent = CurrentSolver.CalculateLengthGaugeCurrent(self.__axes.tauAxisSec)
 
         self.currentData.diamagneticCurrent = current_solver.calculate_diamagnetic_current(
+            self.__params,
             self.__axes.tauAxisSec,
             self.correlationData.singleTimeFourier
         )
@@ -77,6 +79,7 @@ class Model:
         )
 
         self.currentData.doubleTimeCurrent = current_solver.calculate_double_time_current(
+            self.__params,
             self.__axes.tAxisSec,
             self.__axes.tauAxisSec,
             self.correlationData.singleTimeFourier,

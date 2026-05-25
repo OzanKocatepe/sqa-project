@@ -56,7 +56,7 @@ def equation_of_motion(
     Hz = band_basis_projector.rotated_z_coeff(basis, hamiltonian.lattice_basis(params, t)),
     gamma = params.decayConstant
 
-    Hm, Hp, Hz = jnp.array(Hm), jnp.array(Hp), jnp.array(Hz)
+    Hm, Hp, Hz = jnp.array(Hm).squeeze(), jnp.array(Hp).squeeze(), jnp.array(Hz).squeeze()
 
     B = jnp.array([[-(2j * Hz + 0.5 * gamma), 0, 1j * Hp],
                     [0, 2j * Hz - 0.5 * gamma, -1j * Hm],
