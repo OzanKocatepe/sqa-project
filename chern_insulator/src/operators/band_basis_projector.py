@@ -154,7 +154,7 @@ def rotated_plus_coeff(basis: BandBasis, operator: np.ndarray[complex]) -> compl
         an array of shape (n,).
     """
 
-    return z_coeff(rotate_to_band_basis(basis, operator))
+    return plus_coeff(rotate_to_band_basis(basis, operator))
 
 def rotated_z_coeff(basis: BandBasis, operator: np.ndarray[complex]) -> complex | np.ndarray[complex]:
     """Gets the coefficient of sigma_z for this matrix in the band basis.
