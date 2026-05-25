@@ -2,19 +2,19 @@ import numpy as np
 import jax
 import jax.numpy as jnp
 
-from data import ModelParameters, DoubleTimeODEParams
-from operators import hamiltonian
+from data import ModelParameters
+from operators import hamiltonian, band_basis_projector
 
 """Stores all information about dynamics of the system - specifically the
 equations of motion for single- and double-time correlations.
 """
  
 # @jax.jit
-def equations_of_motion(
+def equation_of_motion(
         t: float,
         c: jnp.ndarray[complex],
         inhomPart: jnp.ndarray[complex],
-        p: DoubleTimeODEParams
+        params: ModelParameters
     ) -> np.ndarray[complex]:
     """
     Returns the right-hand side of the equations of motion for the system at time t, in seconds.
@@ -33,8 +33,8 @@ def equations_of_motion(
 
         This can either be a scalar, in which case it is the z-component of the inhomogenous part, or
         a vector of shape (3,), in which case it forms the bottom row of the inhomogenous (3, 3) matrix.
-    p: DoubleTimeODEParams
-        The required parameters to call the double-time function with.
+    params : ModelParameters
+        The parameters of the model.
 
     Returns
     -------
@@ -50,8 +50,13 @@ def equations_of_motion(
 
     # The most efficient this can be is calculating the B matrix once for all 9 correlations,
     # which occurs when we batch the ODE.
-    Hm, Hp, Hz = hm(t, p), hp(t, p), hz(t, p)
-    gamma = p.gamma
+    basis = hamiltonian.get_band_basis(params)
+    Hm = band_basis_projector.rotated_minus_coeff(basis, hamiltonian.lattice_basis(params, t)),
+    Hp = band_basis_projector.rotated_plus_coeff(basis, hamiltonian.lattice_basis(params, t)),
+    Hz = band_basis_projector.rotated_z_coeff(basis, hamiltonian.lattice_basis(params, t)),
+    gamma = params.decayConstant
+
+    Hm, Hp, Hz = jnp.array(Hm), jnp.array(Hp), jnp.array(Hz)
 
     B = jnp.array([[-(2j * Hz + 0.5 * gamma), 0, 1j * Hp],
                     [0, 2j * Hz - 0.5 * gamma, -1j * Hm],

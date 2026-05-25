@@ -1,7 +1,7 @@
 import numpy as np
 from functools import cache
 
-from operators import Hamiltonian
+from operators import hamiltonian
 from data import ModelParameters
 
 class LengthGauge:
@@ -17,6 +17,8 @@ class LengthGauge:
         hamiltonian : Hamiltonian
             The Hamiltonian of the system.
         """
+
+        raise DeprecationWarning("This is deprecated.")
 
         self._params = params
         self._hamiltonian = hamiltonian

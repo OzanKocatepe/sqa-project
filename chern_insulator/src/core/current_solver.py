@@ -2,7 +2,8 @@ import numpy as np
 from scipy import integrate
 
 from data import ModelParameters, Fourier
-from operators import ParamagneticCurrentX, ParamagneticCurrentY, DiamagneticCurrentXX as jpx, jpy, jdx
+from operators import ParamagneticCurrentX, ParamagneticCurrentY, DiamagneticCurrentXX
+from operators import band_basis_projector
 from LengthGauge import LengthGauge
 
 def calculate_paramagnetic_current(time: float | np.ndarray[float], fourierSeries: list[Fourier]) -> np.ndarray[complex]:
@@ -30,18 +31,21 @@ def calculate_paramagnetic_current(time: float | np.ndarray[float], fourierSerie
     sigmap = fourierSeries[1].Evaluate(time)
     sigmaz = fourierSeries[2].Evaluate(time)
 
+    jpx = ParamagneticCurrentX.lattice_basis(time)
+    jpy = ParamagneticCurrentY.lattice_basis()
+
     current[0, :] = (
-        jpx.minus(time) * sigmam
-        + jpx.plus(time) * sigmap
-        + jpx.z(time) * sigmaz
+        band_basis_projector.rotated_minus_coeff(jpx) * sigmam
+        + band_basis_projector.rotated_plus_coeff(jpx) * sigmap
+        + band_basis_projector.rotated_z_coeff(jpx) * sigmaz
     )
 
     current[1, :] = (
-        jpy.minus(time) * sigmam
-        + jpy.plus(time) * sigmap
-        + jpy.z(time) * sigmaz
+        band_basis_projector.rotated_minus_coeff(jpy) * sigmam
+        + band_basis_projector.rotated_plus_coeff(jpy) * sigmap
+        + band_basis_projector.rotated_z_coeff(jpy) * sigmaz
     )
-    
+ 
     return current
 
 def calculate_diamagnetic_current(time : float | np.ndarray[float], fourierSeries: list[Fourier]) -> np.ndarray[complex]:
@@ -66,11 +70,13 @@ def calculate_diamagnetic_current(time : float | np.ndarray[float], fourierSerie
     sigmam = fourierSeries[0].Evaluate(time)
     sigmap = fourierSeries[1].Evaluate(time)
     sigmaz = fourierSeries[2].Evaluate(time)
+
+    jdxx = DiamagneticCurrentXX.lattice_basis(time)
     
     return (
-        jdx.minus(time) * sigmam
-        + jdx.plus(time) * sigmap
-        + jdx.z(time) * sigmaz
+        band_basis_projector.rotated_minus_coeff(jdxx) * sigmam
+        + band_basis_projector.rotated_plus_coeff(jdxx) * sigmap
+        + band_basis_projector.rotated_z_coeff(jdxx) * sigmaz
     )
 
 def calculate_total_current(
@@ -142,22 +148,26 @@ def calculate_double_time_current(
     doubleCurrentCorrelations = np.zeros((2, 2, tAxis.size, tauAxis.size), dtype=complex)
     tPlusTauAxis = np.add.outer(tAxis, tauAxis)
 
-    currentOperators = [jpx, jpy]
+    currentOperators = [
+        ParamagneticCurrentX,
+        ParamagneticCurrentY
+    ]
+
     for leftDirection in range(2):
         for rightDirection in range(2):
 
             # Now that we know the direction of our operators, we can calculate
             # the coefficients individually.
             firstOperatorCoefficients = np.array([
-                currentOperators[leftDirection].minus(tAxis),
-                currentOperators[leftDirection].plus(tAxis),
-                currentOperators[leftDirection].z(tAxis),
+                band_basis_projector.rotated_minus_coeff(currentOperators[leftDirection].lattice_basis(tAxis)),
+                band_basis_projector.rotated_plus_coeff(currentOperators[leftDirection].lattice_basis(tAxis)),
+                band_basis_projector.rotated_z_coeff(currentOperators[leftDirection].lattice_basis(tAxis)),
             ])
 
             secondOperatorCoefficients = np.array([
-                currentOperators[rightDirection].minus(tPlusTauAxis.flatten()).reshape(tPlusTauAxis.shape),
-                currentOperators[rightDirection].plus(tPlusTauAxis.flatten()).reshape(tPlusTauAxis.shape),
-                currentOperators[rightDirection].z(tPlusTauAxis.flatten()).reshape(tPlusTauAxis.shape),
+                band_basis_projector.rotated_minus_coeff(currentOperators[rightDirection].lattice_basis(tPlusTauAxis.flatten())).reshape(tPlusTauAxis.shape),
+                band_basis_projector.rotated_plus_coeff(currentOperators[rightDirection].lattice_basis(tPlusTauAxis.flatten())).reshape(tPlusTauAxis.shape),
+                band_basis_projector.rotated_z_coeff(currentOperators[rightDirection].lattice_basis(tPlusTauAxis.flatten())).reshape(tPlusTauAxis.shape),
             ])
 
             # Now we can loop through each of the possible combinations of these coefficients,
@@ -179,7 +189,7 @@ def calculate_double_time_current(
                         * connected
                     )
 
-    return doubleCurrentCorrelations 
+    # return doubleCurrentCorrelations 
 
 def calculate_length_gauge_current(time: float | np.ndarray[float]) -> np.ndarray[complex]:
     """Calculates the expectation value of the current in the length gauge.

@@ -3,9 +3,9 @@ import diffrax
 import jax
 import jax.numpy as jnp
 
-from data import ModelParameters, Fourier, DoubleTimeODEParams
-from operators import hamiltonian
-from . import Dynamics
+from data import ModelParameters, Fourier
+from operators import hamiltonian, band_basis_projector
+from . import dynamics
 
 def single_time_fourier_matrix(params: ModelParameters) -> np.ndarray[complex]:
     """
@@ -31,15 +31,23 @@ def single_time_fourier_matrix(params: ModelParameters) -> np.ndarray[complex]:
     # Convolution matrix for taking the derivative of a series.
     deriv = 1j * params.angularFreq * np.diag(np.arange(-n, n + 1))
 
+    band_basis = hamiltonian.get_band_basis(params)
+
     # Builds the convolution matrices for Hm, Hp, Hz.
-    HmConv = Fourier(params.drivingFreq, hamiltonian.fourier_minus(np.arange(-n, n + 1))) \
-        .BuildConvolutionMatrix()
+    HmConv = Fourier(
+        params.drivingFreq,
+        band_basis_projector.rotated_minus_coeff(band_basis, hamiltonian.lattice_fourier_coefficient(params, np.arange(-n, n + 1)))
+    ).BuildConvolutionMatrix()
 
-    HpConv = Fourier(params.drivingFreq, hamiltonian.fourier_plus(np.arange(-n, n + 1))) \
-        .BuildConvolutionMatrix()
+    HpConv = Fourier(
+        params.drivingFreq,
+        band_basis_projector.rotated_plus_coeff(band_basis, hamiltonian.lattice_fourier_coefficient(params, np.arange(-n, n + 1)))
+    ).BuildConvolutionMatrix()
 
-    HzConv = Fourier(params.drivingFreq, hamiltonian.fourier_z(np.arange(-n, n + 1))) \
-        .BuildConvolutionMatrix()
+    HzConv = Fourier(
+        params.drivingFreq,
+        band_basis_projector.rotated_z_coeff(band_basis, hamiltonian.lattice_fourier_coefficient(params, np.arange(-n, n + 1)))
+    ).BuildConvolutionMatrix()
 
     # First row, equation for sigma_-.
     M[0:fullN, 0:fullN] = deriv + 2j * HzConv + 0.5 * gamma * np.eye(fullN)
@@ -67,7 +75,7 @@ def solve_single_time_correlations(params: ModelParameters) -> list[Fourier]:
 
     n = params.maxN
     fullN = 2 * n + 1
-    M = single_time_fourier_matrix()
+    M = single_time_fourier_matrix(params)
 
     # Creates the right hand side of the equation Mx = b.
     b = np.zeros((3 * fullN), dtype=complex)
@@ -75,10 +83,6 @@ def solve_single_time_correlations(params: ModelParameters) -> list[Fourier]:
     b[2 * fullN + n] = -params.decayConstant
 
     sigmaCoeffs = np.linalg.solve(M, b)
-
-    # plt.plot(sigmaCoeffs[0:fullN] - np.conjugate(sigmaCoeffs[fullN:2 * fullN]))
-    # plt.title(r"$\sigma_-$ coeffs - $\sigma_+^*$ coeffs.")
-    # plt.show()
 
     return [
         Fourier(
@@ -98,7 +102,11 @@ def solve_single_time_correlations(params: ModelParameters) -> list[Fourier]:
         ) 
     ]
 
-def solve_double_time_correlations_fourier(tAxis: np.ndarray[float], tauAxis: np.ndarray[float], singleTimeFourier: list[Fourier]) -> np.ndarray[complex]:
+def solve_double_time_correlations_fourier(
+        tAxis: np.ndarray[float],
+        tauAxis: np.ndarray[float],
+        singleTimeFourier: list[Fourier]
+    ) -> np.ndarray[complex]:
     """Calculates the double-time correlations.
 
     WARNING: CURRENTLY WORK IN PROGRESS.
@@ -177,7 +185,12 @@ def solve_double_time_correlations_fourier(tAxis: np.ndarray[float], tauAxis: np
 
     return doubleTimeCorrelations
 
-def solve_double_time_correlations(params: ModelParameters, tAxis: np.ndarray[float], tauAxis: np.ndarray[float], singleTimeFourier: list[Fourier]) -> np.ndarray[complex]:
+def solve_double_time_correlations(
+        params: ModelParameters,
+        tAxis: np.ndarray[float],
+        tauAxis: np.ndarray[float],
+        singleTimeFourier: list[Fourier]
+    ) -> np.ndarray[complex]:
     """Calculates the double-time correlations.
 
     Parameters
@@ -213,15 +226,14 @@ def solve_double_time_correlations(params: ModelParameters, tAxis: np.ndarray[fl
     ])
 
     initialConds = double_time_initial_conditions(tAxis, singleTimeFourier)
-    odeParams = DoubleTimeODEParams.build_from_params(params, hamiltonian)
 
     # The following code is very messy, but it speeds up the code by like 20% so I'm leaving it
     # until I can clean it up.
 
     def rhs(t, c, inhom_part):
-        return Dynamics.EquationsOfMotion(t, c, inhom_part, odeParams)
+        return dynamics.equation_of_motion(t, c, inhom_part, params)
 
-    def SolveSingleTPoint(initialConditions, inhom_part, initialTime):
+    def solve_single_t_point(initialConditions, inhom_part, initialTime):
         return diffrax.diffeqsolve(
             diffrax.ODETerm(rhs),
             diffrax.Dopri8(),
@@ -235,7 +247,7 @@ def solve_double_time_correlations(params: ModelParameters, tAxis: np.ndarray[fl
         ).ys
 
     # vmap over all the taxis initial points.
-    solve_all = jax.vmap(SolveSingleTPoint)
+    solve_all = jax.vmap(solve_single_t_point)
     results = solve_all(
         initialConds.transpose(2, 1, 0).reshape(tAxis.size, 9, 1),
         inhomParts.T,

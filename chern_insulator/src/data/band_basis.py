@@ -5,5 +5,5 @@ from dataclasses import dataclass
 class BandBasis:
     plusEigenvector: complex
     minusEigenvector: complex
-    plusProjector: np.ndarray[complex]
-    minusProjector: np.ndarray[complex]
+    plusProjection: np.ndarray[complex]
+    minusProjection: np.ndarray[complex]

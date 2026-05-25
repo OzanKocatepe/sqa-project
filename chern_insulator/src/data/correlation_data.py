@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 import numpy as np
 
-from .Fourier import Fourier
+from .fourier import Fourier
 
 @dataclass(slots=True)
 class CorrelationData:

@@ -1,7 +1,7 @@
 import numpy as np
 
 from data import ModelParameters, AxisData, CorrelationData, CurrentData
-from . import CorrelationSolver, CurrentSolver
+from . import correlation_solver, current_solver
 from operators import hamiltonian
 
 class Model:
@@ -46,31 +46,31 @@ class Model:
         self.__axes = axes
         
         # Solves the single-time fourier series.
-        self.correlationData.singleTimeFourier = CorrelationSolver.solve_single_time_correlations(
+        self.correlationData.singleTimeFourier = correlation_solver.solve_single_time_correlations(
             self.__params
         )
 
         # Solves the double-time correlations using scipy ODE solver (solve_ivp).
-        self.correlationData.doubleTimeCorrelations = CorrelationSolver.solve_double_time_correlations(
+        self.correlationData.doubleTimeCorrelations = correlation_solver.solve_double_time_correlations(
             self.__params,
             self.__axes.tAxisSec,
             self.__axes.tauAxisSec,
             self.correlationData.singleTimeFourier
         )
 
-        self.currentData.paramagneticCurrent = CurrentSolver.calculate_paramagnetic_current(
+        self.currentData.paramagneticCurrent = current_solver.calculate_paramagnetic_current(
             self.__axes.tauAxisSec,
             self.correlationData.singleTimeFourier
         )
         
         # self.__currentData.lengthGaugeCurrent = CurrentSolver.CalculateLengthGaugeCurrent(self.__axes.tauAxisSec)
 
-        self.currentData.diamagneticCurrent = CurrentSolver.calculate_diamagnetic_current(
+        self.currentData.diamagneticCurrent = current_solver.calculate_diamagnetic_current(
             self.__axes.tauAxisSec,
             self.correlationData.singleTimeFourier
         )
         
-        self.currentData.totalCurrent = CurrentSolver.calculate_total_current(
+        self.currentData.totalCurrent = current_solver.calculate_total_current(
             hamiltonian.Ax(self.params, self.__axes.tauAxisSec),
             self.currentData.paramagneticCurrent,
             self.currentData.diamagneticCurrent

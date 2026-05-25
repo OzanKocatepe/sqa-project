@@ -8,8 +8,7 @@ from datetime import datetime
 import threading
 
 from data import EnsembleParameters
-from core.Ensemble import Ensemble
-from core.Plotting import Plotting
+from core import Ensemble, Plotting
 from topology import chern_number
 from config.paths import PLOTTING_DIR, STYLESHEET, DATA_DIR
 
