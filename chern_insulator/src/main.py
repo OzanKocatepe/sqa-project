@@ -10,7 +10,7 @@ import threading
 from data import EnsembleParameters
 from core.Ensemble import Ensemble
 from core.Plotting import Plotting
-from Topology import ChernNumber
+from topology import chern_number
 from config.paths import PLOTTING_DIR, STYLESHEET, DATA_DIR
 
 def log_memory(interval_seconds=300, log_file=DATA_DIR / "memory_log.txt"):
@@ -106,8 +106,8 @@ def main() -> None:
         t.start()
 
     # Check the Chern number.
-    # print(f"Trivial Phase (Delta = 3): C = {ChernNumber(3)}")
-    # print(f"Non-trivial Phase (Delta = 1): C = {ChernNumber(1)}")
+    # print(f"Trivial Phase (Delta = 3): C = {chern_number(3)}")
+    # print(f"Non-trivial Phase (Delta = 1): C = {chern_number(1)}")
 
     plt.style.use(STYLESHEET)
 

@@ -1,9 +1,8 @@
 import numpy as np
 
 from data import ModelParameters, AxisData, CorrelationData, CurrentData
-from .CorrelationSolver import CorrelationSolver
-from .CurrentSolver import CurrentSolver
-from operators import Hamiltonian
+from . import CorrelationSolver, CurrentSolver
+from operators import hamiltonian
 
 class Model:
     """Contains a Chern Insulator model evaluated at a single pair kx, ky."""
@@ -18,7 +17,6 @@ class Model:
         """
 
         self.__params = params
-        self.__hamiltonian = Hamiltonian(self.__params)
 
         self.correlationData = CorrelationData()
         self.currentData = CurrentData()
@@ -48,49 +46,50 @@ class Model:
         self.__axes = axes
         
         # Solves the single-time fourier series.
-        corrSolver = CorrelationSolver(self.__params, self.__hamiltonian)
-        self.correlationData.singleTimeFourier = corrSolver.SolveSingleTimeCorrelations()
+        self.correlationData.singleTimeFourier = CorrelationSolver.solve_single_time_correlations(
+            self.__params
+        )
 
         # Solves the double-time correlations using scipy ODE solver (solve_ivp).
-        self.correlationData.doubleTimeCorrelations = corrSolver.SolveDoubleTimeCorrelations(
+        self.correlationData.doubleTimeCorrelations = CorrelationSolver.solve_double_time_correlations(
+            self.__params,
             self.__axes.tAxisSec,
             self.__axes.tauAxisSec,
             self.correlationData.singleTimeFourier
         )
 
-        currentSolver = CurrentSolver(self.__params, self.__hamiltonian)
-        self.currentData.paramagneticCurrent = currentSolver.CalculateParamagneticCurrent(
+        self.currentData.paramagneticCurrent = CurrentSolver.calculate_paramagnetic_current(
             self.__axes.tauAxisSec,
             self.correlationData.singleTimeFourier
         )
         
-        # self.__currentData.lengthGaugeCurrent = currentSolver.CalculateLengthGaugeCurrent(self.__axes.tauAxisSec)
+        # self.__currentData.lengthGaugeCurrent = CurrentSolver.CalculateLengthGaugeCurrent(self.__axes.tauAxisSec)
 
-        self.currentData.diamagneticCurrent = currentSolver.CalculateDiamagneticCurrent(
+        self.currentData.diamagneticCurrent = CurrentSolver.calculate_diamagnetic_current(
             self.__axes.tauAxisSec,
             self.correlationData.singleTimeFourier
         )
         
-        self.currentData.totalCurrent = currentSolver.CalculateTotalCurrent(
-            self.__hamiltonian.Ax(self.__axes.tauAxisSec),
+        self.currentData.totalCurrent = CurrentSolver.calculate_total_current(
+            hamiltonian.Ax(self.params, self.__axes.tauAxisSec),
             self.currentData.paramagneticCurrent,
             self.currentData.diamagneticCurrent
         )
 
-        self.currentData.doubleTimeCurrent = currentSolver.CalculateDoubleTimeCurrent(
+        self.currentData.doubleTimeCurrent = CurrentSolver.calculate_double_time_current(
             self.__axes.tAxisSec,
             self.__axes.tauAxisSec,
             self.correlationData.singleTimeFourier,
             self.correlationData.doubleTimeCorrelations
         )
 
-        self.currentData.meanSecondOrderCurrent = currentSolver.IntegrateSecondOrderCurrent(
+        self.currentData.meanSecondOrderCurrent = CurrentSolver.integrate_second_order_current(
             self.__params.drivingFreq,
             self.__axes.tAxisSec,
             self.currentData.doubleTimeCurrent
         )
 
-        self.currentData.spectralNoiseTensor = currentSolver.CalculateSpectralNoiseTensor(
+        self.currentData.spectralNoiseTensor = CurrentSolver.calculate_spectral_noise_tensor(
             self.__params.drivingFreq,
             self.__axes.tauAxisSec,
             self.currentData.doubleTimeCurrent,
@@ -98,15 +97,7 @@ class Model:
         )
 
         return self.correlationData, self.currentData
-    
-    # @property
-    # def currentData(self) -> CurrentData:
-    #     return self.__currentData
-    
-    # @property
-    # def correlationData(self) -> CorrelationData:
-    #     return self.__corrData
-    
+     
     @property
     def params(self) -> ModelParameters:
         return self.__params
