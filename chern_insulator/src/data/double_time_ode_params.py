@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import jax.numpy as jnp
 
-from .Parameters import ModelParameters
+from .parameters import ModelParameters
 from operators import Hamiltonian
 
 @dataclass(slots=True, frozen=True)
