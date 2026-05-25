@@ -7,7 +7,7 @@ from config.paths import DATA_DIR
 import os
 
 from data import EnsembleParameters, ModelParameters, AxisData, CurrentData
-from .Model import Model
+from .model import Model
 
 class Ensemble:
     """Runs a collection of model instances and finds the overall results of the model."""

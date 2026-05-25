@@ -1,11 +1,12 @@
-from .CorrelationSolver import CorrelationSolver
-from .CurrentSolver import CurrentSolver
-from .Model import Model
-from .Ensemble import Ensemble
-from .Plotting import Plotting
+from .correlation_solver import CorrelationSolver
+from .current_solver import CurrentSolver
+from .model import Model
+from .ensemble import Ensemble
+from .plotting import Plotting
 
-__all__ = ["CorrelationSolver",
-           "CurrentSolver",
+__all__ = ["correlation_solver",
+           "current_solver",
            "Model",
            "Ensemble",
-           "Plotting"]
+           "Plotting"
+           ]

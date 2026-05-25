@@ -3,7 +3,7 @@ import jax
 import jax.numpy as jnp
 
 from data import ModelParameters, DoubleTimeODEParams
-from operators import Hamiltonian
+from operators import hamiltonian
 
 """Stores all information about dynamics of the system - specifically the
 equations of motion for single- and double-time correlations.
