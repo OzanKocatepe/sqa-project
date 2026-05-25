@@ -1,281 +1,288 @@
 import numpy as np
-from functools import cache, cached_property
+from functools import cache
 from scipy import special
 
 from data import ModelParameters
-from .Operator import FourierOperator
+from data.band_basis import BandBasis
 
-class Hamiltonian(FourierOperator):
-    """The Hamiltonian operator."""
+"""The Hamiltonian operator."""
 
-    sigmax = np.array([[0, 1],
-                       [1, 0]], dtype=complex)
+sigmax = np.array([[0, 1],
+                    [1, 0]], dtype=complex)
+
+sigmay = np.array([[0, -1j],
+                    [1j, 0]], dtype=complex)
+
+sigmaz = np.array([[1, 0],
+                    [0, -1]], dtype=complex)
+
+def Ax(params: ModelParameters, t: float | np.ndarray[float]) -> float | np.ndarray[float]:
+    """
+    Returns the value of the driving field in the x-direction at time t.
+
+    Parameters
+    ----------
+    params : ModelParameters
+        The parameters of the model.
+    t : float | ndarray[float]
+        The time, in seconds, at which to evaluate the Hamiltonian.
+        Accepts vectorised inputs.
+
+    Returns
+    -------
+    float | ndarray[float]:
+        The value of the driving field in the x-direction at time(s) t.
+        The type returned is the same as the type of t.
+    """
+
+    return params.drivingAmp * np.sin(params.angularFreq * t)
+
+def hx(params: ModelParameters, t: float | np.ndarray[float]=0) -> float | np.ndarray[float]:
+    """
+    Returns the coefficient of sigma_x in the driven Hamiltonian at time t.
     
-    sigmay = np.array([[0, -1j],
-                       [1j, 0]], dtype=complex)
+    Parameters
+    ----------
+    params : ModelParameters
+        The parameters of the model.
+    t : float | ndarray[float], optional
+        The time, in seconds, at which to evaluate the Hamiltonian.
+        Accepts vectorised inputs.
+        If called without a time value (or with t = 0), returns the coefficient of
+        sigma_x in the undriven Hamiltonian.
 
-    sigmaz = np.array([[1, 0],
-                       [0, -1]], dtype=complex)
+    Returns
+    -------
+    float | ndarray[float]:
+        The coefficient of sigma_x in the driven Hamiltonian at time(s) t.
+        The type returned is the same as the type of t, if given.
+        If no t is given, returns a float.
+    """
 
-    def __init__(self, params: ModelParameters):
-        """Initialises the Hamiltonian for a given model.        
+    return np.sin(params.kx - Ax(params, t))
 
-        Parameters
-        ----------
-        params : ModelParameters
-            The parameters of the model for which
-            the Hamiltonian will be calculated.
-        """
+@cache   
+def hy(params: ModelParameters) -> float:
+    """
+    Returns the coefficient of sigma_y in the Hamiltonian.
+    This result is cached, since we are only driving in the x-direction and hence
+    this component has no dependence on time, and the momentum doesn't change once given.
 
-        self._params = params
-        self._hamiltonian = self
-
-    def Ax(self, t: float | np.ndarray[float]) -> float | np.ndarray[float]:
-        """
-        Returns the value of the driving field in the x-direction at time t.
-
-        Parameters
-        ----------
-        t : float | ndarray[float]
-            The time, in seconds, at which to evaluate the Hamiltonian.
-            Accepts vectorised inputs.
-
-        Returns
-        -------
-        float | ndarray[float]:
-            The value of the driving field in the x-direction at time(s) t.
-            The type returned is the same as the type of t.
-        """
-
-        return self._params.drivingAmp * np.sin(self._params.angularFreq * t)
-
-    def hx(self, t: float | np.ndarray[float]=0) -> float | np.ndarray[float]:
-        """
-        Returns the coefficient of sigma_x in the driven Hamiltonian at time t.
-        
-        Parameters
-        ----------
-        t : float | ndarray[float], optional
-            The time, in seconds, at which to evaluate the Hamiltonian.
-            Accepts vectorised inputs.
-            If called without a time value (or with t = 0), returns the coefficient of
-            sigma_x in the undriven Hamiltonian.
-
-        Returns
-        -------
-        float | ndarray[float]:
-            The coefficient of sigma_x in the driven Hamiltonian at time(s) t.
-            The type returned is the same as the type of t, if given.
-            If no t is given, returns a float.
-        """
-
-        return np.sin(self._params.kx - self.Ax(t))
- 
-    @cache   
-    def hy(self) -> float:
-        """
-        Returns the coefficient of sigma_y in the Hamiltonian.
-        This result is cached, since we are only driving in the x-direction and hence
-        this component has no dependence on time, and the momentum doesn't change once given.
-        
-        Returns
-        -------
-        float:
-            The coefficient of sigma_y in the Hamiltonian.
-        """
-
-        return np.sin(self._params.ky)
+    Parameters
+    ----------
+    params : ModelParameters
+        The parameters of the model.
     
-    def hz(self, t: float | np.ndarray[float]=0) -> float | np.ndarray[float]:
-        """
-        Returns the coefficient of sigma_z in the driven Hamiltonian at time t.
-        
-        Parameters
-        ----------
-        t : float | ndarray[float], optional
-            The time, in seconds, at which to evaluate the Hamiltonian.
-            Accepts vectorised inputs.
-            If called without a time value (or with t = 0), returns the coefficient of
-            sigma_z in the undriven Hamiltonian.
+    Returns
+    -------
+    float:
+        The coefficient of sigma_y in the Hamiltonian.
+    """
 
-        Returns
-        -------
-        float | ndarray[float]:
-            The coefficient of sigma_z in the driven Hamiltonian at time(s) t.
-            The type returned is the same as the type of t, if given.
-            If no t is given, returns a float.
-        """
+    return np.sin(params.ky)
 
-        return self._params.delta + np.cos(self._params.kx - self.Ax(t)) + np.cos(self._params.ky)
+def hz(params: ModelParameters, t: float | np.ndarray[float]=0) -> float | np.ndarray[float]:
+    """
+    Returns the coefficient of sigma_z in the driven Hamiltonian at time t.
     
-    @cache
-    def energy(self) -> float:
-        """
-        Returns the unperturbed energy of the system at this momentum point.
-        This result is cached, since the unperturbed energy has no dependence on time,
-        and the momentum doesn't change once given.
+    Parameters
+    ----------
+    params : ModelParameters
+        The parameters of the model.
+    t : float | ndarray[float], optional
+        The time, in seconds, at which to evaluate the Hamiltonian.
+        Accepts vectorised inputs.
+        If called without a time value (or with t = 0), returns the coefficient of
+        sigma_z in the undriven Hamiltonian.
 
-        Returns
-        -------
-        float:
-            The energy of the unperturbed system at this momentum.
-        """
+    Returns
+    -------
+    float | ndarray[float]:
+        The coefficient of sigma_z in the driven Hamiltonian at time(s) t.
+        The type returned is the same as the type of t, if given.
+        If no t is given, returns a float.
+    """
 
-        return np.sqrt(self.hx()**2 + self.hy()**2 + self.hz()**2)
+    return params.delta + np.cos(params.kx - Ax(params, t)) + np.cos(params.ky)
 
-    def lattice_basis(self, t: float | np.ndarray[float]=0) -> np.ndarray[complex]:
-        """See parent class."""
+@cache
+def energy(params: ModelParameters) -> float:
+    """
+    Returns the unperturbed energy of the system at this momentum point.
+    This result is cached, since the unperturbed energy has no dependence on time,
+    and the momentum doesn't change once given.
 
-        t = np.atleast_1d(t)
+    Returns
+    -------
+    float:
+        The energy of the unperturbed system at this momentum.
+    """
 
-        H = np.multiply.outer(self.hx(t), self.sigmax) \
-            + (self.hy() * self.sigmay)[np.newaxis, :, :] \
-            + np.multiply.outer(self.hz(t), self.sigmaz)
-        
-        return H.squeeze()
+    return np.sqrt(hx(params)**2 + hy(params)**2 + hz(params)**2)
+
+def lattice_basis(params: ModelParameters, t: float | np.ndarray[float]=0) -> np.ndarray[complex]:
+    """Calculates the Hamiltonian operator in the lattice basis.
     
-    def hxn(self, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
-        """
-        Calculates the nth Fourier coefficient for the driven term hx(t).
+    Parameters
+    ----------
+    params : ModelParameters
+        The parameters of the model
+    t : float | ndarray[float], optional
+        The times at which to evaluate the operator. Can be vectorised.
+    """
 
-        Parameters
-        ----------
-        n : int | ndarray[int]
-            The index, or indices, that we will calculate the Fourier coefficients of.
-            The index corresponds to the harmonic of the base frequency.
+    t = np.atleast_1d(t)
 
-        Returns
-        -------
-        complex | ndarray[complex]:
-            The desired coefficient(s). Of the same type as n.
-        """
-
-        # Form numpy array so that we can iterate through n.
-        n = np.atleast_1d(n)
-        coeffs = np.zeros_like(n, dtype=complex)
-
-        zeroMask = n == 0
-        evenMask = n % 2 == 0
-        oddMask = ~evenMask
-
-        # Calculates the relevant coefficients in a vectorised manner.
-        # Not sure if scipy is actually faster vectorised, but regardless it neatens up the code.
-        coeffs[oddMask] = np.sign(n[oddMask]) * 1j * special.jv(np.abs(n[oddMask]), self._params.drivingAmp) * np.cos(self._params.kx)
-        coeffs[evenMask] = special.jv(np.abs(n[evenMask]), self._params.drivingAmp) * np.sin(self._params.kx)
-        coeffs[zeroMask] = special.jv(0, self._params.drivingAmp) * np.sin(self._params.kx)
-
-        # Returns the array as a float if it has size 1.
-        if coeffs.size == 1:
-            return coeffs[0]
-
-        return coeffs
+    H = np.multiply.outer(hx(params, t), sigmax) \
+        + (hy(params) * sigmay)[np.newaxis, :, :] \
+        + np.multiply.outer(hz(params, t), sigmaz)
     
-    def hyn(self, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
-        """
-        Calculates the nth Fourier coefficient for the term hyn.
-        This is a constant term, so returning the 'Fourier coefficients' just
-        returns the value itself for n = 0, and 0 for all other n.
-        This function is just a utility to use for compatibility with the other Fourier
-        coefficient functions.
+    return H.squeeze()
 
-        Parameters
-        ----------
-        n : int | ndarray[int]
-            The index, or indices, that we will calculate the Fourier coefficients of.
-            The index corresponds to the harmonic of the base frequency.
+def hxn(params: ModelParameters, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
+    """
+    Calculates the nth Fourier coefficient for the driven term hx(t).
 
-        Returns
-        -------
-        complex | ndarray[complex]:
-            The desired coefficient(s). Of the same type as n.
-        """
+    Parameters
+    ----------
+    params : ModelParameters
+        The parameters of the model
+    n : int | ndarray[int]
+        The index, or indices, that we will calculate the Fourier coefficients of.
+        The index corresponds to the harmonic of the base frequency.
 
-        # Form numpy array so that we can iterate through n.
-        n = np.atleast_1d(n)
-        coeffs = np.zeros_like(n, dtype=complex)
+    Returns
+    -------
+    complex | ndarray[complex]:
+        The desired coefficient(s). Of the same type as n.
+    """
 
-        # Sets n = 0 to the value of the constant,
-        # otherwise leaves all other coefficients as zero.
-        coeffs[n == 0] = self.hy()
+    # Form numpy array so that we can iterate through n.
+    n = np.atleast_1d(n)
+    coeffs = np.zeros_like(n, dtype=complex)
 
-        # Returns the array as a float if it has size 1.
-        if coeffs.size == 1:
-            return coeffs[0]
+    zeroMask = n == 0
+    evenMask = n % 2 == 0
+    oddMask = ~evenMask
 
-        return coeffs
+    # Calculates the relevant coefficients in a vectorised manner.
+    # Not sure if scipy is actually faster vectorised, but regardless it neatens up the code.
+    coeffs[oddMask] = np.sign(n[oddMask]) * 1j * special.jv(np.abs(n[oddMask]), params.drivingAmp) * np.cos(params.kx)
+    coeffs[evenMask] = special.jv(np.abs(n[evenMask]), params.drivingAmp) * np.sin(params.kx)
+    coeffs[zeroMask] = special.jv(0, params.drivingAmp) * np.sin(params.kx)
+
+    # Returns the array as a float if it has size 1.
+    if coeffs.size == 1:
+        return coeffs[0]
+
+    return coeffs
+
+def hyn(params: ModelParameters, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
+    """
+    Calculates the nth Fourier coefficient for the term hyn.
+    This is a constant term, so returning the 'Fourier coefficients' just
+    returns the value itself for n = 0, and 0 for all other n.
+    This function is just a utility to use for compatibility with the other Fourier
+    coefficient functions.
+
+    Parameters
+    ----------
+    params : ModelParameters
+        The parameters of the model
+    n : int | ndarray[int]
+        The index, or indices, that we will calculate the Fourier coefficients of.
+        The index corresponds to the harmonic of the base frequency.
+
+    Returns
+    -------
+    complex | ndarray[complex]:
+        The desired coefficient(s). Of the same type as n.
+    """
+
+    # Form numpy array so that we can iterate through n.
+    n = np.atleast_1d(n)
+    coeffs = np.zeros_like(n, dtype=complex)
+
+    # Sets n = 0 to the value of the constant,
+    # otherwise leaves all other coefficients as zero.
+    coeffs[n == 0] = hy(params)
+
+    # Returns the array as a float if it has size 1.
+    if coeffs.size == 1:
+        return coeffs[0]
+
+    return coeffs
 
 
-    def hzn(self, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
-        """
-        Calculates the nth Fourier coefficient for the driven term hz(t).
+def hzn(params: ModelParameters, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
+    """
+    Calculates the nth Fourier coefficient for the driven term hz(t).
 
-        Parameters
-        ----------
-        n : int | ndarray[int]
-            The index, or indices, that we will calculate the Fourier coefficients of.
-            The index corresponds to the harmonic of the base frequency.
+    Parameters
+    ----------
+    params : ModelParameters
+        The parameters of the model
+    n : int | ndarray[int]
+        The index, or indices, that we will calculate the Fourier coefficients of.
+        The index corresponds to the harmonic of the base frequency.
 
-        Returns
-        -------
-        complex | ndarray[complex]:
-            The desired coefficient(s). Of the same type as n.
-        """
+    Returns
+    -------
+    complex | ndarray[complex]:
+        The desired coefficient(s). Of the same type as n.
+    """
 
-        # Form numpy array so that we can iterate through n.
-        n = np.atleast_1d(n)
-        coeffs = np.zeros_like(n, dtype=complex)
+    # Form numpy array so that we can iterate through n.
+    n = np.atleast_1d(n)
+    coeffs = np.zeros_like(n, dtype=complex)
 
-        zeroMask = n == 0
-        evenMask = n % 2 == 0
-        oddMask = ~evenMask
+    zeroMask = n == 0
+    evenMask = n % 2 == 0
+    oddMask = ~evenMask
 
-        # Calculates the relevant coefficients in a vectorised manner.
-        # Not sure if scipy is actually faster vectorised, but regardless it neatens up the code.
-        coeffs[evenMask] = special.jv(np.abs(n[evenMask]), self._params.drivingAmp) * np.cos(self._params.kx)
-        coeffs[oddMask] = np.sign(n[oddMask]) * -1j * special.jv(np.abs(n[oddMask]), self._params.drivingAmp) * np.sin(self._params.kx)
-        coeffs[zeroMask] = self._params.delta + np.cos(self._params.kx) * special.jv(0, self._params.drivingAmp) \
-                    + np.cos(self._params.ky)
+    # Calculates the relevant coefficients in a vectorised manner.
+    # Not sure if scipy is actually faster vectorised, but regardless it neatens up the code.
+    coeffs[evenMask] = special.jv(np.abs(n[evenMask]), params.drivingAmp) * np.cos(params.kx)
+    coeffs[oddMask] = np.sign(n[oddMask]) * -1j * special.jv(np.abs(n[oddMask]), params.drivingAmp) * np.sin(params.kx)
+    coeffs[zeroMask] = params.delta + np.cos(params.kx) * special.jv(0, params.drivingAmp) \
+                + np.cos(params.ky)
 
-        # Returns the array as a float if it has size 1.
-        if coeffs.size == 1:
-            return coeffs[0]
+    # Returns the array as a float if it has size 1.
+    if coeffs.size == 1:
+        return coeffs[0]
 
-        return coeffs
+    return coeffs
+
+def lattice_fourier_coefficient(params: ModelParameters, n: int | np.ndarray[int]) -> complex | np.ndarray[complex]:
+    """Calculates the fourier series coefficients of the Hamiltonian in the lattice basis.
     
-    def lattice_fourier_coefficient(self, n: int | np.ndarray[int]) -> np.ndarray[complex]:
-        """See parent class."""
+    Parameters
+    ----------
+    params : ModelParameters
+        The parameters of the model.
+    n : int | ndarray[int]
+        The indices of the coefficients to calculate. Can be vectorised.
 
-        n = np.atleast_1d(n)
+    Returns
+    -------
+    ndarray[complex]
+        The corresponding fourier series coefficients.
+    """
 
-        H = np.array([[self.hzn(n), self.hxn(n) - 1j * self.hyn(n)],
-                      [self.hxn(n) + 1j * self.hyn(n), -self.hzn(n)]], dtype=complex)
-        
-        return np.moveaxis(H, -1, 0).squeeze()
-     
-    @cached_property
-    def plusEigenvector(self) -> np.ndarray[complex]:
-        _, U = np.linalg.eigh(self.lattice_basis())
-        return U[:, 1].reshape(2, 1)
-    
-    @cached_property
-    def minusEigenvector(self) -> np.ndarray[complex]:
-        _, U = np.linalg.eigh(self.lattice_basis())
-        return U[:, 0].reshape(2, 1)
-    
-    @cached_property
-    def U(self) -> np.ndarray[complex]:
-        U = np.column_stack((self.plusEigenvector, self.minusEigenvector))
+    n = np.atleast_1d(n)
 
-        # Raise an exception if U is not unitary.
-        if not np.allclose(U @ U.conj().T, np.eye(2)) or not np.allclose(U.conj().T @ U , np.eye(2)):
-            raise ValueError("Matrix U is not unitary.")
-        
-        return U
+    H = np.array([[hzn(params, n), hxn(params, n) - 1j * hyn(params, n)],
+                    [hxn(params, n) + 1j * hyn(params, n), -hzn(params, n)]], dtype=complex)
     
-    @cached_property
-    def plusProjection(self) -> np.ndarray[complex]:
-        return 0.5 * (np.eye(2) + self.lattice_basis() / self.energy())
-    
-    @cached_property
-    def minusProjection(self) -> np.ndarray[complex]:
-        return 0.5 * (np.eye(2) - self.lattice_basis() / self.energy())
+    return np.moveaxis(H, -1, 0).squeeze()
+
+def get_band_basis(params: ModelParameters) -> BandBasis:
+    _, U = np.linalg.eigh(lattice_basis(params))
+    U = np.flip(U, axis=1)
+
+    return BandBasis(
+        plusEigenvector = U[:, 0].reshape(2, 1),
+        minusEigenvector = U[:, 1].reshape(2, 1),
+        plusProjector = 0.5 * (np.eye(2) + lattice_basis(params) / energy(params)),
+        minusProjector = 0.5 * (np.eye(2) - lattice_basis(params) / energy(params)),
+    ) 

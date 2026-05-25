@@ -4,7 +4,7 @@ from scipy import integrate
 from typing import Callable
 
 from data import ModelParameters, Fourier
-from operators import Hamiltonian, ParamagneticCurrentX, ParamagneticCurrentY, DiamagneticCurrentX
+from operators import Hamiltonian, ParamagneticCurrentX, ParamagneticCurrentY, DiamagneticCurrentXX
 from LengthGauge import LengthGauge
 
 class CurrentSolver:
@@ -26,7 +26,7 @@ class CurrentSolver:
         self.__hamiltonian = hamiltonian
         self.__jpx = ParamagneticCurrentX(self.__params, self.__hamiltonian)
         self.__jpy = ParamagneticCurrentY(self.__params, self.__hamiltonian)
-        self.__jdx = DiamagneticCurrentX(self.__params, self.__hamiltonian)
+        self.__jdx = DiamagneticCurrentXX(self.__params, self.__hamiltonian)
 
     def CalculateParamagneticCurrent(self, time: float | np.ndarray[float], fourierSeries: list[Fourier]) -> np.ndarray[complex]:
         """Calculates the paramagnetic current.
