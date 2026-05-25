@@ -121,9 +121,9 @@ def main() -> None:
     ensemble = Ensemble(params)
     # ensemble.SampleBrillouinZone(numK)
     ensemble.AddMomentum((np.pi / 4, np.pi / 8))
-    ensemble.AddMomentum((np.pi / 4, -np.pi / 8))
+    # ensemble.AddMomentum((np.pi / 4, -np.pi / 8))
     ensemble.AddMomentum((-np.pi / 4, np.pi / 8))
-    ensemble.AddMomentum((-np.pi / 4, -np.pi / 8))
+    # ensemble.AddMomentum((-np.pi / 4, -np.pi / 8))
     ensemble.Run(tauMax, numT, numProcesses=numProcesses)
     if save_flag:
         ensemble.SaveCurrent()
