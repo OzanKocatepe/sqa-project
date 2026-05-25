@@ -4,8 +4,8 @@ from .model import Model
 from .ensemble import Ensemble
 from .plotting import Plotting
 
-__all__ = ["correlation_solver",
-           "current_solver",
+__all__ = ["CorrelationSolver",
+           "CurrentSolver",
            "Model",
            "Ensemble",
            "Plotting"
