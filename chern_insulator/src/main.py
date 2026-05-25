@@ -136,8 +136,8 @@ def main() -> None:
     # plot.PlotDoubleTimeCorrelation(np.pi / 4, np.pi / 8)
     # plot.PlotDoubleTimeCurrent()
     plot.PlotTotalCurrent(overplotLengthGauge=False)
-    # plot.PlotTotalCurrentFFT(linearScale=False, overplotLengthGauge=False)
-    # plot.PlotIntegratedSecondOrderCurrent()
+    plot.PlotTotalCurrentFFT(linearScale=False, overplotLengthGauge=False)
+    plot.PlotIntegratedSecondOrderCurrent()
 
 if __name__ == "__main__":
     main()
