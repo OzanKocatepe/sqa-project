@@ -119,11 +119,11 @@ def main() -> None:
     tauMax = 20
 
     ensemble = Ensemble(params)
-    ensemble.SampleBrillouinZone(numK)
-    # ensemble.AddMomentum((np.pi / 4, np.pi / 8))
-    # ensemble.AddMomentum((np.pi / 4, -np.pi / 8))
-    # ensemble.AddMomentum((-np.pi / 4, np.pi / 8))
-    # ensemble.AddMomentum((-np.pi / 4, -np.pi / 8))
+    # ensemble.SampleBrillouinZone(numK)
+    ensemble.AddMomentum((np.pi / 4, np.pi / 8))
+    ensemble.AddMomentum((np.pi / 4, -np.pi / 8))
+    ensemble.AddMomentum((-np.pi / 4, np.pi / 8))
+    ensemble.AddMomentum((-np.pi / 4, -np.pi / 8))
     ensemble.Run(tauMax, numT, numProcesses=numProcesses)
     if save_flag:
         ensemble.SaveCurrent()
@@ -136,7 +136,7 @@ def main() -> None:
     # plot.PlotDoubleTimeCorrelation(np.pi / 4, np.pi / 8)
     # plot.PlotDoubleTimeCurrent()
     plot.PlotTotalCurrent(overplotLengthGauge=False)
-    plot.PlotTotalCurrentFFT(linearScale=False, overplotLengthGauge=False)
+    # plot.PlotTotalCurrentFFT(linearScale=False, overplotLengthGauge=False)
     # plot.PlotIntegratedSecondOrderCurrent()
 
 if __name__ == "__main__":
