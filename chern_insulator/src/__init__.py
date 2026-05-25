@@ -1,7 +1,7 @@
-from Topology import ChernNumber, BerryCurvature
+from topology import chern_number
 from LengthGauge import LengthGauge
 
 __all__ = [
-    "ChernNumber",
+    "chern_number",
     "LengthGauge"
 ]

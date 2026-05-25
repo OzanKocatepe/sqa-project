@@ -1,6 +1,6 @@
 import numpy as np
 
-def BerryCurvature(delta: float, kx: float | np.ndarray[float], ky: float | np.ndarray[float]) -> float | np.ndarray[float]:
+def berry_curvature(delta: float, kx: float | np.ndarray[float], ky: float | np.ndarray[float]) -> float | np.ndarray[float]:
     """
     Calculates the berry curvature at some momentum. Used to calculate the Chern number.
     
@@ -46,7 +46,7 @@ def BerryCurvature(delta: float, kx: float | np.ndarray[float], ky: float | np.n
     # we care about sit on the diagonal.
     return -0.5 * np.diag(h.T @ np.cross(partialX, partialY, axis=0)) / energy**3
 
-def ChernNumber(delta : float) -> float:
+def chern_number(delta : float) -> float:
     """
     Integrates the Berry Curvature over the BZ in order to find the Chern number.
     
@@ -67,5 +67,5 @@ def ChernNumber(delta : float) -> float:
 
     kx, ky = np.meshgrid(kxAxis, kyAxis)
     
-    berry = BerryCurvature(delta, kx.flatten(), ky.flatten())
+    berry = berry_curvature(delta, kx.flatten(), ky.flatten())
     return np.sum(berry) * 2 * np.pi / resolution**2
