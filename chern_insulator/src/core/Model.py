@@ -51,12 +51,12 @@ class Model:
         )
 
         # Solves the double-time correlations using scipy ODE solver (solve_ivp).
-        self.correlationData.second_order_correlations = correlation_solver.solve_double_time_correlations(
-            self.__params,
-            self.__axes.t_axis_sec,
-            self.__axes.tau_axis_sec,
-            self.correlationData.first_order_fourier
-        )
+        # self.correlationData.second_order_correlations = correlation_solver.solve_double_time_correlations(
+        #     self.__params,
+        #     self.__axes.t_axis_sec,
+        #     self.__axes.tau_axis_sec,
+        #     self.correlationData.first_order_fourier
+        # )
 
         self.currentData.paramagnetic_current = current_solver.calculate_paramagnetic_current(
             self.__params,
@@ -78,26 +78,26 @@ class Model:
             self.currentData.diamagnetic_current
         )
 
-        self.currentData.second_order_connected_current = current_solver.calculate_double_time_current(
-            self.__params,
-            self.__axes.t_axis_sec,
-            self.__axes.tau_axis_sec,
-            self.correlationData.first_order_fourier,
-            self.correlationData.second_order_correlations
-        )
+        # self.currentData.second_order_connected_current = current_solver.calculate_double_time_current(
+        #     self.__params,
+        #     self.__axes.t_axis_sec,
+        #     self.__axes.tau_axis_sec,
+        #     self.correlationData.first_order_fourier,
+        #     self.correlationData.second_order_correlations
+        # )
 
-        self.currentData.t_averaged_second_order_current = current_solver.integrate_second_order_current(
-            self.__params.drivingFreq,
-            self.__axes.t_axis_sec,
-            self.currentData.second_order_connected_current
-        )
+        # self.currentData.t_averaged_second_order_current = current_solver.integrate_second_order_current(
+        #     self.__params.drivingFreq,
+        #     self.__axes.t_axis_sec,
+        #     self.currentData.second_order_connected_current
+        # )
 
-        self.currentData.spectral_noise_tensor = current_solver.calculate_spectral_noise_tensor(
-            self.__params.drivingFreq,
-            self.__axes.tau_axis_sec,
-            self.currentData.second_order_connected_current,
-            self.__params.maxN
-        )
+        # self.currentData.spectral_noise_tensor = current_solver.calculate_spectral_noise_tensor(
+        #     self.__params.drivingFreq,
+        #     self.__axes.tau_axis_sec,
+        #     self.currentData.second_order_connected_current,
+        #     self.__params.maxN
+        # )
 
         current_fourier_coefficients = current_solver.calculate_current_fourier_coefficients(
             self.__params,

@@ -434,7 +434,7 @@ def calculate_semiclassical_mode_population(
     params: ModelParameters,
     tau_axis_sec : np.ndarray[float],
     field_amplitude : np.ndarray[complex]
-) -> np.ndarray[complex]:
+) -> np.ndarray[float]:
     """Calculates the semiclassical population of each mode.
     
     Parameters
@@ -451,7 +451,7 @@ def calculate_semiclassical_mode_population(
 
     Returns
     -------
-    ndarray[complex]
+    ndarray[float]
         The semiclassical population of each mode, an array of shape (2, m).
     """
 
@@ -465,8 +465,8 @@ def calculate_second_order_correlation_function(
     params: ModelParameters,
     tau_axis_sec : np.ndarray[float],
     field_amplitude : np.ndarray[complex],
-    mode_population : np.ndarray[complex]
-) -> np.ndarray[complex]:
+    mode_population : np.ndarray[float]
+) -> np.ndarray[float]:
     """Calculates the second order current correlation function, g2(0).
     
     Parameters
@@ -480,13 +480,13 @@ def calculate_second_order_correlation_function(
         with axes corresponding to direction, harmonic, and time.
 
         Should only be defined on the first driving period of the tau axis.
-    mode_population : ndarray[complex]
+    mode_population : ndarray[float]
         The semiclassical mode population, an array of shape (2, m).
         Will be the denominator of the correlation function.
 
     Returns
     -------
-    ndarray[complex]
+    ndarray[float]
         The second-order correlation function for the current as an array
         of shape (2, m).
     """

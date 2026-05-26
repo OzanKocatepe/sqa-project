@@ -40,8 +40,8 @@ class CurrentData:
     length_gauge_total_current: np.ndarray[complex] = field(default = None)
     t_averaged_second_order_current: np.ndarray[complex] = field(default = None)
     spectral_noise_tensor: np.ndarray[complex] = field(default = None)
-    semiclassical_mode_population: np.ndarray[complex] = field(default = None)
-    second_order_correlation_function: np.ndarray[complex] = field(default = None)
+    semiclassical_mode_population: np.ndarray[float] = field(default = None)
+    second_order_correlation_function: np.ndarray[float] = field(default = None)
 
     def __add__(self, other: CurrentData) -> CurrentData:
         """
