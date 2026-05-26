@@ -1,6 +1,4 @@
 import numpy as np
-from functools import cached_property
-import matplotlib.pyplot as plt
 from tqdm import tqdm
 import multiprocessing as mp
 from config.paths import DATA_DIR
@@ -8,6 +6,7 @@ import os
 
 from data import EnsembleParameters, ModelParameters, AxisData, CurrentData
 from .model import Model
+from . import current_solver
 
 class Ensemble:
     """Runs a collection of model instances and finds the overall results of the model."""
@@ -160,6 +159,34 @@ class Ensemble:
                     pbar.update(1)
 
         self.meanCurrent = self.meanCurrent / len(self.__models)
+
+        # Calculates some properties that require the mean current, since their non-linear.
+        current_fourier_coefficients = current_solver.calculate_current_fourier_coefficients(
+            self.__params,
+            self.meanCurrent.total_current,
+            self.__axes.tau_axis_sec,
+            self.__params.maxN
+        )
+
+        semiclassical_intracavity_field_amplitude = current_solver.calculate_semiclassical_intracavity_field_amplitude(
+            self.__params,
+            current_fourier_coefficients,
+            self.__axes.tau_axis_sec,
+            self.__params.maxN
+        )
+
+        self.meanCurrent.semiclassical_mode_population = current_solver.calculate_semiclassical_mode_population(
+            self.__params,
+            self.__axes.tau_axis_sec,
+            semiclassical_intracavity_field_amplitude
+        )
+
+        self.meanCurrent.second_order_correlation_function = current_solver.calculate_second_order_correlation_function(
+            self.__params,
+            self.__axes.tau_axis_sec,
+            semiclassical_intracavity_field_amplitude,
+            self.meanCurrent.semiclassical_mode_population
+        )
  
     def _MultiProcessingRun(self, args: tuple[tuple[float, float], Model, AxisData]) -> tuple[tuple[float, float], Model]:
         """

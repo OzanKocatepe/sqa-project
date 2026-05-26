@@ -75,8 +75,12 @@ class CurrentData:
             spectral_noise_tensor = self.spectral_noise_tensor + other.spectral_noise_tensor
                 if self.spectral_noise_tensor and other.spectral_noise_tensor is not None
                 else None,
-            semiclassical_mode_population = self.semiclassical_mode_population + other.semiclassical_mode_population,
+            semiclassical_mode_population = self.semiclassical_mode_population + other.semiclassical_mode_population
+                if self.semiclassical_mode_population is not None and other.semiclassical_mode_population is not None
+                else None,
             second_order_correlation_function = self.second_order_correlation_function + other.second_order_correlation_function
+                if self.second_order_correlation_function is not None and other.second_order_correlation_function is not None
+                else None
         )
     
     def __truediv__(self, other: int) -> CurrentData:
@@ -114,6 +118,10 @@ class CurrentData:
             spectral_noise_tensor = self.spectral_noise_tensor / other
                 if self.spectral_noise_tensor is not None
                 else None,
-            semiclassical_mode_population = self.semiclassical_mode_population / other,
+            semiclassical_mode_population = self.semiclassical_mode_population / other
+                if self.semiclassical_mode_population is not None
+                else None,
             second_order_correlation_function = self.second_order_correlation_function / other
+                if self.second_order_correlation_function is not None
+                else None
         )
