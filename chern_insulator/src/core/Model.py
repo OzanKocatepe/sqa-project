@@ -46,56 +46,56 @@ class Model:
         self.__axes = axes
         
         # Solves the single-time fourier series.
-        self.correlationData.singleTimeFourier = correlation_solver.solve_single_time_correlations(
+        self.correlationData.first_order_fourier = correlation_solver.solve_single_time_correlations(
             self.__params
         )
 
         # Solves the double-time correlations using scipy ODE solver (solve_ivp).
-        self.correlationData.doubleTimeCorrelations = correlation_solver.solve_double_time_correlations(
+        self.correlationData.second_order_correlations = correlation_solver.solve_double_time_correlations(
             self.__params,
-            self.__axes.tAxisSec,
-            self.__axes.tauAxisSec,
-            self.correlationData.singleTimeFourier
+            self.__axes.t_axis_sec,
+            self.__axes.tau_axis_sec,
+            self.correlationData.first_order_fourier
         )
 
-        self.currentData.paramagneticCurrent = current_solver.calculate_paramagnetic_current(
+        self.currentData.paramagnetic_current = current_solver.calculate_paramagnetic_current(
             self.__params,
-            self.__axes.tauAxisSec,
-            self.correlationData.singleTimeFourier
+            self.__axes.tau_axis_sec,
+            self.correlationData.first_order_fourier
         )
         
         # self.__currentData.lengthGaugeCurrent = CurrentSolver.CalculateLengthGaugeCurrent(self.__axes.tauAxisSec)
 
-        self.currentData.diamagneticCurrent = current_solver.calculate_diamagnetic_current(
+        self.currentData.diamagnetic_current = current_solver.calculate_diamagnetic_current(
             self.__params,
-            self.__axes.tauAxisSec,
-            self.correlationData.singleTimeFourier
+            self.__axes.tau_axis_sec,
+            self.correlationData.first_order_fourier
         )
         
-        self.currentData.totalCurrent = current_solver.calculate_total_current(
-            hamiltonian.Ax(self.params, self.__axes.tauAxisSec),
-            self.currentData.paramagneticCurrent,
-            self.currentData.diamagneticCurrent
+        self.currentData.total_current = current_solver.calculate_total_current(
+            hamiltonian.Ax(self.params, self.__axes.tau_axis_sec),
+            self.currentData.paramagnetic_current,
+            self.currentData.diamagnetic_current
         )
 
-        self.currentData.doubleTimeCurrent = current_solver.calculate_double_time_current(
+        self.currentData.second_order_connected_current = current_solver.calculate_double_time_current(
             self.__params,
-            self.__axes.tAxisSec,
-            self.__axes.tauAxisSec,
-            self.correlationData.singleTimeFourier,
-            self.correlationData.doubleTimeCorrelations
+            self.__axes.t_axis_sec,
+            self.__axes.tau_axis_sec,
+            self.correlationData.first_order_fourier,
+            self.correlationData.second_order_correlations
         )
 
-        self.currentData.meanSecondOrderCurrent = current_solver.integrate_second_order_current(
+        self.currentData.t_averaged_second_order_current = current_solver.integrate_second_order_current(
             self.__params.drivingFreq,
-            self.__axes.tAxisSec,
-            self.currentData.doubleTimeCurrent
+            self.__axes.t_axis_sec,
+            self.currentData.second_order_connected_current
         )
 
-        self.currentData.spectralNoiseTensor = current_solver.calculate_spectral_noise_tensor(
+        self.currentData.spectral_noise_tensor = current_solver.calculate_spectral_noise_tensor(
             self.__params.drivingFreq,
-            self.__axes.tauAxisSec,
-            self.currentData.doubleTimeCurrent,
+            self.__axes.tau_axis_sec,
+            self.currentData.second_order_connected_current,
             self.__params.maxN
         )
 

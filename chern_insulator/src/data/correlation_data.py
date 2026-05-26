@@ -18,5 +18,5 @@ class CorrelationData:
         For both axes, the indices 0, 1, and 2 correspond to sigma_-, sigma_+, sigma_z respectively.
     """
 
-    singleTimeFourier: list[Fourier] = field(init = False)
-    doubleTimeCorrelations: np.ndarray[complex] = field(init = False)
+    first_order_fourier: list[Fourier] = field(init = False)
+    second_order_correlations: np.ndarray[complex] = field(init = False)

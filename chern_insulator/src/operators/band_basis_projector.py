@@ -32,15 +32,15 @@ def rotate_to_band_basis(basis: BandBasis, operator: np.ndarray[complex]) -> np.
     eigenmatrix = np.zeros_like(operator, dtype=complex)
 
     # Calculate diagonal components.
-    eigenmatrix = eigenmatrix.at[:, 0, 0].set(np.trace(basis.plusProjection @ operator, axis1=1, axis2=2))
-    eigenmatrix = eigenmatrix.at[:, 1, 1].set(np.trace(basis.minusProjection @ operator, axis1=1, axis2=2))
+    eigenmatrix = eigenmatrix.at[:, 0, 0].set(np.trace(basis.plus_projection @ operator, axis1=1, axis2=2))
+    eigenmatrix = eigenmatrix.at[:, 1, 1].set(np.trace(basis.minus_projection @ operator, axis1=1, axis2=2))
 
     # Pick arbitrary vector r.
-    r = 1 / np.sqrt(2) * (basis.plusEigenvector + basis.minusEigenvector)
+    r = 1 / np.sqrt(2) * (basis.plus_eigenvector + basis.minus_eigenvector)
     # Calculate off-diagonal components.
-    denominator = np.sqrt(r.conj().T @ basis.plusProjection @ r @ r.conj().T @ basis.plusProjection @ r)
-    eigenmatrix = eigenmatrix.at[:, 0, 1].set((r.conj().T @ basis.plusProjection @ operator @ basis.minusProjection @ r / denominator).squeeze())
-    eigenmatrix = eigenmatrix.at[:, 1, 0].set((r.conj().T @ basis.minusProjection @ operator @ basis.plusProjection @ r / denominator).squeeze())
+    denominator = np.sqrt(r.conj().T @ basis.plus_projection @ r @ r.conj().T @ basis.plus_projection @ r)
+    eigenmatrix = eigenmatrix.at[:, 0, 1].set((r.conj().T @ basis.plus_projection @ operator @ basis.minus_projection @ r / denominator).squeeze())
+    eigenmatrix = eigenmatrix.at[:, 1, 0].set((r.conj().T @ basis.minus_projection @ operator @ basis.plus_projection @ r / denominator).squeeze())
 
     # Squeezes eigenmatrix to deal with the case when the shape is
     # (1, 2, 2), so we will get the matrix back as a (2, 2) matrix.

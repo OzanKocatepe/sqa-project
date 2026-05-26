@@ -282,8 +282,8 @@ def get_band_basis(params: ModelParameters) -> BandBasis:
     U = jnp.flip(U, axis=1)
 
     return BandBasis(
-        plusEigenvector = U[:, 0].reshape(2, 1),
-        minusEigenvector = U[:, 1].reshape(2, 1),
-        plusProjection = 0.5 * (np.eye(2) + lattice_basis(params) / energy(params)),
-        minusProjection = 0.5 * (np.eye(2) - lattice_basis(params) / energy(params)),
+        plus_eigenvector = U[:, 0].reshape(2, 1),
+        minus_eigenvector = U[:, 1].reshape(2, 1),
+        plus_projection = 0.5 * (np.eye(2) + lattice_basis(params) / energy(params)),
+        minus_projection = 0.5 * (np.eye(2) - lattice_basis(params) / energy(params)),
     ) 

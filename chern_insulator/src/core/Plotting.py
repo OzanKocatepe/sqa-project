@@ -51,7 +51,7 @@ class Plotting:
 
         axes = self.__ensemble.axes
         model = self.__ensemble.models[(kx, ky)]
-        sigma = model.correlationData.singleTimeFourier
+        sigma = model.correlationData.first_order_fourier
         functions = self.__plottingFunctions[1:]
         functionLabels = ['Real', 'Imaginary']
         
@@ -61,8 +61,8 @@ class Plotting:
 
         for row in range(2):
             for col in range(3):
-                ax[row, col].plot(axes.tauAxisDim,
-                                  functions[row](sigma[col].Evaluate(axes.tauAxisSec)),
+                ax[row, col].plot(axes.tau_axis_dim,
+                                  functions[row](sigma[col].Evaluate(axes.tau_axis_sec)),
                                   color = 'black', label='Fourier Series')
                 
                 if overplotNumericalSolution:
@@ -71,15 +71,15 @@ class Plotting:
 
                     numericalSigma = integrate.solve_ivp(
                         fun = h.EquationsOfMotion,
-                        t_span = (0, np.max(axes.tauAxisSec)),
+                        t_span = (0, np.max(axes.tau_axis_sec)),
                         y0 = np.array([0.0, 0.0, -1.0], dtype=complex),
-                        t_eval = axes.tauAxisSec,
+                        t_eval = axes.tau_axis_sec,
                         rtol=1e-9,
                         atol=1e-12,
                         vectorized = True
                     ).y
 
-                    ax[row, col].plot(axes.tauAxisDim,
+                    ax[row, col].plot(axes.tau_axis_dim,
                                       functions[row](numericalSigma[col]),
                                       color = 'blue', label='Numerical Soln')
                     ax[row, col].legend()
@@ -118,25 +118,25 @@ class Plotting:
 
         for leftOperatorIndex in range(3):
             for rightOperatorIndex in range(3):
-                leftOperator = corr.singleTimeFourier[leftOperatorIndex].Evaluate(axes.tAxisSec)
+                leftOperator = corr.first_order_fourier[leftOperatorIndex].Evaluate(axes.t_axis_sec)
                 # Evaluates the right operator at every point (t + tau).
-                rightOperator = corr.singleTimeFourier[rightOperatorIndex].Evaluate(
+                rightOperator = corr.first_order_fourier[rightOperatorIndex].Evaluate(
                     # Creates an object of (t.size, tau.size) containing pairs (t, t + tau).
-                    np.add.outer(axes.tAxisSec, axes.tauAxisSec)
+                    np.add.outer(axes.t_axis_sec, axes.tau_axis_sec)
                 )
 
                 # Left operator is evaluated at t, so stays the same as right operator changes with tau.
                 # This calcalates <sigma_i> <sigma_j> at times (t, t + tau).
                 prod = leftOperator[:, np.newaxis] * rightOperator
-                connectedCorr = corr.doubleTimeCorrelations[leftOperatorIndex, rightOperatorIndex, :, :] - prod
+                connectedCorr = corr.second_order_correlations[leftOperatorIndex, rightOperatorIndex, :, :] - prod
 
                 fig, ax = plt.subplots(1, 2)
                 funcs = self.__plottingFunctions[1:]
                 
                 for col in range(2):
                     mesh = ax[col].pcolormesh(
-                        self.__ensemble.axes.tauAxisDim,
-                        self.__ensemble.axes.tAxisDim,
+                        self.__ensemble.axes.tau_axis_dim,
+                        self.__ensemble.axes.t_axis_dim,
                         funcs[col](connectedCorr),
                         cmap = 'bwr',
                         shading = 'nearest')
@@ -174,9 +174,9 @@ class Plotting:
                 
                 for col in range(2):
                     mesh = ax[col].pcolormesh(
-                        self.__ensemble.axes.tauAxisDim,
-                        self.__ensemble.axes.tAxisDim,
-                        funcs[col](curr.doubleTimeCurrent[leftOperatorIndex, rightOperatorIndex]),
+                        self.__ensemble.axes.tau_axis_dim,
+                        self.__ensemble.axes.t_axis_dim,
+                        funcs[col](curr.second_order_connected_current[leftOperatorIndex, rightOperatorIndex]),
                         cmap = 'bwr',
                         shading = 'nearest')
 
@@ -200,8 +200,8 @@ class Plotting:
         """Plots the total current as a function of time."""
 
         axes = self.__ensemble.axes
-        current = self.__ensemble.meanCurrent.totalCurrent
-        lengthCurrent = self.__ensemble.meanCurrent.lengthGaugeCurrent
+        current = self.__ensemble.meanCurrent.total_current
+        lengthCurrent = self.__ensemble.meanCurrent.length_gauge_total_current
 
         labels = [r"$\hat j_x$", r"$\hat j_y$"]
         alpha = 0.2
@@ -215,48 +215,48 @@ class Plotting:
             fig, ax = plt.subplots(2, 1)
 
             # Plots the main operator with full opacity.
-            ax[0].plot(axes.tauAxisDim,
+            ax[0].plot(axes.tau_axis_dim,
                        current[operatorIndex].real,
                        color = colors[operatorIndex],
                        label = labels[operatorIndex])
 
-            ax[1].plot(axes.tauAxisDim,
+            ax[1].plot(axes.tau_axis_dim,
                        current[operatorIndex].imag,
                        color = colors[operatorIndex],
                        label = labels[operatorIndex]) 
 
             # Plots the other operator with small opacity.
-            ax[0].plot(axes.tauAxisDim,
+            ax[0].plot(axes.tau_axis_dim,
                        current[opacityIndex].real,
                        color = lengthGaugeColors[opacityIndex],
                        label = labels[opacityIndex],
                        alpha = alpha)
 
-            ax[1].plot(axes.tauAxisDim,
+            ax[1].plot(axes.tau_axis_dim,
                        current[opacityIndex].imag,
                        color = lengthGaugeColors[opacityIndex],
                        label = labels[opacityIndex],
                        alpha = alpha)
             
             if overplotLengthGauge:
-                ax[0].plot(axes.tauAxisDim,
+                ax[0].plot(axes.tau_axis_dim,
                         lengthCurrent[operatorIndex].real,
                         color = lengthGaugeColors[operatorIndex],
                         label = f"{labels[operatorIndex]} (LG)")
 
-                ax[1].plot(axes.tauAxisDim,
+                ax[1].plot(axes.tau_axis_dim,
                         lengthCurrent[operatorIndex].imag,
                         color = lengthGaugeColors[operatorIndex],
                         label = f"{labels[operatorIndex]} (LG)")
 
                 # Plots the other operator with small opacity.
-                ax[0].plot(axes.tauAxisDim,
+                ax[0].plot(axes.tau_axis_dim,
                         lengthCurrent[opacityIndex].real,
                         color = colors[opacityIndex],
                         label = f"{labels[opacityIndex]} (LG)",
                         alpha = alpha)
 
-                ax[1].plot(axes.tauAxisDim,
+                ax[1].plot(axes.tau_axis_dim,
                         lengthCurrent[opacityIndex].imag,
                         color = colors[opacityIndex],
                         label = f"{labels[opacityIndex]} (LG)",
@@ -297,21 +297,21 @@ class Plotting:
         indices = [(0, 0), (0, 1), (1, 0), (1, 1)]
 
         axes = self.__ensemble.axes
-        current = self.__ensemble.meanCurrent.meanSecondOrderCurrent
+        current = self.__ensemble.meanCurrent.t_averaged_second_order_current
         
         for highlightedIndex in range(4):
             fig, ax = plt.subplots(2, 1)
 
             # Plots the highlighted operator with full transparency.
             ax[0].plot(
-                axes.tauAxisDim,
+                axes.tau_axis_dim,
                 current[indices[highlightedIndex]].real,
                 color = colors[highlightedIndex],
                 label = labels[highlightedIndex]
             )
 
             ax[1].plot(
-                axes.tauAxisDim,
+                axes.tau_axis_dim,
                 current[indices[highlightedIndex]].imag,
                 color = colors[highlightedIndex],
                 label = labels[highlightedIndex]
@@ -323,7 +323,7 @@ class Plotting:
                     continue
 
                 ax[0].plot(
-                    axes.tauAxisDim,
+                    axes.tau_axis_dim,
                     current[indices[otherIndex]].real,
                     color = colors[otherIndex],
                     label = labels[otherIndex],
@@ -331,7 +331,7 @@ class Plotting:
                 )
 
                 ax[1].plot(
-                    axes.tauAxisDim,
+                    axes.tau_axis_dim,
                     current[indices[otherIndex]].imag,
                     color = colors[otherIndex],
                     label = labels[otherIndex],
@@ -365,33 +365,33 @@ class Plotting:
         axes = self.__ensemble.axes
         current = self.__ensemble.meanCurrent
 
-        jxFFT = np.fft.fftshift(np.fft.fft(current.totalCurrent[0]))
-        jyFFT = np.fft.fftshift(np.fft.fft(current.totalCurrent[1]))
+        jxFFT = np.fft.fftshift(np.fft.fft(current.total_current[0]))
+        jyFFT = np.fft.fftshift(np.fft.fft(current.total_current[1]))
 
         plt.plot(
-            axes.freqAxis,
+            axes.freq_axis,
             np.abs(jxFFT),
             label=r'$\hat j_x$',
             color='tab:blue')
 
         plt.plot(
-            axes.freqAxis,
+            axes.freq_axis,
             np.abs(jyFFT),
             label=r'$\hat j_y$',
             color='orange')
         
         if overplotLengthGauge:
-            jxLGFFT = np.fft.fftshift(np.fft.fft(current.lengthGaugeCurrent[0]))
-            jyLGFFT = np.fft.fftshift(np.fft.fft(current.lengthGaugeCurrent[1]))
+            jxLGFFT = np.fft.fftshift(np.fft.fft(current.length_gauge_total_current[0]))
+            jyLGFFT = np.fft.fftshift(np.fft.fft(current.length_gauge_total_current[1]))
 
             plt.plot(
-                axes.freqAxis,
+                axes.freq_axis,
                 np.abs(jxLGFFT),
                 label=r'$\hat j_x$ (LG)',
                 color='purple')
 
             plt.plot(
-                axes.freqAxis,
+                axes.freq_axis,
                 np.abs(jyLGFFT),
                 label=r'$\hat j_y$ (LG)',
                 color='red')

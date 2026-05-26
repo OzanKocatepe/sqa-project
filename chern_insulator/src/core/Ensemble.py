@@ -268,11 +268,11 @@ class Ensemble:
         freqAxis = np.fft.fftshift(np.fft.fftfreq(tauAxisSec.size, sampleSpacing)) / self.__params.drivingFreq
 
         return AxisData(
-            tauAxisDim = tauAxisDim,
-            tauAxisSec = tauAxisSec,
-            tAxisDim = tAxisDim,
-            tAxisSec = tAxisSec,
-            freqAxis = freqAxis
+            tau_axis_dim = tauAxisDim,
+            tau_axis_sec = tauAxisSec,
+            t_axis_dim = tAxisDim,
+            t_axis_sec = tAxisSec,
+            freq_axis = freqAxis
         )
      
     @property

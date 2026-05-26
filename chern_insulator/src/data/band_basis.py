@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 @dataclass(slots=True, frozen=True)
 class BandBasis:
-    plusEigenvector: complex
-    minusEigenvector: complex
-    plusProjection: np.ndarray[complex]
-    minusProjection: np.ndarray[complex]
+    plus_eigenvector: complex
+    minus_eigenvector: complex
+    plus_projection: np.ndarray[complex]
+    minus_projection: np.ndarray[complex]

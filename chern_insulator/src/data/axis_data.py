@@ -26,8 +26,8 @@ class AxisData:
         sampling rate of tauAxis, in units of the driving frequency.
     """
 
-    tauAxisDim: np.ndarray[float]
-    tauAxisSec: np.ndarray[float]
-    tAxisDim: np.ndarray[float]
-    tAxisSec: np.ndarray[float]
-    freqAxis: np.ndarray[float]
+    tau_axis_dim: np.ndarray[float]
+    tau_axis_sec: np.ndarray[float]
+    t_axis_dim: np.ndarray[float]
+    t_axis_sec: np.ndarray[float]
+    freq_axis: np.ndarray[float]

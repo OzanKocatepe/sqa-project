@@ -33,13 +33,13 @@ class CurrentData:
         and the last axis corresponds to the time t. This is a function of t.
     """
 
-    paramagneticCurrent: np.ndarray[complex] = field(default = None)
-    diamagneticCurrent: np.ndarray[complex] = field(default = None)
-    totalCurrent: np.ndarray[complex] = field(default = None)
-    doubleTimeCurrent: np.ndarray[complex] = field(default = None)
-    lengthGaugeCurrent: np.ndarray[complex] = field(default = None)
-    meanSecondOrderCurrent: np.ndarray[complex] = field(default = None)
-    spectralNoiseTensor: np.ndarray[complex] = field(default = None)
+    paramagnetic_current: np.ndarray[complex] = field(default = None)
+    diamagnetic_current: np.ndarray[complex] = field(default = None)
+    total_current: np.ndarray[complex] = field(default = None)
+    second_order_connected_current: np.ndarray[complex] = field(default = None)
+    length_gauge_total_current: np.ndarray[complex] = field(default = None)
+    t_averaged_second_order_current: np.ndarray[complex] = field(default = None)
+    spectral_noise_tensor: np.ndarray[complex] = field(default = None)
 
     def __add__(self, other: CurrentData) -> CurrentData:
         """
@@ -58,17 +58,17 @@ class CurrentData:
         """
 
         return CurrentData(
-            paramagneticCurrent = self.paramagneticCurrent + other.paramagneticCurrent,
-            diamagneticCurrent = self.diamagneticCurrent + other.diamagneticCurrent,
-            totalCurrent = self.totalCurrent + other.totalCurrent,
-            doubleTimeCurrent = self.doubleTimeCurrent + other.doubleTimeCurrent
-                if self.doubleTimeCurrent is not None and other.doubleTimeCurrent is not None
+            paramagnetic_current = self.paramagnetic_current + other.paramagnetic_current,
+            diamagnetic_current = self.diamagnetic_current + other.diamagnetic_current,
+            total_current = self.total_current + other.total_current,
+            second_order_connected_current = self.second_order_connected_current + other.second_order_connected_current
+                if self.second_order_connected_current is not None and other.second_order_connected_current is not None
                 else None,
-            lengthGaugeCurrent = self.lengthGaugeCurrent + other.lengthGaugeCurrent
-                if self.lengthGaugeCurrent is not None and other.lengthGaugeCurrent is not None
+            length_gauge_total_current = self.length_gauge_total_current + other.length_gauge_total_current
+                if self.length_gauge_total_current is not None and other.length_gauge_total_current is not None
                 else None,
-            meanSecondOrderCurrent = self.meanSecondOrderCurrent + other.meanSecondOrderCurrent,
-            spectralNoiseTensor = self.spectralNoiseTensor + other.spectralNoiseTensor
+            t_averaged_second_order_current = self.t_averaged_second_order_current + other.t_averaged_second_order_current,
+            spectral_noise_tensor = self.spectral_noise_tensor + other.spectral_noise_tensor
         )
     
     def __truediv__(self, other: int) -> CurrentData:
@@ -91,15 +91,15 @@ class CurrentData:
         # I trust myself to know that it passes directly to the inner arrays.
         # Could add checks later.
         return CurrentData(
-            paramagneticCurrent = self.paramagneticCurrent / other,
-            diamagneticCurrent = self.diamagneticCurrent / other,
-            totalCurrent = self.totalCurrent / other,
-            doubleTimeCurrent = self.doubleTimeCurrent / other
-                if self.doubleTimeCurrent is not None
+            paramagnetic_current = self.paramagnetic_current / other,
+            diamagnetic_current = self.diamagnetic_current / other,
+            total_current = self.total_current / other,
+            second_order_connected_current = self.second_order_connected_current / other
+                if self.second_order_connected_current is not None
                 else None,
-            lengthGaugeCurrent = self.lengthGaugeCurrent / other
-                if self.lengthGaugeCurrent is not None
+            length_gauge_total_current = self.length_gauge_total_current / other
+                if self.length_gauge_total_current is not None
                 else None,
-            meanSecondOrderCurrent = self.meanSecondOrderCurrent / other,
-            spectralNoiseTensor = self.spectralNoiseTensor / other
+            t_averaged_second_order_current = self.t_averaged_second_order_current / other,
+            spectral_noise_tensor = self.spectral_noise_tensor / other
         )
