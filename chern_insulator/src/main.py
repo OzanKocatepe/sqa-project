@@ -80,12 +80,6 @@ def main() -> None:
         help = "Whether to log the memory usage to disk in 5 minute intervals.",
         action = "store_true",
     )
-    parser.add_argument(
-        "--use-apple-silicon",
-        help = "Whether to use apple-silicon GPU acceleration.",
-        action = "store_true",
-    )
-
 
     # Parse the arguments.
     args = parser.parse_args()
@@ -97,7 +91,6 @@ def main() -> None:
     delta = args.delta
     save_flag = args.save
     log_memory_flag = args.log_memory
-    use_diffrax = args.use_apple_silicon
 
     if log_memory_flag:
         # Start the logging thread.
@@ -128,16 +121,16 @@ def main() -> None:
     if save_flag:
         ensemble.SaveCurrent()
 
-    plot = Plotting(ensemble)
+    # plot = Plotting(ensemble)
     # plot.PlotSingleTime(np.pi / 4, np.pi / 8, tMax = 20, overplotNumericalSolution=True)
     # plot.PlotSingleTime(np.pi / 4, -np.pi / 8, tMax = 10, overplotNumericalSolution=True)
     # plot.PlotSingleTime(-np.pi / 4, np.pi / 8, tMax = 10, overplotNumericalSolution=True)
     # plot.PlotSingleTime(-np.pi / 4, -np.pi / 8, tMax = 10, overplotNumericalSolution=True)
     # plot.PlotDoubleTimeCorrelation(np.pi / 4, np.pi / 8)
     # plot.PlotDoubleTimeCurrent()
-    plot.PlotTotalCurrent(overplotLengthGauge=False)
-    plot.PlotTotalCurrentFFT(linearScale=False, overplotLengthGauge=False)
-    plot.PlotIntegratedSecondOrderCurrent()
+    # plot.PlotTotalCurrent(overplotLengthGauge=False)
+    # plot.PlotTotalCurrentFFT(linearScale=False, overplotLengthGauge=False)
+    # plot.PlotIntegratedSecondOrderCurrent()
 
 if __name__ == "__main__":
     main()

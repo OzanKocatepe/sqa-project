@@ -69,8 +69,12 @@ class CurrentData:
             length_gauge_total_current = self.length_gauge_total_current + other.length_gauge_total_current
                 if self.length_gauge_total_current is not None and other.length_gauge_total_current is not None
                 else None,
-            t_averaged_second_order_current = self.t_averaged_second_order_current + other.t_averaged_second_order_current,
-            spectral_noise_tensor = self.spectral_noise_tensor + other.spectral_noise_tensor,
+            t_averaged_second_order_current = self.t_averaged_second_order_current + other.t_averaged_second_order_current
+                if self.t_averaged_second_order_current and other.t_averaged_second_order_current is not None
+                else None,
+            spectral_noise_tensor = self.spectral_noise_tensor + other.spectral_noise_tensor
+                if self.spectral_noise_tensor and other.spectral_noise_tensor is not None
+                else None,
             semiclassical_mode_population = self.semiclassical_mode_population + other.semiclassical_mode_population,
             second_order_correlation_function = self.second_order_correlation_function + other.second_order_correlation_function
         )
@@ -104,6 +108,12 @@ class CurrentData:
             length_gauge_total_current = self.length_gauge_total_current / other
                 if self.length_gauge_total_current is not None
                 else None,
-            t_averaged_second_order_current = self.t_averaged_second_order_current / other,
+            t_averaged_second_order_current = self.t_averaged_second_order_current / other
+                if self.t_averaged_second_order_current is not None
+                else None,
             spectral_noise_tensor = self.spectral_noise_tensor / other
+                if self.spectral_noise_tensor is not None
+                else None,
+            semiclassical_mode_population = self.semiclassical_mode_population / other,
+            second_order_correlation_function = self.second_order_correlation_function / other
         )

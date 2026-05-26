@@ -352,15 +352,15 @@ def calculate_current_fourier_coefficients(
     Returns
     -------
     ndarray[complex]
-        An array of shape (2, n + 1) which stores the fourier coefficients of the
-        x- and y- current, from indices 0 to n.
+        An array of shape (2, n) which stores the fourier coefficients of the
+        x- and y- current, from indices 0 to n - 1.
     """
 
     # Restricts our view to only 3 driving periods, since we're already in the steady state anyways.
     time = tauAxisSec[tauAxisSec <= 3 / params.drivingFreq]
 
     # Forms array containing exp(i omega_m t) of shape (2n + 1, t.size).
-    harmonics_terms = np.arange(0, n + 1) * params.angularFreq
+    harmonics_terms = np.arange(1, n + 1) * params.angularFreq
     exponentials = np.exp(
         np.multiply.outer(-1j * tauAxisSec, harmonics_terms)
     )
@@ -395,7 +395,7 @@ def calculate_semiclassical_intracavity_field_amplitude(
     Returns
     -------
     ndarray[complex]
-        An array of shape (2, n + 1, t) where the third axis corresponds to the indices of the first driving period
+        An array of shape (2, n, t) where the third axis corresponds to the indices of the first driving period
         of tau_axis_sec.
     """
 
@@ -403,14 +403,14 @@ def calculate_semiclassical_intracavity_field_amplitude(
     # with the period given by the chosen harmonic, there's no point in using more data than necessary.
     two_periods_axis = tau_axis_sec[tau_axis_sec <= 1 / params.drivingFreq]
 
-    omega_k = np.arange(0, n + 1) * params.angularFreq
-    gamma_k = np.arange(0, n + 1) * params.decayConstant
+    omega_k = np.arange(1, n + 1) * params.angularFreq
+    gamma_k = np.arange(1, n + 1) * params.decayConstant
 
     # Using the formula from Denis' paper, this creates an array of shape (n + 1, n + 1)
     # where the first and second indices correspond to the indices labelled m and p respectively.
     denominator = gamma_k[:, np.newaxis] + 1j * np.subtract.outer(omega_k, omega_k)
     # We set the m = 0, p = 0 index to 1 temporarily to avoid a division by zero.
-    denominator[0, 0] = 1
+    # denominator[0, 0] = 1
 
     # The exponentials have shape (n + 1, t), corresponding to harmonics and time.
     exponentials = np.exp(
@@ -418,7 +418,7 @@ def calculate_semiclassical_intracavity_field_amplitude(
     )
     numerator = current_coefficients[:, :, np.newaxis].conj() * exponentials[np.newaxis, :, :]
 
-    # Divides numerator by denominator. The [0, 0] term we artificially set the denomninator for
+    # Divides numerator by denominator. The [0, 0] term we artificially set the denominator for
     # will now just be the average current, which should always be zero (or close to it).
     # Indexing occurs b/c numerator has indices mu, p, t and denominator has indices m, p.
     # So new array has indices mu, m, p, t.
