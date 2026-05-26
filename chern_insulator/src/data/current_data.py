@@ -40,6 +40,8 @@ class CurrentData:
     length_gauge_total_current: np.ndarray[complex] = field(default = None)
     t_averaged_second_order_current: np.ndarray[complex] = field(default = None)
     spectral_noise_tensor: np.ndarray[complex] = field(default = None)
+    semiclassical_mode_population: np.ndarray[complex] = field(default = None)
+    second_order_correlation_function: np.ndarray[complex] = field(default = None)
 
     def __add__(self, other: CurrentData) -> CurrentData:
         """
@@ -68,7 +70,9 @@ class CurrentData:
                 if self.length_gauge_total_current is not None and other.length_gauge_total_current is not None
                 else None,
             t_averaged_second_order_current = self.t_averaged_second_order_current + other.t_averaged_second_order_current,
-            spectral_noise_tensor = self.spectral_noise_tensor + other.spectral_noise_tensor
+            spectral_noise_tensor = self.spectral_noise_tensor + other.spectral_noise_tensor,
+            semiclassical_mode_population = self.semiclassical_mode_population + other.semiclassical_mode_population,
+            second_order_correlation_function = self.second_order_correlation_function + other.second_order_correlation_function
         )
     
     def __truediv__(self, other: int) -> CurrentData:

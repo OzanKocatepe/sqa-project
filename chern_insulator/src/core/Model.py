@@ -99,6 +99,33 @@ class Model:
             self.__params.maxN
         )
 
+        current_fourier_coefficients = current_solver.calculate_current_fourier_coefficients(
+            self.__params,
+            self.currentData.total_current,
+            self.__axes.tau_axis_sec,
+            self.__params.maxN
+        )
+
+        semiclassical_intracavity_field_amplitude = current_solver.calculate_semiclassical_intracavity_field_amplitude(
+            self.__params,
+            current_fourier_coefficients,
+            self.__axes.tau_axis_sec,
+            self.__params.maxN
+        )
+
+        self.currentData.semiclassical_mode_population = current_solver.calculate_semiclassical_mode_population(
+            self.__params,
+            self.__axes.tau_axis_sec,
+            semiclassical_intracavity_field_amplitude
+        )
+
+        self.currentData.second_order_correlation_function = current_solver.calculate_second_order_correlation_function(
+            self.__params,
+            self.__axes.tau_axis_sec,
+            semiclassical_intracavity_field_amplitude,
+            self.currentData.semiclassical_mode_population
+        )
+
         return self.correlationData, self.currentData
      
     @property
