@@ -11,6 +11,7 @@ plt.plot(np.arange(1, 51), three_current.second_order_correlation_function[0], m
 plt.plot(np.arange(1, 51), three_current.second_order_correlation_function[1], marker = 'x', label=r"$\Delta = 3$, y")
 plt.legend()
 plt.xlim((0, 11))
+# plt.ylim(0.9975, 1.01)
 plt.xlabel(r"$\omega / \Omega$")
 plt.ylabel(r"$g_2(0)$")
 plt.savefig(PLOTTING_DIR / "g2(0).png", dpi=300)
