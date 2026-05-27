@@ -44,19 +44,14 @@ class Model:
 
         # Stores the axis data.
         self.__axes = axes
+
+        # SINGLE-TIME PROPERTIES
+        # ----------------------
         
         # Solves the single-time fourier series.
         self.correlationData.first_order_fourier = correlation_solver.solve_single_time_correlations(
             self.__params
         )
-
-        # Solves the double-time correlations using scipy ODE solver (solve_ivp).
-        # self.correlationData.second_order_correlations = correlation_solver.solve_double_time_correlations(
-        #     self.__params,
-        #     self.__axes.t_axis_sec,
-        #     self.__axes.tau_axis_sec,
-        #     self.correlationData.first_order_fourier
-        # )
 
         self.currentData.paramagnetic_current = current_solver.calculate_paramagnetic_current(
             self.__params,
@@ -77,6 +72,17 @@ class Model:
             self.currentData.paramagnetic_current,
             self.currentData.diamagnetic_current
         )
+
+        # DOUBLE-TIME PROPERTIES
+        # ----------------------
+
+        # Solves the double-time correlations using scipy ODE solver (solve_ivp).
+        # self.correlationData.second_order_correlations = correlation_solver.solve_double_time_correlations(
+        #     self.__params,
+        #     self.__axes.t_axis_sec,
+        #     self.__axes.tau_axis_sec,
+        #     self.correlationData.first_order_fourier
+        # )
 
         # self.currentData.second_order_connected_current = current_solver.calculate_double_time_current(
         #     self.__params,
