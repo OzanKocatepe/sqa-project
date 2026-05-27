@@ -161,31 +161,31 @@ class Ensemble:
         self.meanCurrent = self.meanCurrent / len(self.__models)
 
         # Calculates some properties that require the mean current, since their non-linear.
+        # Calculates 2n - 1 fourier coefficients since thats the most we will need to calculate g2(0)
+        # for 1 to n.
         current_fourier_coefficients = current_solver.calculate_current_fourier_coefficients(
             self.__params,
             self.meanCurrent.total_current,
             self.__axes.tau_axis_sec,
-            self.__params.maxN
+            2 * self.__params.maxN - 1
         )
 
-        semiclassical_intracavity_field_amplitude = current_solver.calculate_semiclassical_intracavity_field_amplitude(
-            self.__params,
-            current_fourier_coefficients,
-            self.__axes.tau_axis_sec,
-            self.__params.maxN
-        )
+        # semiclassical_intracavity_field_amplitude = current_solver.calculate_semiclassical_intracavity_field_amplitude(
+        #     self.__params,
+        #     current_fourier_coefficients,
+        #     self.__axes.tau_axis_sec,
+        #     self.__params.maxN
+        # )
 
-        self.meanCurrent.semiclassical_mode_population = current_solver.calculate_semiclassical_mode_population(
-            self.__params,
-            self.__axes.tau_axis_sec,
-            semiclassical_intracavity_field_amplitude
-        )
+        # self.meanCurrent.semiclassical_mode_population = current_solver.calculate_semiclassical_mode_population(
+        #     self.__params,
+        #     self.__axes.tau_axis_sec,
+        #     semiclassical_intracavity_field_amplitude
+        # )
 
         self.meanCurrent.second_order_correlation_function = current_solver.calculate_second_order_correlation_function(
             self.__params,
-            self.__axes.tau_axis_sec,
-            semiclassical_intracavity_field_amplitude,
-            self.meanCurrent.semiclassical_mode_population
+            current_fourier_coefficients
         )
  
     def _MultiProcessingRun(self, args: tuple[tuple[float, float], Model, AxisData]) -> tuple[tuple[float, float], Model]:
