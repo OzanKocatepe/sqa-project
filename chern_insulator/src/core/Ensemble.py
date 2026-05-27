@@ -177,11 +177,10 @@ class Ensemble:
         #     self.__params.maxN
         # )
 
-        # self.meanCurrent.semiclassical_mode_population = current_solver.calculate_semiclassical_mode_population(
-        #     self.__params,
-        #     self.__axes.tau_axis_sec,
-        #     semiclassical_intracavity_field_amplitude
-        # )
+        self.meanCurrent.semiclassical_mode_population = current_solver.calculate_semiclassical_mode_population(
+            self.__params,
+            current_fourier_coefficients
+        )
 
         self.meanCurrent.second_order_correlation_function = current_solver.calculate_second_order_correlation_function(
             self.__params,

@@ -432,8 +432,7 @@ def calculate_semiclassical_intracavity_field_amplitude(
 
 def calculate_semiclassical_mode_population(
     params: ModelParameters,
-    tau_axis_sec : np.ndarray[float],
-    field_amplitude : np.ndarray[complex]
+    current_coefficients : np.ndarray[complex]
 ) -> np.ndarray[float]:
     """Calculates the semiclassical population of each mode.
     
@@ -441,13 +440,9 @@ def calculate_semiclassical_mode_population(
     ----------
     params : ModelParameters
         The parameters of the model.
-    tau_axis_sec : ndarray[float]
-        The tau axis, in seconds.
-    field_amplitude : ndarray[complex]
-        The semiclassical intracavity field amplitude, of shape (2, m, t),
-        with axes corresponding to direction, harmonic, and time.
-
-        Should only be defined on the first driving period of the tau axis.
+    current_coefficients : ndarray[complex]
+        An array of shape (2, m) containing the Fourier coefficients
+        for the first-order current, containing indices 1, ..., m.
 
     Returns
     -------
@@ -455,11 +450,18 @@ def calculate_semiclassical_mode_population(
         The semiclassical population of each mode, an array of shape (2, m).
     """
 
-    return params.drivingFreq * np.trapezoid(
-        y = np.abs(field_amplitude)**2,
-        x = tau_axis_sec[tau_axis_sec <= 1 / params.drivingFreq],
-        axis = 2
+    # Of shape (mu, m, p)
+    m = current_coefficients.shape[1]
+    jp = current_coefficients[:, np.newaxis, :m]
+    gamma_m = params.decayConstant * np.arange(1, m + 1)[np.newaxis, :, np.newaxis]
+    omega_m = params.angularFreq * np.arange(1, m + 1)[np.newaxis, :, np.newaxis]
+    omega_p = params.angularFreq * np.arange(1, m + 1)[np.newaxis, np.newaxis, :]
+
+    mode_population = (1 / omega_m) * np.abs(jp)**2 / (
+        gamma_m**2 + (omega_m - omega_p)**2
     )
+    # Sums over p. Final shape is (mu, m).
+    return np.sum(mode_population, axis = 2)
 
 def calculate_second_order_correlation_function(
     params: ModelParameters,
@@ -530,16 +532,13 @@ def calculate_second_order_correlation_function(
     numerator = np.sum(numerator, axis=(2, 3, 4))
 
     # Calculates denominator similarly, however much simpler.
-    # Of shape (mu, m, p)
-    jp = current_coefficients[:, np.newaxis, :m]
-    gamma_m = params.decayConstant * np.arange(1, m + 1)[np.newaxis, :, np.newaxis]
-    omega_m = params.angularFreq * np.arange(1, m + 1)[np.newaxis, :, np.newaxis]
-    omega_p = params.angularFreq * np.arange(1, m + 1)[np.newaxis, np.newaxis, :]
-
-    denominator = np.abs(jp)**2 / (
-        gamma_m**2 + (omega_m - omega_p)**2
-    )
-    # Sums over p. Final shape is (mu, m).
-    denominator = np.sum(denominator, axis = 2)
+    # Of shape (mu, m). When calculating, this function only sums over the
+    # given current coefficients. Could be made more accurate by giving it all the
+    # coefficients and then considering only the first m denomiantors *after* calculation,
+    # but it felt wrong to calculate the denominator using more terms in the sum than the numerator.
+    denominator = calculate_semiclassical_mode_population(
+        params,
+        current_coefficients[:, :m]
+    ) * omega_m[:, :, 0, 0, 0]
 
     return numerator / denominator**2
