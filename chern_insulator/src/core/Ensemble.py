@@ -170,13 +170,6 @@ class Ensemble:
             2 * self.__params.maxN - 1
         )
 
-        # semiclassical_intracavity_field_amplitude = current_solver.calculate_semiclassical_intracavity_field_amplitude(
-        #     self.__params,
-        #     current_fourier_coefficients,
-        #     self.__axes.tau_axis_sec,
-        #     self.__params.maxN
-        # )
-
         self.meanCurrent.semiclassical_mode_population = current_solver.calculate_semiclassical_mode_population(
             self.__params,
             current_fourier_coefficients

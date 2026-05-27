@@ -373,63 +373,6 @@ def calculate_current_fourier_coefficients(
         axis = 1
     )
 
-def calculate_semiclassical_intracavity_field_amplitude(
-    params: ModelParameters,
-    current_coefficients: np.ndarray[complex],
-    tau_axis_sec: np.ndarray[float],
-    n: int
-) -> np.ndarray[complex]:
-    """Calculates the semiclassical intracavity field amplitude.
-    
-    Parameters
-    ----------
-    params : ModelParameters
-        The parameters of the model.
-    current_coefficients : ndarray[complex]
-        An array of shape (2, n) that contains the current fourier coefficients.
-    tau_axis_sec : ndarray[float]
-        The time axis, in seconds.
-    n : int
-        The maximum coefficient to calculate.
-
-    Returns
-    -------
-    ndarray[complex]
-        An array of shape (2, n, t) where the third axis corresponds to the indices of the first driving period
-        of tau_axis_sec.
-    """
-
-    # Restricts the tau axis to the first driving period. Since our formula is periodic in time
-    # with the period given by the chosen harmonic, there's no point in using more data than necessary.
-    two_periods_axis = tau_axis_sec[tau_axis_sec <= 1 / params.drivingFreq]
-
-    omega_k = np.arange(1, n + 1) * params.angularFreq
-    gamma_k = np.arange(1, n + 1) * params.decayConstant
-
-    # Using the formula from Denis' paper, this creates an array of shape (n + 1, n + 1)
-    # where the first and second indices correspond to the indices labelled m and p respectively.
-    denominator = gamma_k[:, np.newaxis] + 1j * np.subtract.outer(omega_k, omega_k)
-    # We set the m = 0, p = 0 index to 1 temporarily to avoid a division by zero.
-    # denominator[0, 0] = 1
-
-    # The exponentials have shape (n + 1, t), corresponding to harmonics and time.
-    exponentials = np.exp(
-        -1j * np.multiply.outer(omega_k, two_periods_axis)
-    )
-    numerator = current_coefficients[:, :, np.newaxis].conj() * exponentials[np.newaxis, :, :]
-
-    # Divides numerator by denominator. The [0, 0] term we artificially set the denominator for
-    # will now just be the average current, which should always be zero (or close to it).
-    # Indexing occurs b/c numerator has indices mu, p, t and denominator has indices m, p.
-    # So new array has indices mu, m, p, t.
-    field_amp = numerator[:, np.newaxis, :, :] / denominator[np.newaxis, :, :, np.newaxis]
-    # Sum over p.
-    field_amp = np.sum(field_amp, axis = 2)
-    # Multiply by coefficient 1 / sqrt(omega_m).
-    field_amp = -1j * (1 / np.sqrt(omega_k[np.newaxis, :, np.newaxis])) * field_amp
-
-    return field_amp
-
 def calculate_semiclassical_mode_population(
     params: ModelParameters,
     current_coefficients : np.ndarray[complex]
