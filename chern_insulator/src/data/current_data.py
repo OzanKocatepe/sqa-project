@@ -42,6 +42,7 @@ class CurrentData:
     spectral_noise_tensor: np.ndarray[complex] = field(default = None)
     semiclassical_mode_population: np.ndarray[float] = field(default = None)
     second_order_correlation_function: np.ndarray[float] = field(default = None)
+    dc_population_variance: np.ndarray[complex] = field(default = None)
 
     def __add__(self, other: CurrentData) -> CurrentData:
         """
@@ -80,6 +81,9 @@ class CurrentData:
                 else None,
             second_order_correlation_function = self.second_order_correlation_function + other.second_order_correlation_function
                 if self.second_order_correlation_function is not None and other.second_order_correlation_function is not None
+                else None,
+            dc_population_variance = self.dc_population_variance + other.dc_population_variance
+                if self.dc_population_variance is not None and other.dc_population_variance is not None
                 else None
         )
     
@@ -123,5 +127,8 @@ class CurrentData:
                 else None,
             second_order_correlation_function = self.second_order_correlation_function / other
                 if self.second_order_correlation_function is not None
+                else None,
+            dc_population_variance = self.dc_population_variance / other
+                if self.dc_population_variance is not None
                 else None
         )

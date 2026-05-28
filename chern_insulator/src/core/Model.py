@@ -108,6 +108,14 @@ class Model:
                 self.__params.maxN
             )
 
+            self.currentData.dc_population_variance = current_solver.calculate_dc_population_variance(
+                self.__params,
+                self.__axes.tau_axis_sec,
+                self.__axes.t_axis_sec,
+                self.currentData.second_order_connected_current,
+                self.__params.maxN
+            )
+
         return self.correlationData, self.currentData
      
     @property

@@ -289,7 +289,7 @@ def calculate_spectral_noise_tensor(
     doubleTimeCurrent: np.ndarray[complex],
     n: int
 ) -> np.ndarray[complex]:
-    """Calculates the Fourier transform at the harmonics of the second-order current w.r.t. tau.
+    """Calculates the spectral noise tensor.
     
     Parameters
     ----------
@@ -329,6 +329,64 @@ def calculate_spectral_noise_tensor(
         y = integrand,
         x = tauAxis,
         axis = 4
+    )
+
+def calculate_dc_population_variance(
+    params: ModelParameters,
+    tauAxis: np.ndarray[float],
+    tAxis: np.ndarray[float],
+    doubleTimeCurrent: np.ndarray[complex],
+    n: int
+) -> np.ndarray[complex]:
+    """Calculates the dc population variance in a very similar method to the spectral noise tensor.
+    
+    Parameters
+    ----------
+    params : ModelParameters
+        The parameters of the model.
+    tauAxis : ndarray[float]
+        The tauAxis in seconds.
+    tAxis : ndarray[float]
+        The tAxis in seconds.
+    doubleTimeCurrent : ndarray[complex]
+        The second order current, with shape (2, 2, t.size, tau.size).
+    n : int
+        The number of harmonics to calculate.
+
+    Returns
+    -------
+    ndarray[complex]
+        The dc population variance, with shape (2, 2, n), where the third axis corresponds to the harmonics
+        at 1 to n.
+    """
+    
+    # Creates harmonics [omega_{-n}, ..., omega_n], where omega_i = i * angularFreq
+    omega_m = np.arange(1, n + 1) * params.angularFreq
+    # Creates array of shape (2n + 1, tauAxis.size), containing exponents -1j * omega_n * tau.
+    exponentials = -1j * np.multiply.outer(omega_m, tauAxis)
+    exponentials = np.exp(exponentials)
+
+    # Final shape is of integrand is (2, 2, n, t.size, tauAxis.size), corresponding to indices of correlation tensor,
+    # chosen harmonic, and then the t and tau axes.
+    # The correlation tensor part of the integrand is the same for all harmonics, so we insert a new axis on the harmonic axis.
+    # The exponential part of the integrand is the same for all indices of the correlation tensor, and the chosen initial condition,
+    # so we add axes for the correlation tensor indices and the t axis.
+
+    averaged_current = params.drivingFreq * np.trapezoid(
+        y = doubleTimeCurrent,
+        x = tAxis,
+        axis = 2
+    )
+
+    integrand = averaged_current[:, :, np.newaxis, :] * exponentials[np.newaxis, np.newaxis, :, :]
+
+    gamma_m = np.arange(1, n + 1)**2 * params.decayConstant
+    amps = 1 / (2 * gamma_m * omega_m)
+
+    return amps[np.newaxis, np.newaxis, :] * np.trapezoid(
+        y = integrand,
+        x = tauAxis,
+        axis = 3
     )
 
 def calculate_current_fourier_coefficients(
