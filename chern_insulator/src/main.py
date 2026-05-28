@@ -111,7 +111,7 @@ def main() -> None:
 
     params = EnsembleParameters(
         delta = delta,
-        drivingAmp = 0.2,
+        drivingAmp = 0.5,
         decayConstant = 0.2,
         maxN = 50
     )
@@ -134,7 +134,7 @@ def main() -> None:
     # plot.PlotSingleTime(-np.pi / 4, -np.pi / 8, tMax = 10, overplotNumericalSolution=True)
     # plot.PlotDoubleTimeCorrelation(np.pi / 4, np.pi / 8)
     # plot.PlotDoubleTimeCurrent()
-    plot.PlotTotalCurrent(overplotLengthGauge=False)
+    # plot.PlotTotalCurrent(overplotLengthGauge=False)
     # plot.PlotTotalCurrentFFT(linearScale=False, overplotLengthGauge=False)
     # plot.PlotIntegratedSecondOrderCurrent()
 
