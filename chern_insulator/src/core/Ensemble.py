@@ -239,9 +239,9 @@ class Ensemble:
 
         # Masks our the (0, 0) point, since the code breaks there.
         # Better than enforcing that numK has to be even.
-        zeroMask = (x == 0) & (y == 0)
-        x = x[~zeroMask]
-        y = y[~zeroMask]
+        # zeroMask = (x == 0) & (y == 0)
+        # x = x[~zeroMask]
+        # y = y[~zeroMask]
          
         # Stacks x and y so that the last axis differentiates between them.
         momentums = np.stack((x.flatten(), y.flatten()), axis=-1)
