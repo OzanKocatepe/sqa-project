@@ -352,24 +352,24 @@ def calculate_current_fourier_coefficients(
     Returns
     -------
     ndarray[complex]
-        An array of shape (2, n) which stores the fourier coefficients of the
-        x- and y- current, from indices 1 to n.
+        An array of shape (2, 2n + 1) which stores the fourier coefficients of the
+        x- and y- current, from indices -n to n.
     """
 
     # Restricts our view to only 3 driving periods, since we're already in the steady state anyways.
-    time = tauAxisSec[tauAxisSec <= 3 / params.drivingFreq]
+    mask = tauAxisSec <= 3 / params.drivingFreq
 
     # Forms array containing exp(i omega_m t) of shape (2n + 1, t.size).
-    harmonics_terms = np.arange(1, n + 1) * params.angularFreq
+    harmonics_terms = np.arange(-n, n + 1) * params.angularFreq
     exponentials = np.exp(
-        np.multiply.outer(-1j * tauAxisSec, harmonics_terms)
+        np.multiply.outer(-1j * tauAxisSec[mask], harmonics_terms)
     )
 
-    integrand = current[:, :, np.newaxis] * exponentials[np.newaxis, :, :]
+    integrand = current[:, mask, np.newaxis] * exponentials[np.newaxis, :, :]
 
-    return (1 / 3) * params.drivingFreq * np.trapezoid(
+    return (params.drivingFreq / 3) * np.trapezoid(
         y = integrand,
-        x = tauAxisSec,
+        x = tauAxisSec[mask],
         axis = 1
     )
 
@@ -384,21 +384,23 @@ def calculate_semiclassical_mode_population(
     params : ModelParameters
         The parameters of the model.
     current_coefficients : ndarray[complex]
-        An array of shape (2, m) containing the Fourier coefficients
-        for the first-order current, containing indices 1, ..., m.
+        An array of shape (2, 2m + 1) containing the Fourier coefficients
+        for the first-order current, containing indices -m to m.
 
     Returns
     -------
     ndarray[float]
-        The semiclassical population of each mode, an array of shape (2, m).
+        The semiclassical population of each mode, an array of shape (2, m), containing
+        n^(cl)_{1, ... m}.
     """
 
     # Of shape (mu, m, p)
-    m = current_coefficients.shape[1]
-    jp = current_coefficients[:, np.newaxis, :m]
-    gamma_m = params.decayConstant * np.arange(1, m + 1)[np.newaxis, :, np.newaxis]
+    m = int((current_coefficients.shape[1] - 1) / 2)
+    jp = current_coefficients[:, np.newaxis, :]
+
+    gamma_m = params.decayConstant * (np.arange(1, m + 1)**2)[np.newaxis, :, np.newaxis]
     omega_m = params.angularFreq * np.arange(1, m + 1)[np.newaxis, :, np.newaxis]
-    omega_p = params.angularFreq * np.arange(1, m + 1)[np.newaxis, np.newaxis, :]
+    omega_p = params.angularFreq * np.arange(-m, m + 1)[np.newaxis, np.newaxis, :]
 
     mode_population = (1 / omega_m) * np.abs(jp)**2 / (
         gamma_m**2 + (omega_m - omega_p)**2
@@ -417,43 +419,51 @@ def calculate_second_order_correlation_function(
     params : ModelParameters
         The parameters of the model.
     current_coefficients : ndarray[complex]
-        An array of shape (2, 2m - 1) containing the Fourier coefficients
-        for the first-order current, containing indices 1, ..., 2m - 1.
+        An array of shape (2, 6m + 1) containing the Fourier coefficients
+        for the first-order current, containing indices -3m, ..., 3m.
 
     Returns
     -------
     ndarray[float]
         The second-order correlation function for the current as an array
-        of shape (2, m).
+        of shape (2, m) containing m = 1, ..., m.
     """
 
-    m = int((current_coefficients.shape[1] + 1) / 2)
+    m = int((current_coefficients.shape[1] - 1) / 6)
     # Defines gamma m, omega m, and omega p1-p3 to each have shapes corresponding to (mu, m, p1, p2, p3).
-    gamma_m = params.decayConstant * np.arange(1, m + 1)[np.newaxis, :, np.newaxis, np.newaxis, np.newaxis]
+    gamma_m = params.decayConstant * (np.arange(1, m + 1)**2)[np.newaxis, :, np.newaxis, np.newaxis, np.newaxis]
     omega_m = params.angularFreq * np.arange(1, m + 1)[np.newaxis, :, np.newaxis, np.newaxis, np.newaxis]
-    omega_p1 = params.angularFreq * np.arange(1, m + 1)[np.newaxis, np.newaxis, :, np.newaxis, np.newaxis]
-    omega_p2 = params.angularFreq * np.arange(1, m + 1)[np.newaxis, np.newaxis, np.newaxis, :, np.newaxis]
-    omega_p3 = params.angularFreq * np.arange(1, m + 1)[np.newaxis, np.newaxis, np.newaxis, np.newaxis, :]
+    omega_p1 = params.angularFreq * np.arange(-m, m + 1)[np.newaxis, np.newaxis, :, np.newaxis, np.newaxis]
+    omega_p2 = params.angularFreq * np.arange(-m, m + 1)[np.newaxis, np.newaxis, np.newaxis, :, np.newaxis]
+    omega_p3 = params.angularFreq * np.arange(-m, m + 1)[np.newaxis, np.newaxis, np.newaxis, np.newaxis, :]
 
     # Calculates omega_{p1 + p2 - p3} with shape (mu, m, p1, p2, p3)
     omega_p1_p2_p3 = params.angularFreq * (
-        np.arange(1, m + 1)[np.newaxis, np.newaxis, :, np.newaxis, np.newaxis]
-        + np.arange(1, m + 1)[np.newaxis, np.newaxis, np.newaxis, :, np.newaxis]
-        - np.arange(1, m + 1)[np.newaxis, np.newaxis, np.newaxis, np.newaxis, :]
+        np.arange(-m, m + 1)[np.newaxis, np.newaxis, :, np.newaxis, np.newaxis]
+        + np.arange(-m, m + 1)[np.newaxis, np.newaxis, np.newaxis, :, np.newaxis]
+        - np.arange(-m, m + 1)[np.newaxis, np.newaxis, np.newaxis, np.newaxis, :]
     )
 
-    # Similarly, defines jp1, jp2, jp3 with the same shapes.
-    jp1 = current_coefficients[:, np.newaxis, :m, np.newaxis, np.newaxis]
-    jp2 = current_coefficients[:, np.newaxis, np.newaxis, :m, np.newaxis]
-    jp3 = current_coefficients[:, np.newaxis, np.newaxis, np.newaxis, :m]
+    # Similarly, defines jp1, jp2, jp3 with the same shapes. Since p1 only go from -m to m,
+    # we only include those coefficients out of the total -2m to 2m that we have,
+    # since those extra ones are only for p1 + p2 - p3.
+    start = -m + 3 * m
+    end = m + 3 * m
+    jp1 = current_coefficients[:, np.newaxis, start:end + 1, np.newaxis, np.newaxis]
+    jp2 = current_coefficients[:, np.newaxis, np.newaxis, start:end + 1, np.newaxis]
+    jp3 = current_coefficients[:, np.newaxis, np.newaxis, np.newaxis, start:end + 1]
 
     # Contains the indices (p1 + p2 - p3) for shape (p1, p2, p3).
-    # Offset by one since the current coefficients are zero indexed, so index 0 to m - 1
-    # corresponds to coefficient 1 to m, as desired.
-    p1_p2_p3 = (np.arange(0, m)[:, np.newaxis, np.newaxis]
-        + np.arange(0, m)[np.newaxis, :, np.newaxis]
-        - np.arange(0, m)[np.newaxis, np.newaxis, :]
+    # We want each p1, p2, p3 to be in the range -m to m.
+    p1_p2_p3 = (np.arange(-m, m + 1)[:, np.newaxis, np.newaxis]
+        + np.arange(-m, m + 1)[np.newaxis, :, np.newaxis]
+        - np.arange(-m, m + 1)[np.newaxis, np.newaxis, :]
     )
+
+    # However these are indices to the current coefficients *array*,
+    # so these correspond to each index must be offset by 2m in order to get the correct
+    # index for the *array*.
+    p1_p2_p3 += 3 * m
 
     # Creates array of shape (mu, m, p1, p2, p3) containing j_{p1 + p2 - p3}.
     jp1_p2_p3 = np.zeros((2, m, p1_p2_p3.shape[0], p1_p2_p3.shape[1], p1_p2_p3.shape[2]), dtype=complex)
@@ -471,7 +481,7 @@ def calculate_second_order_correlation_function(
         jp1_p2_p3.conj() / (gamma_m + 1j * (omega_m - omega_p1_p2_p3))
     )
 
-    # Sums over p1, p2, p3. Remaining shape is (mu, m)
+    # Sums over p1, p2, p3. Remaining shape is (mu, m).
     numerator = np.sum(numerator, axis=(2, 3, 4))
 
     # Calculates denominator similarly, however much simpler.
@@ -481,7 +491,7 @@ def calculate_second_order_correlation_function(
     # but it felt wrong to calculate the denominator using more terms in the sum than the numerator.
     denominator = calculate_semiclassical_mode_population(
         params,
-        current_coefficients[:, :m]
+        current_coefficients[:, start:end + 1]
     ) * omega_m[:, :, 0, 0, 0]
 
     return numerator / denominator**2

@@ -167,7 +167,7 @@ class Ensemble:
             self.__params,
             self.meanCurrent.total_current,
             self.__axes.tau_axis_sec,
-            2 * self.__params.maxN - 1
+            3 * self.__params.maxN
         )
 
         self.meanCurrent.semiclassical_mode_population = current_solver.calculate_semiclassical_mode_population(
