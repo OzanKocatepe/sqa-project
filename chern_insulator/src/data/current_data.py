@@ -1,4 +1,6 @@
 from __future__ import annotations
+from typing import Protocol
+import dataclasses
 from dataclasses import dataclass, field
 import numpy as np
 
@@ -60,33 +62,18 @@ class CurrentData:
             of the attributes of the two operands.
         """
 
+        def add_none_safe(a, b):
+            if a is not None and b is not None:
+                return a + b
+            return None
+        
         return CurrentData(
-            paramagnetic_current = self.paramagnetic_current + other.paramagnetic_current,
-            diamagnetic_current = self.diamagnetic_current + other.diamagnetic_current,
-            total_current = self.total_current + other.total_current,
-            second_order_connected_current = self.second_order_connected_current + other.second_order_connected_current
-                if self.second_order_connected_current is not None and other.second_order_connected_current is not None
-                else None,
-            length_gauge_total_current = self.length_gauge_total_current + other.length_gauge_total_current
-                if self.length_gauge_total_current is not None and other.length_gauge_total_current is not None
-                else None,
-            t_averaged_second_order_current = self.t_averaged_second_order_current + other.t_averaged_second_order_current
-                if self.t_averaged_second_order_current is not None and other.t_averaged_second_order_current is not None
-                else None,
-            spectral_noise_tensor = self.spectral_noise_tensor + other.spectral_noise_tensor
-                if self.spectral_noise_tensor is not None and other.spectral_noise_tensor is not None
-                else None,
-            semiclassical_mode_population = self.semiclassical_mode_population + other.semiclassical_mode_population
-                if self.semiclassical_mode_population is not None and other.semiclassical_mode_population is not None
-                else None,
-            second_order_correlation_function = self.second_order_correlation_function + other.second_order_correlation_function
-                if self.second_order_correlation_function is not None and other.second_order_correlation_function is not None
-                else None,
-            dc_population_variance = self.dc_population_variance + other.dc_population_variance
-                if self.dc_population_variance is not None and other.dc_population_variance is not None
-                else None
+            **{
+                field.name: add_none_safe(getattr(self, field.name), getattr(other, field.name))
+                for field in dataclasses.fields(self)
+            }
         )
-    
+ 
     def __truediv__(self, other: int) -> CurrentData:
         """Divides the instance by an int.
 
@@ -102,6 +89,15 @@ class CurrentData:
         CurrentData
             A new instance with each component divided by the int.
         """
+
+        return CurrentData(
+            **{
+                field.name: getattr(self, field.name) / other
+                if getattr(self, field.name) is not None
+                else None
+                for field in dataclasses.fields(self)
+            }
+        )
         
         # No checks since we only divide in one place, and if we need to do another division
         # I trust myself to know that it passes directly to the inner arrays.

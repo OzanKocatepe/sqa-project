@@ -30,7 +30,7 @@ plt.gca().add_artist(legend1)  # needed so the first legend isn't overwritten
 legend2 = plt.legend(handles=style_handles, loc='upper right')
 plt.gca().add_artist(legend2)
 
-plt.xlim((0, 11))
+plt.xlim((0, 21))
 plt.xlabel(r"$\omega / \Omega$")
 plt.ylabel(r"$g_2(0)$")
 plt.yscale('log')
