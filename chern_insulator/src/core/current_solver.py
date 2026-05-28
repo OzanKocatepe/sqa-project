@@ -305,24 +305,25 @@ def calculate_spectral_noise_tensor(
     Returns
     -------
     ndarray[complex]
-        The spectral correlation tensor, with shape (2, 2, 2 * n + 1, t.size), where the third axis corresponds to the harmonics
-        at -n to n times the driving frequency and the fourth corresponds to the t-axis. This is a function of t.
+        The spectral correlation tensor, with shape (2, 2, n, t.size), where the third axis corresponds to the harmonics
+        at 1 to n and the fourth corresponds to the t-axis. This is a function of t.
     """
     
     # Creates harmonics [omega_{-n}, ..., omega_n], where omega_i = i * angularFreq
-    harmonic_freqs = np.arange(-n, n + 1) * params.angularFreq
+    omega_m = np.arange(1, n + 1) * params.angularFreq
     # Creates array of shape (2n + 1, tauAxis.size), containing exponents -1j * omega_n * tau.
-    exponentials = -1j * np.multiply.outer(harmonic_freqs, tauAxis)
+    exponentials = -1j * np.multiply.outer(omega_m, tauAxis)
     exponentials = np.exp(exponentials)
 
-    # Final shape is of integrand is (2, 2, 2n+1, t.size, tauAxis.size), corresponding to indices of correlation tensor,
+    # Final shape is of integrand is (2, 2, n, t.size, tauAxis.size), corresponding to indices of correlation tensor,
     # chosen harmonic, and then the t and tau axes.
     # The correlation tensor part of the integrand is the same for all harmonics, so we insert a new axis on the harmonic axis.
     # The exponential part of the integrand is the same for all indices of the correlation tensor, and the chosen initial condition,
     # so we add axes for the correlation tensor indices and the t axis.
     integrand = doubleTimeCurrent[:, :, np.newaxis, :, :] * exponentials[np.newaxis, np.newaxis, :, np.newaxis, :]
 
-    amps = 1 / (2 * np.arange(-n, n + 1)**3 * params.angularFreq**2 * params.decayConstant)
+    gamma_m = np.arange(1, n + 1)**2 * params.decayConstant
+    amps = 1 / (2 * gamma_m * omega_m)
 
     return amps[np.newaxis, np.newaxis, :, np.newaxis] * np.trapezoid(
         y = integrand,

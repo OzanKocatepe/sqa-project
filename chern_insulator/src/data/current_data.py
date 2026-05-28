@@ -70,10 +70,10 @@ class CurrentData:
                 if self.length_gauge_total_current is not None and other.length_gauge_total_current is not None
                 else None,
             t_averaged_second_order_current = self.t_averaged_second_order_current + other.t_averaged_second_order_current
-                if self.t_averaged_second_order_current and other.t_averaged_second_order_current is not None
+                if self.t_averaged_second_order_current is not None and other.t_averaged_second_order_current is not None
                 else None,
             spectral_noise_tensor = self.spectral_noise_tensor + other.spectral_noise_tensor
-                if self.spectral_noise_tensor and other.spectral_noise_tensor is not None
+                if self.spectral_noise_tensor is not None and other.spectral_noise_tensor is not None
                 else None,
             semiclassical_mode_population = self.semiclassical_mode_population + other.semiclassical_mode_population
                 if self.semiclassical_mode_population is not None and other.semiclassical_mode_population is not None

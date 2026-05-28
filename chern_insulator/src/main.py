@@ -80,6 +80,11 @@ def main() -> None:
         help = "Whether to log the memory usage to disk in 5 minute intervals.",
         action = "store_true",
     )
+    parser.add_argument(
+        "--disable-second-order",
+        help = "Disables the second-order calculations, heavily speeding up the program.",
+        action = "store_true"
+    )
 
     # Parse the arguments.
     args = parser.parse_args()
@@ -91,6 +96,7 @@ def main() -> None:
     delta = args.delta
     save_flag = args.save
     log_memory_flag = args.log_memory
+    disable_second_order = args.disable_second_order
 
     if log_memory_flag:
         # Start the logging thread.
@@ -117,7 +123,7 @@ def main() -> None:
     # ensemble.AddMomentum((np.pi / 4, -np.pi / 8))
     # ensemble.AddMomentum((-np.pi / 4, np.pi / 8))
     # ensemble.AddMomentum((-np.pi / 4, -np.pi / 8))
-    ensemble.Run(tauMax, numT, numProcesses=numProcesses)
+    ensemble.Run(tauMax, numT, numProcesses=numProcesses, disable_second_order=disable_second_order)
     if save_flag:
         ensemble.SaveCurrent()
 

@@ -64,7 +64,7 @@ class Ensemble:
             # tuple as the key.
             self.__models[(k[0], k[1])] = Model(modelParams)
 
-    def Run(self, tauMax: float, numT: float, numProcesses: int | None=1) -> None:
+    def Run(self, tauMax: float, numT: float, numProcesses: int | None=1, disable_second_order: bool=False) -> None:
         """
         Runs all of the models.
 
@@ -85,6 +85,9 @@ class Ensemble:
 
             WARNING: It is possible to manually choose to use all cores of the machine.
             This may cause unintended behaviour.
+        disable_second_order : bool
+            Whether to disable the second-order calculations. If they are not required, this
+            allows an *extremely* significant speed boost.
         """
 
         # Sanitizes the numProcesses input.
@@ -110,7 +113,7 @@ class Ensemble:
                 mininterval = 5,
                 desc=f"Running models (Delta = {self.__params.delta})"
             ):
-                model.Run(self.__axes)
+                model.Run(self.__axes, disable_second_order)
 
                 # Adds current to mean current.
                 if self.meanCurrent is None:
@@ -126,7 +129,7 @@ class Ensemble:
             with ctx.Pool(processes=numProcesses) as pool:
                 # Creates a generator for the tasks so not all models have to be built at once.
                 tasks = (
-                    (key, model, self.__axes)
+                    (key, model, self.__axes, disable_second_order)
                     for key, model in self.__models.items()
                 )
 
@@ -180,7 +183,7 @@ class Ensemble:
             current_fourier_coefficients
         )
  
-    def _MultiProcessingRun(self, args: tuple[tuple[float, float], Model, AxisData]) -> tuple[tuple[float, float], Model]:
+    def _MultiProcessingRun(self, args: tuple[tuple[float, float], Model, AxisData, bool]) -> tuple[tuple[float, float], Model]:
         """
         Creates a process to run the model. Utilised by Run() to
         run the models in parallel.
@@ -194,6 +197,7 @@ class Ensemble:
             Second element is the model instance to run.
             Third element is the axis data to run the model with. Required due to
             the fact that we cannot share self.__axes between processes. 
+            Fourth element is the disable_second_order flag.
 
         Returns
         -------
@@ -203,9 +207,9 @@ class Ensemble:
             The current data calculated from this model.
         """
 
-        key, model, axes = args
+        key, model, axes, disable_second_order = args
         
-        model.Run(axes)
+        model.Run(axes, disable_second_order)
         return key, model.currentData
 
     def SampleBrillouinZone(self, numK: int) -> None:

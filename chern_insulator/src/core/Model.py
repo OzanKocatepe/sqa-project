@@ -24,7 +24,7 @@ class Model:
         # Will be given in the Run() function.
         self.__axes = None
 
-    def Run(self, axes: AxisData) -> tuple[CorrelationData, CurrentData]:
+    def Run(self, axes: AxisData, disable_second_order: bool) -> tuple[CorrelationData, CurrentData]:
         """
         Runs all of the simulation code for this model.
 
@@ -33,6 +33,8 @@ class Model:
         axes : AxisData
             The different axes that the simulation will calculate the
             operators on.
+        disable_second_order : bool
+            Whether to disable the second-order calculations.
 
         Returns
         -------
@@ -76,34 +78,35 @@ class Model:
         # DOUBLE-TIME PROPERTIES
         # ----------------------
 
-        # Solves the double-time correlations using scipy ODE solver (solve_ivp).
-        # self.correlationData.second_order_correlations = correlation_solver.solve_double_time_correlations(
-        #     self.__params,
-        #     self.__axes.t_axis_sec,
-        #     self.__axes.tau_axis_sec,
-        #     self.correlationData.first_order_fourier
-        # )
+        if not disable_second_order:
+            #Solves the double-time correlations using scipy ODE solver (solve_ivp).
+            self.correlationData.second_order_correlations = correlation_solver.solve_double_time_correlations(
+                self.__params,
+                self.__axes.t_axis_sec,
+                self.__axes.tau_axis_sec,
+                self.correlationData.first_order_fourier
+            )
 
-        # self.currentData.second_order_connected_current = current_solver.calculate_double_time_current(
-        #     self.__params,
-        #     self.__axes.t_axis_sec,
-        #     self.__axes.tau_axis_sec,
-        #     self.correlationData.first_order_fourier,
-        #     self.correlationData.second_order_correlations
-        # )
+            self.currentData.second_order_connected_current = current_solver.calculate_double_time_current(
+                self.__params,
+                self.__axes.t_axis_sec,
+                self.__axes.tau_axis_sec,
+                self.correlationData.first_order_fourier,
+                self.correlationData.second_order_correlations
+            )
 
-        # self.currentData.t_averaged_second_order_current = current_solver.integrate_second_order_current(
-        #     self.__params.drivingFreq,
-        #     self.__axes.t_axis_sec,
-        #     self.currentData.second_order_connected_current
-        # )
+            self.currentData.t_averaged_second_order_current = current_solver.integrate_second_order_current(
+                self.__params.drivingFreq,
+                self.__axes.t_axis_sec,
+                self.currentData.second_order_connected_current
+            )
 
-        # self.currentData.spectral_noise_tensor = current_solver.calculate_spectral_noise_tensor(
-        #     self.__params.drivingFreq,
-        #     self.__axes.tau_axis_sec,
-        #     self.currentData.second_order_connected_current,
-        #     self.__params.maxN
-        # )
+            self.currentData.spectral_noise_tensor = current_solver.calculate_spectral_noise_tensor(
+                self.__params,
+                self.__axes.tau_axis_sec,
+                self.currentData.second_order_connected_current,
+                self.__params.maxN
+            )
 
         return self.correlationData, self.currentData
      
