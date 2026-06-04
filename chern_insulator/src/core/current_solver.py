@@ -421,7 +421,7 @@ def calculate_dc_population_variance_weak_laser_power(
     # Calculates the x- and y- paramagnetic current operators in the band basis.
     band_basis = hamiltonian.get_band_basis(params)
     x_current_operator = band_basis_projector.rotate_to_band_basis(band_basis, ParamagneticCurrentX.lattice_basis(params, 0))
-    y_current_operator = band_basis_projector.rotate_to_band_basis(band_basis, ParamagneticCurrentX.lattice_basis(params, 0))
+    y_current_operator = band_basis_projector.rotate_to_band_basis(band_basis, ParamagneticCurrentY.lattice_basis(params, 0))
 
     # Calculates the j^{-+}j^{+-} term. Since these are just scalars they commute, so doesn't really matter
     # which is which - they are just the off-diagonal elements.
@@ -435,7 +435,7 @@ def calculate_dc_population_variance_weak_laser_power(
 
     # Should have shape (mu, m, gamma).
     return (params.matter_light_coupling**2 / (2 * gamma_m * omega_m)) * (
-        (2 * scattering_rate * off_diagonal_current) 
+        (scattering_rate * off_diagonal_current) 
         / (scattering_rate**2 + (2 * hamiltonian.energy(params) + omega_m)**2)
     ).squeeze()
 
@@ -635,7 +635,7 @@ def imaginary_time_avg_generalised_noise_correlation_tensor(
     # Calculates the x- and y- paramagnetic current operators in the band basis.
     band_basis = hamiltonian.get_band_basis(params)
     x_current_operator = band_basis_projector.rotate_to_band_basis(band_basis, ParamagneticCurrentX.lattice_basis(params, 0))
-    y_current_operator = band_basis_projector.rotate_to_band_basis(band_basis, ParamagneticCurrentX.lattice_basis(params, 0))
+    y_current_operator = band_basis_projector.rotate_to_band_basis(band_basis, ParamagneticCurrentY.lattice_basis(params, 0))
 
     # Calculates the j^{-+}j^{+-} term. Since these are just scalars they commute, so doesn't really matter
     # which is which - they are just the off-diagonal elements.
@@ -644,7 +644,6 @@ def imaginary_time_avg_generalised_noise_correlation_tensor(
         y_current_operator[0, 1] * y_current_operator[1, 0]
     ])[:, np.newaxis, np.newaxis]
 
-    gamma_m = params.decayConstant * (np.arange(1, params.maxN + 1)**2)[np.newaxis, :, np.newaxis]
     omega_m = params.angularFreq * np.arange(1, params.maxN + 1)[np.newaxis, :, np.newaxis]
 
     # Should have shape (mu, m, gamma).
