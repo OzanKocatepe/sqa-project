@@ -426,8 +426,8 @@ def calculate_dc_population_variance_weak_laser_power(
     # Calculates the j^{-+}j^{+-} term. Since these are just scalars they commute, so doesn't really matter
     # which is which - they are just the off-diagonal elements.
     off_diagonal_current = np.array([
-        x_current_operator[0, 1] * x_current_operator[1, 0],
-        y_current_operator[0, 1] * y_current_operator[1, 0]
+        np.abs(x_current_operator[0, 1])**2,
+        np.abs(y_current_operator[0, 1])**2
     ])[:, np.newaxis, np.newaxis]
 
     gamma_m = params.decayConstant * (np.arange(1, params.maxN + 1)**2)[np.newaxis, :, np.newaxis]
@@ -436,7 +436,7 @@ def calculate_dc_population_variance_weak_laser_power(
     # Should have shape (mu, m, gamma).
     return (params.matter_light_coupling**2 / (2 * gamma_m * omega_m)) * (
         (scattering_rate * off_diagonal_current) 
-        / (scattering_rate**2 + (2 * hamiltonian.energy(params) + omega_m)**2)
+        / (scattering_rate**2 + (2 * hamiltonian.energy(params) - omega_m)**2)
     ).squeeze()
 
 def calculate_current_fourier_coefficients(
@@ -640,16 +640,16 @@ def imaginary_time_avg_generalised_noise_correlation_tensor(
     # Calculates the j^{-+}j^{+-} term. Since these are just scalars they commute, so doesn't really matter
     # which is which - they are just the off-diagonal elements.
     off_diagonal_current = np.array([
-        x_current_operator[0, 1] * x_current_operator[1, 0],
-        y_current_operator[0, 1] * y_current_operator[1, 0]
+        np.abs(x_current_operator[0, 1])**2,
+        np.abs(y_current_operator[0, 1])**2
     ])[:, np.newaxis, np.newaxis]
 
     omega_m = params.angularFreq * np.arange(1, params.maxN + 1)[np.newaxis, :, np.newaxis]
 
     # Should have shape (mu, m, gamma).
     return (
-        (-(2 * hamiltonian.energy(params) + omega_m) * off_diagonal_current)
-        / (scattering_rate**2 + (2 * hamiltonian.energy(params) + omega_m)**2)
+        ((2 * hamiltonian.energy(params) - omega_m) * off_diagonal_current)
+        / (scattering_rate**2 + (2 * hamiltonian.energy(params) - omega_m)**2)
     ).squeeze()
 
 def calculate_maximal_squeezing(

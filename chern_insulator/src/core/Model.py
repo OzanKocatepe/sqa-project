@@ -97,7 +97,7 @@ class Model:
 
         self.currentData.time_avg_generalised_noise_tensor = (
             self.currentData.dc_population_variance_weak_laser
-            + 1j * (undriven_diamagnetic_current[:, np.newaxis, np.newaxis] + time_avg_imaginary_noise_correlation_tensor_summand)
+            + 1j * (0.5 * undriven_diamagnetic_current[:, np.newaxis, np.newaxis] + time_avg_imaginary_noise_correlation_tensor_summand)
         )
 
         # DOUBLE-TIME PROPERTIES
