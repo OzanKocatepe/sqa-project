@@ -1,7 +1,8 @@
 from . import hamiltonian
-from .current_operators import ParamagneticCurrentX, ParamagneticCurrentY, DiamagneticCurrentXX
+from .current_operators import ParamagneticCurrentX, ParamagneticCurrentY, DiamagneticCurrentXX, DiamagneticCurrentYY
 
 __all__ = ['hamiltonian',
            'ParamagneticCurrentX',
            'ParamagneticCurrentY',
-           'DiamagneticCurrentXX']
+           'DiamagneticCurrentXX',
+           'DiamagneticCurrentYY']

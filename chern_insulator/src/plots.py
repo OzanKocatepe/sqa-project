@@ -79,11 +79,40 @@ plt.style.use(STYLESHEET)
 # plt.show()
 
 # delta n
-for gamma_m_index in range(one_current.dc_population_variance_weak_laser.shape[2]):
-    plt.plot(np.arange(1, maxN + 1), one_current.dc_population_variance_weak_laser[0, :, gamma_m_index], marker = 'x', color='red', linestyle='-')
-    plt.plot(np.arange(1, maxN + 1), one_current.dc_population_variance_weak_laser[1, :, gamma_m_index], marker = 'x', color='red', linestyle='--')
-    plt.plot(np.arange(1, maxN + 1), three_current.dc_population_variance_weak_laser[0, :, gamma_m_index], marker = 'x', color='blue', linestyle='-')
-    plt.plot(np.arange(1, maxN + 1), three_current.dc_population_variance_weak_laser[1, :, gamma_m_index], marker = 'x', color='blue', linestyle='--')
+# for gamma_m_index in range(one_current.dc_population_variance_weak_laser.shape[2]):
+#     plt.plot(np.arange(1, maxN + 1), one_current.dc_population_variance_weak_laser[0, :, gamma_m_index], marker = 'x', color='red', linestyle='-')
+#     plt.plot(np.arange(1, maxN + 1), one_current.dc_population_variance_weak_laser[1, :, gamma_m_index], marker = 'x', color='red', linestyle='--')
+#     plt.plot(np.arange(1, maxN + 1), three_current.dc_population_variance_weak_laser[0, :, gamma_m_index], marker = 'x', color='blue', linestyle='-')
+#     plt.plot(np.arange(1, maxN + 1), three_current.dc_population_variance_weak_laser[1, :, gamma_m_index], marker = 'x', color='blue', linestyle='--')
+
+# color_handles = [
+#     Line2D([0], [0], color='blue', linestyle='-', label='triv'),
+#     Line2D([0], [0], color='red',  linestyle='-', label='top'),
+# ]
+
+# style_handles = [
+#     Line2D([0], [0], color='k', linestyle='-',  label='x'),
+#     Line2D([0], [0], color='k', linestyle='--', label='y'),
+# ]
+
+# legend1 = plt.legend(handles=color_handles, loc='upper left')
+# plt.gca().add_artist(legend1)  # needed so the first legend isn't overwritten
+# legend2 = plt.legend(handles=style_handles, loc='upper right')
+# plt.gca().add_artist(legend2)
+
+# plt.xlim((0, 9))
+# plt.xlabel(r"$\omega / \Omega$")
+# plt.ylabel(r"$\delta n_{\mu, m}$")
+# # plt.yscale('log')
+# # plt.savefig(PLOTTING_DIR / "n_cl.png", dpi=300)
+# plt.show()
+
+# squeezing
+for gamma_m_index in range(one_current.maximal_squeezing.shape[2]):
+    plt.plot(np.arange(1, maxN + 1), one_current.maximal_squeezing[0, :, gamma_m_index], marker = 'x', color='red', linestyle='-')
+    plt.plot(np.arange(1, maxN + 1), one_current.maximal_squeezing[1, :, gamma_m_index], marker = 'x', color='red', linestyle='--')
+    plt.plot(np.arange(1, maxN + 1), three_current.maximal_squeezing[0, :, gamma_m_index], marker = 'x', color='blue', linestyle='-')
+    plt.plot(np.arange(1, maxN + 1), three_current.maximal_squeezing[1, :, gamma_m_index], marker = 'x', color='blue', linestyle='--')
 
 color_handles = [
     Line2D([0], [0], color='blue', linestyle='-', label='triv'),
@@ -102,7 +131,7 @@ plt.gca().add_artist(legend2)
 
 plt.xlim((0, 9))
 plt.xlabel(r"$\omega / \Omega$")
-plt.ylabel(r"$\delta n_{\mu, m}$")
+plt.ylabel(r"$\eta_{\mu, m}$")
 # plt.yscale('log')
 # plt.savefig(PLOTTING_DIR / "n_cl.png", dpi=300)
 plt.show()

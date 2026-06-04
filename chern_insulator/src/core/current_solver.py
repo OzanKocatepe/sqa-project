@@ -604,3 +604,84 @@ def calculate_second_order_correlation_function(
     ) * omega_m[:, :, 0, 0, 0]
 
     return numerator / denominator**2
+
+def imaginary_time_avg_generalised_noise_correlation_tensor(
+    params : ModelParameters,
+    scattering_rate : float | np.ndarray[float]
+) -> np.ndarray[complex]:
+    """
+    Calculates the inner sum term of the imaginary part of the time-averaged generalised noise correlation tensor.
+    Does not actually return the full imaginary part of the tensor - this is calculated per-momentum right
+    outside this function and saved into current data, and the mean over momentums is taken at the end.
+
+    Parameters
+    ----------
+    params : ModeLparameters
+        The parameters of the model.
+    scattering_rate : float | ndarray[float]
+        The scattering rate of the system. Can be given as a float or a vector
+        of scattering rates. Note that this is the value of gamma_M, NOT the
+        parameterised value of gamma_M / Delta.
+
+    Returns
+    -------
+    ndarray[complex]
+        The relevant inner sum in equation (31) with shape (2, m). If scattering rate is
+        given as a vector, then has shape (2, m, scattering_rate.size).
+    """
+
+    scattering_rate = np.atleast_1d(scattering_rate)[np.newaxis, np.newaxis, :]
+
+    # Calculates the x- and y- paramagnetic current operators in the band basis.
+    band_basis = hamiltonian.get_band_basis(params)
+    x_current_operator = band_basis_projector.rotate_to_band_basis(band_basis, ParamagneticCurrentX.lattice_basis(params, 0))
+    y_current_operator = band_basis_projector.rotate_to_band_basis(band_basis, ParamagneticCurrentX.lattice_basis(params, 0))
+
+    # Calculates the j^{-+}j^{+-} term. Since these are just scalars they commute, so doesn't really matter
+    # which is which - they are just the off-diagonal elements.
+    off_diagonal_current = np.array([
+        x_current_operator[0, 1] * x_current_operator[1, 0],
+        y_current_operator[0, 1] * y_current_operator[1, 0]
+    ])[:, np.newaxis, np.newaxis]
+
+    gamma_m = params.decayConstant * (np.arange(1, params.maxN + 1)**2)[np.newaxis, :, np.newaxis]
+    omega_m = params.angularFreq * np.arange(1, params.maxN + 1)[np.newaxis, :, np.newaxis]
+
+    # Should have shape (mu, m, gamma).
+    return (
+        (-(2 * hamiltonian.energy(params) + omega_m) * off_diagonal_current)
+        / (scattering_rate**2 + (2 * hamiltonian.energy(params) + omega_m)**2)
+    ).squeeze()
+
+def calculate_maximal_squeezing(
+    params : ModelParameters,
+    time_averaged_generalised_noise_tensor : np.ndarray[complex]
+) -> np.ndarray[float]:
+    """Calculates the maximal squeezing at each direction and mode.
+    
+    Parameters
+    ----------
+    params : modelParameters
+        The parameters of the model.
+    time_averaged_generalised_noise_tensor : ndarray[complex]
+        The time-averaged generalised noise correlation tensor, which should have
+        shape (2, m) corresponding to direction and mode.
+
+    Returns
+    -------
+    ndarray[float]
+        The maximal squeezing at each direction and mode, as an array of shape (2, m, M), corresponding
+        to direction, mode, and scattering rate.
+    """
+
+    omega_m = params.angularFreq * np.arange(1, params.maxN + 1)[np.newaxis, :, np.newaxis]
+    gamma_m = params.decayConstant * (np.arange(1, params.maxN + 1)**2)[np.newaxis, :, np.newaxis]
+    Q_cm = omega_m / (2 * gamma_m)
+
+    # Defines noise tensor divided by the amplitude factor.
+    parameterised_noise_tensor = time_averaged_generalised_noise_tensor * omega_m**2 / (Q_cm * params.matter_light_coupling**2)
+
+    return (
+        1 + 4 * Q_cm * (params.matter_light_coupling / omega_m)**2
+        * (parameterised_noise_tensor.real - np.abs(parameterised_noise_tensor) / np.sqrt(1 + 4 * Q_cm**2))
+    )

@@ -183,6 +183,11 @@ class Ensemble:
             self.__params,
             current_fourier_coefficients
         )
+
+        self.meanCurrent.maximal_squeezing = current_solver.calculate_maximal_squeezing(
+            self.__params,
+            self.meanCurrent.time_avg_generalised_noise_tensor
+        )
  
     def _MultiProcessingRun(self, args: tuple[tuple[float, float], Model, AxisData, bool]) -> tuple[tuple[float, float], Model]:
         """
@@ -251,7 +256,7 @@ class Ensemble:
 
         os.makedirs(DATA_DIR, exist_ok = True)
         fileName = f"A={self.__params.drivingAmp}, D={self.__params.delta}, k={int(np.sqrt(len(self.__models)))}"
-        if self.meanCurrent.second_order_correlation_function is not None:
+        if self.meanCurrent.second_order_connected_current is not None:
             fileName += f", t={int(self.__axes.t_axis_sec.size)}"
         file = DATA_DIR / fileName
         np.save(file, (self.__axes, self.meanCurrent))

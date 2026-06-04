@@ -2,7 +2,7 @@ import numpy as np
 
 from data import ModelParameters, AxisData, CorrelationData, CurrentData
 from . import correlation_solver, current_solver
-from operators import hamiltonian
+from operators import band_basis_projector, hamiltonian, DiamagneticCurrentXX, DiamagneticCurrentYY
 
 class Model:
     """Contains a Chern Insulator model evaluated at a single pair kx, ky."""
@@ -75,16 +75,34 @@ class Model:
             self.currentData.diamagnetic_current
         )
 
+        scattering_rates = np.linspace(0.01, 0.2, 7) * hamiltonian.find_band_gap(self.__params.delta, resolution=100)
         self.currentData.dc_population_variance_weak_laser = current_solver.calculate_dc_population_variance_weak_laser_power(
             self.__params,
-            np.linspace(0.01, 0.2, 7) * hamiltonian.find_band_gap(self.__params.delta, resolution=100)
+            scattering_rates
+        )
+
+        time_avg_imaginary_noise_correlation_tensor_summand = current_solver.imaginary_time_avg_generalised_noise_correlation_tensor(
+            self.__params,
+            scattering_rates
+        )
+
+        # Calculates the undriven diamagnetic current expectation, which is just constant.
+        band_basis = hamiltonian.get_band_basis(self.__params)
+        undriven_diamagnetic_current = np.array([
+            band_basis_projector.rotate_to_band_basis(band_basis, DiamagneticCurrentXX.lattice_basis(self.__params, 0))[1, 1],
+            band_basis_projector.rotate_to_band_basis(band_basis, DiamagneticCurrentYY.lattice_basis(self.__params, 0))[1, 1]
+        ])
+
+        self.currentData.time_avg_generalised_noise_tensor = (
+            self.currentData.dc_population_variance_weak_laser
+            + 1j * (undriven_diamagnetic_current[:, np.newaxis, np.newaxis] + time_avg_imaginary_noise_correlation_tensor_summand)
         )
 
         # DOUBLE-TIME PROPERTIES
         # ----------------------
 
         if not disable_second_order:
-            #Solves the double-time correlations using scipy ODE solver (solve_ivp).
+            # Solves the double-time correlations using scipy ODE solver (solve_ivp).
             self.correlationData.second_order_correlations = correlation_solver.solve_double_time_correlations(
                 self.__params,
                 self.__axes.t_axis_sec,

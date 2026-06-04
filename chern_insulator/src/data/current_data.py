@@ -46,6 +46,8 @@ class CurrentData:
     second_order_correlation_function: np.ndarray[float] = field(default = None)
     dc_population_variance: np.ndarray[complex] = field(default = None)
     dc_population_variance_weak_laser: np.ndarray[complex] = field(default = None)
+    time_avg_generalised_noise_tensor: np.ndarray[complex] = field(default = None)
+    maximal_squeezing: np.ndarray[float] = field(default = None)
 
     def __add__(self, other: CurrentData) -> CurrentData:
         """

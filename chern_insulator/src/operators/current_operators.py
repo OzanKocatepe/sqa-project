@@ -39,3 +39,18 @@ class DiamagneticCurrentXX:
         )
 
         return jdx.squeeze()
+    
+class DiamagneticCurrentYY:
+    """The diamagnetic current operator in the y-direction."""
+
+    @staticmethod
+    def lattice_basis(params: ModelParameters, t: float | np.ndarray[float]=0) -> np.ndarray[complex]:
+
+        t = np.atleast_1d(t)
+        
+        jdy = (
+            np.multiply.outer(-np.sin(params.ky), hamiltonian.sigmay)
+            + np.multiply.outer(-np.cos(params.ky), hamiltonian.sigmaz)
+        )
+        
+        return (np.multiply.outer(np.ones_like(t, dtype=complex), jdy)).squeeze()
