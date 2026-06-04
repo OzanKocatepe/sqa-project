@@ -111,7 +111,7 @@ def main() -> None:
 
     params = EnsembleParameters(
         delta = delta,
-        drivingAmp = 0.5,
+        drivingAmp = 0.1,
         decayConstant = 0.2,
         maxN = 50
     )

@@ -121,6 +121,40 @@ def energy(params: ModelParameters) -> float:
 
     return jnp.sqrt(hx(params)**2 + hy(params)**2 + hz(params)**2)
 
+def find_band_gap(delta: float, resolution: int) -> float:
+    """Calculates the minimum band gap in the Brillouin zone.
+    
+    Parameters
+    ----------
+    delta : float
+        The delta parameter of the model, which controls the band gap.
+    resolution : int
+        The number of momentum points on each axis to sample the BZ.
+
+    Returns
+    -------
+    float:
+        The minimum band gap in the BZ. Since the energy levels are symmetric around 0,
+        this is just 2 times the minimum energy of the system.
+    """
+
+    # Samples the BZ based on the resolution. This can be very detailed since
+    # it should only happen a single time in the code.
+    # We also don't need to exclude endpoints since they will give the same answer, and we are simply
+    # trying to find the minimum delta, so double-covering a point is not an issue.
+    axisPoints = np.linspace(-np.pi, np.pi, resolution)
+    kx, ky = np.meshgrid(axisPoints, axisPoints)
+    
+    # We need to redefine energies here, because if we define it in Hamiltonian and try to import it,
+    # Hamiltonian will require importing ModelParameters, which will cause a circular import error.
+    # Its simple enough to just redefine.
+    hx = np.sin(kx)
+    hy = np.sin(ky)
+    hz = delta + np.cos(kx) + np.cos(ky)
+
+    energies = np.sqrt(hx**2 + hy**2 + hz**2)
+    return 2 * np.min(energies)
+
 def lattice_basis(params: ModelParameters, t: float | jnp.ndarray[float]=0) -> jnp.ndarray[complex]:
     """Calculates the Hamiltonian operator in the lattice basis.
     

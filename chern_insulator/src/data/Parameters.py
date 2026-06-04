@@ -48,24 +48,11 @@ class EnsembleParameters:
         # set the drivingFreq and so we will not recalculate it.
         
         if self.drivingFreq is None:
-            # Samples the BZ based on the resolution. This can be very detailed since
-            # it should only happen a single time in the code.
-            resolution = 50
-            axisPoints = np.linspace(-np.pi, np.pi, resolution)
-            kx, ky = np.meshgrid(axisPoints, axisPoints)
-            
-            # We need to redefine energies here, because if we define it in Hamiltonian and try to import it,
-            # Hamiltonian will require importing ModelParameters, which will cause a circular import error.
-            # Its simple enough to just redefine.
-            hx = np.sin(kx)
-            hy = np.sin(ky)
-            hz = self.delta + np.cos(kx) + np.cos(ky)
-
-            energies = np.sqrt(hx**2 + hy**2 + hz**2)
-            bandGap = 2 * np.min(energies)
+            from operators.hamiltonian import find_band_gap
 
             # Finds the minimum band gap over the Brillouin zone.
             # The band gap for an ensemble is controlled only by the delta.
+            bandGap = find_band_gap(self.delta, 100)
 
             self.angularFreq = bandGap * 2 / 5
             self.drivingFreq =  self.angularFreq / (2 * np.pi)
