@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from config.paths import DATA_DIR, PLOTTING_DIR, STYLESHEET
 
-axes, one_current = np.load(DATA_DIR / "D=1.0, k=61.npy", allow_pickle = True)
-_, three_current = np.load(DATA_DIR / "D=3.0, k=61.npy", allow_pickle = True)
+axes, one_current = np.load(DATA_DIR / "A=0, D=1.0, k=61.npy", allow_pickle = True)
+_, three_current = np.load(DATA_DIR / "A=0, D=3.0, k=61.npy", allow_pickle = True)
 maxN = 50
 
 plt.style.use(STYLESHEET)

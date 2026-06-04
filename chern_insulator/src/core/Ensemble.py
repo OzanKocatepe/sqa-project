@@ -250,7 +250,10 @@ class Ensemble:
         """
 
         os.makedirs(DATA_DIR, exist_ok = True)
-        file = DATA_DIR / f"D={self.__params.delta}, k={int(np.sqrt(len(self.__models)))}"
+        fileName = f"A={self.__params.drivingAmp}, D={self.__params.delta}, k={int(np.sqrt(len(self.__models)))}"
+        if self.meanCurrent.second_order_correlation_function is not None:
+            fileName += f", t={int(self.__axes.t_axis_sec.size)}"
+        file = DATA_DIR / fileName
         np.save(file, (self.__axes, self.meanCurrent))
 
     def __CreateAxes(self, tauMax: float, numT: float) -> AxisData:
