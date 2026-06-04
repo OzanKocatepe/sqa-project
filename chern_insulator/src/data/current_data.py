@@ -45,6 +45,7 @@ class CurrentData:
     semiclassical_mode_population: np.ndarray[float] = field(default = None)
     second_order_correlation_function: np.ndarray[float] = field(default = None)
     dc_population_variance: np.ndarray[complex] = field(default = None)
+    dc_population_variance_weak_laser: np.ndarray[complex] = field(default = None)
 
     def __add__(self, other: CurrentData) -> CurrentData:
         """

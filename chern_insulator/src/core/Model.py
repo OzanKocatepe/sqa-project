@@ -75,6 +75,11 @@ class Model:
             self.currentData.diamagnetic_current
         )
 
+        self.currentData.dc_population_variance_weak_laser = current_solver.calculate_dc_population_variance_weak_laser_power(
+            self.__params,
+            np.linspace(0.01, 0.2, 7) * hamiltonian.find_band_gap(self.__params.delta, resolution=100)
+        )
+
         # DOUBLE-TIME PROPERTIES
         # ----------------------
 

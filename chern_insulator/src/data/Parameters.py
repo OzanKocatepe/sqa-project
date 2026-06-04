@@ -30,12 +30,14 @@ class EnsembleParameters:
     drivingAmp: float
     decayConstant: float
     maxN: int
+    num_particles: int
 
     # Not set to init=False, since we want to explicitly set it
     # when we create a ModelParameters instance, rather than recalculating it
     # in __post_init__.
     drivingFreq: float = field(default=None)
     angularFreq: float = field(init = False)
+    matter_light_coupling: float = field(default = None)
 
     def __post_init__(self) -> None:
         """
@@ -56,6 +58,9 @@ class EnsembleParameters:
 
             self.angularFreq = bandGap * 2 / 5
             self.drivingFreq =  self.angularFreq / (2 * np.pi)
+
+        # Set g_0 using beta_0 = 1.
+        self.matter_light_coupling = self.num_particles**(-3/4)
 
 @dataclass(slots=True)
 class ModelParameters(EnsembleParameters):
@@ -105,7 +110,9 @@ class ModelParameters(EnsembleParameters):
             drivingAmp = params.drivingAmp,
             drivingFreq = params.drivingFreq,
             decayConstant = params.decayConstant,
-            maxN = params.maxN
+            maxN = params.maxN,
+            num_particles = params.num_particles,
+            matter_light_coupling = params.matter_light_coupling
         )
 
         # Must set outside constructor, since angular freq is not in the constructor.

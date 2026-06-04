@@ -323,7 +323,7 @@ def calculate_spectral_noise_tensor(
     integrand = doubleTimeCurrent[:, :, np.newaxis, :, :] * exponentials[np.newaxis, np.newaxis, :, np.newaxis, :]
 
     gamma_m = np.arange(1, n + 1)**2 * params.decayConstant
-    amps = 1 / (2 * gamma_m * omega_m)
+    amps = params.matter_light_coupling**2 / (2 * gamma_m * omega_m)
 
     return amps[np.newaxis, np.newaxis, :, np.newaxis] * np.trapezoid(
         y = integrand,
@@ -381,13 +381,63 @@ def calculate_dc_population_variance(
     integrand = averaged_current[:, :, np.newaxis, :] * exponentials[np.newaxis, np.newaxis, :, :]
 
     gamma_m = np.arange(1, n + 1)**2 * params.decayConstant
-    amps = 1 / (2 * gamma_m * omega_m)
+    amps = params.matter_light_coupling**2 / (2 * gamma_m * omega_m)
 
     return amps[np.newaxis, np.newaxis, :] * np.trapezoid(
         y = integrand,
         x = tauAxis,
         axis = 3
     )
+
+def calculate_dc_population_variance_weak_laser_power(
+        params: ModelParameters,
+        scattering_rate: float | np.ndarray[float]
+) -> np.ndarray[complex]:
+    """Calculates the dc population variance at some weak laser power.
+
+    Note that this must be calculated at each momentum individually, since
+    the summand is non-linear in the momentum.
+
+    Parameters
+    ----------
+    params : ModeLparameters
+        The parameters of the model.
+    scattering_rate : float | ndarray[float]
+        The scattering rate of the system. Can be given as a float or a vector
+        of scattering rates. Note that this is the value of gamma_M, NOT the
+        parameterised value of gamma_M / Delta.
+
+    Returns
+    -------
+    ndarray[complex]
+        The dc population variance at weak laser power for m = 1, ..., maxN. This is also the real part of the
+        generalised noise correlation tensor, averaged over the t-axis. Has shape (2, m), where the
+        first axis corresponds to direction and m corresponds to mode. If scattering_rate is given as a vector,
+        then the shape is (2, m, scattering_rate.size).
+    """
+
+    scattering_rate = np.atleast_1d(scattering_rate)[np.newaxis, np.newaxis, :]
+
+    # Calculates the x- and y- paramagnetic current operators in the band basis.
+    band_basis = hamiltonian.get_band_basis(params)
+    x_current_operator = band_basis_projector.rotate_to_band_basis(band_basis, ParamagneticCurrentX.lattice_basis(params, 0))
+    y_current_operator = band_basis_projector.rotate_to_band_basis(band_basis, ParamagneticCurrentX.lattice_basis(params, 0))
+
+    # Calculates the j^{-+}j^{+-} term. Since these are just scalars they commute, so doesn't really matter
+    # which is which - they are just the off-diagonal elements.
+    off_diagonal_current = np.array([
+        x_current_operator[0, 1] * x_current_operator[1, 0],
+        y_current_operator[0, 1] * y_current_operator[1, 0]
+    ])[:, np.newaxis, np.newaxis]
+
+    gamma_m = params.decayConstant * (np.arange(1, params.maxN + 1)**2)[np.newaxis, :, np.newaxis]
+    omega_m = params.angularFreq * np.arange(1, params.maxN + 1)[np.newaxis, :, np.newaxis]
+
+    # Should have shape (mu, m, gamma).
+    return (params.matter_light_coupling**2 / (2 * gamma_m * omega_m)) * (
+        (2 * scattering_rate * off_diagonal_current) 
+        / (scattering_rate**2 + (2 * hamiltonian.energy(params) + omega_m)**2)
+    ).squeeze()
 
 def calculate_current_fourier_coefficients(
     params: ModelParameters,
@@ -461,7 +511,7 @@ def calculate_semiclassical_mode_population(
     omega_m = params.angularFreq * np.arange(1, m + 1)[np.newaxis, :, np.newaxis]
     omega_p = params.angularFreq * np.arange(-m, m + 1)[np.newaxis, np.newaxis, :]
 
-    mode_population = (1 / omega_m) * np.abs(jp)**2 / (
+    mode_population = (params.matter_light_coupling**2 / omega_m) * np.abs(jp)**2 / (
         gamma_m**2 + (omega_m - omega_p)**2
     )
     # Sums over p. Final shape is (mu, m).
