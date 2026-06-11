@@ -129,7 +129,7 @@ plt.gca().add_artist(legend1)  # needed so the first legend isn't overwritten
 legend2 = plt.legend(handles=style_handles, loc='upper right')
 plt.gca().add_artist(legend2)
 
-plt.xlim((0, 9))
+# plt.xlim((0, 9))
 plt.xlabel(r"$\omega / \Omega$")
 plt.ylabel(r"$\eta_{\mu, m}$")
 # plt.axhline(0, color='black')
