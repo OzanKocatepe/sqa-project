@@ -76,7 +76,7 @@ class Model:
         )
 
         # Defines consistent scattering rates.
-        scattering_rates = np.linspace(0.01, 0.2, 7) * hamiltonian.find_band_gap(self.__params.delta, resolution=100)
+        scattering_rates = np.logspace(-4, -1, 5) * hamiltonian.find_band_gap(self.__params.delta, resolution=100)
 
         self.currentData.dc_population_variance_weak_laser, noise_correlation_tensor_real = current_solver.calculate_dc_population_variance_weak_laser_power(
             self.__params,
