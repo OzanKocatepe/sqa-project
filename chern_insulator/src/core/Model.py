@@ -78,7 +78,7 @@ class Model:
         # Defines consistent scattering rates.
         scattering_rates = np.linspace(0.01, 0.2, 7) * hamiltonian.find_band_gap(self.__params.delta, resolution=100)
 
-        self.currentData.dc_population_variance_weak_laser = current_solver.calculate_dc_population_variance_weak_laser_power(
+        self.currentData.dc_population_variance_weak_laser, noise_correlation_tensor_real = current_solver.calculate_dc_population_variance_weak_laser_power(
             self.__params,
             scattering_rates
         )
@@ -93,11 +93,11 @@ class Model:
         undriven_diamagnetic_current = np.array([
             band_basis_projector.rotate_to_band_basis(band_basis, DiamagneticCurrentXX.lattice_basis(self.__params, 0))[1, 1],
             band_basis_projector.rotate_to_band_basis(band_basis, DiamagneticCurrentYY.lattice_basis(self.__params, 0))[1, 1]
-        ])
+        ])[:, np.newaxis, np.newaxis]
 
         self.currentData.time_avg_generalised_noise_tensor = (
-            self.currentData.dc_population_variance_weak_laser
-            + 1j * (0.5 * undriven_diamagnetic_current[:, np.newaxis, np.newaxis] + time_avg_imaginary_noise_correlation_tensor_summand)
+            noise_correlation_tensor_real
+            + 1j * (undriven_diamagnetic_current + time_avg_imaginary_noise_correlation_tensor_summand)
         )
 
         # DOUBLE-TIME PROPERTIES

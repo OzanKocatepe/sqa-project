@@ -400,7 +400,7 @@ def calculate_dc_population_variance_weak_laser_power(
 
     Parameters
     ----------
-    params : ModeLparameters
+    params : ModelParameters
         The parameters of the model.
     scattering_rate : float | ndarray[float]
         The scattering rate of the system. Can be given as a float or a vector
@@ -410,10 +410,12 @@ def calculate_dc_population_variance_weak_laser_power(
     Returns
     -------
     ndarray[complex]
-        The dc population variance at weak laser power for m = 1, ..., maxN. This is also the real part of the
-        generalised noise correlation tensor, averaged over the t-axis. Has shape (2, m), where the
+        The dc population variance at weak laser power for m = 1, ..., maxN. Has shape (2, m), where the
         first axis corresponds to direction and m corresponds to mode. If scattering_rate is given as a vector,
         then the shape is (2, m, scattering_rate.size).
+    ndarray[complex]
+        The same as above, but without the amplitude factors out front in equation (25), so that this becomes the
+        real part of the generalised noise correlation tensor.
     """
 
     scattering_rate = np.atleast_1d(scattering_rate)[np.newaxis, np.newaxis, :]
@@ -432,12 +434,18 @@ def calculate_dc_population_variance_weak_laser_power(
 
     gamma_m = params.decayConstant * (np.arange(1, params.maxN + 1)**2)[np.newaxis, :, np.newaxis]
     omega_m = params.angularFreq * np.arange(1, params.maxN + 1)[np.newaxis, :, np.newaxis]
+    Q_cm = omega_m / (2 * gamma_m)
 
-    # Should have shape (mu, m, gamma).
-    return (params.matter_light_coupling**2 / (2 * gamma_m * omega_m)) * (
-        (scattering_rate * off_diagonal_current) 
-        / (scattering_rate**2 + (2 * hamiltonian.energy(params) - omega_m)**2)
-    ).squeeze()
+    # Has shape (mu, m, M).
+    real_noise_correlation_tensor = (
+        (2 * scattering_rate * off_diagonal_current)
+        / (scattering_rate**2 + (2 * hamiltonian.energy(params) + omega_m)**2)
+    )
+
+    # Multiplies by the front amplitude factors to get the population variance. Same shape as above.
+    dc_population_variance = Q_cm * (params.matter_light_coupling / omega_m)**2 * real_noise_correlation_tensor
+
+    return dc_population_variance.squeeze(), real_noise_correlation_tensor.squeeze()
 
 def calculate_current_fourier_coefficients(
     params: ModelParameters,
@@ -648,8 +656,8 @@ def imaginary_time_avg_generalised_noise_correlation_tensor(
 
     # Should have shape (mu, m, gamma).
     return (
-        ((2 * hamiltonian.energy(params) - omega_m) * off_diagonal_current)
-        / (scattering_rate**2 + (2 * hamiltonian.energy(params) - omega_m)**2)
+        (-(2 * hamiltonian.energy(params) + omega_m) * off_diagonal_current)
+        / (scattering_rate**2 + (2 * hamiltonian.energy(params) + omega_m)**2)
     ).squeeze()
 
 def calculate_maximal_squeezing(
@@ -680,7 +688,7 @@ def calculate_maximal_squeezing(
     # Defines noise tensor divided by the amplitude factor.
     parameterised_noise_tensor = time_averaged_generalised_noise_tensor * omega_m**2 / (Q_cm * params.matter_light_coupling**2)
 
-    return (
+    return -10 * np.log10(
         1 + 4 * Q_cm * (params.matter_light_coupling / omega_m)**2
         * (parameterised_noise_tensor.real - np.abs(parameterised_noise_tensor) / np.sqrt(1 + 4 * Q_cm**2))
     )
