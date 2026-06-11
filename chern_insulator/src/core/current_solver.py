@@ -686,9 +686,10 @@ def calculate_maximal_squeezing(
     Q_cm = omega_m / (2 * gamma_m)
 
     # Defines noise tensor divided by the amplitude factor.
-    parameterised_noise_tensor = time_averaged_generalised_noise_tensor * omega_m**2 / (Q_cm * params.matter_light_coupling**2)
+    # parameterised_noise_tensor = time_averaged_generalised_noise_tensor * omega_m**2 / (Q_cm * params.matter_light_coupling**2)
+    parameterised_noise_tensor = time_averaged_generalised_noise_tensor
 
-    return (
-        4 * Q_cm * (params.matter_light_coupling / omega_m)**2
+    return -10 * np.log10(
+        1 + 4 * Q_cm * (params.matter_light_coupling / omega_m)**2
         * (parameterised_noise_tensor.real - np.abs(parameterised_noise_tensor) / np.sqrt(1 + 4 * Q_cm**2))
     )

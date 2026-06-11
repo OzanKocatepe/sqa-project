@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from config.paths import DATA_DIR, PLOTTING_DIR, STYLESHEET
 
-axes, one_current = np.load(DATA_DIR / "A=0, D=1.0, k=61.npy", allow_pickle = True)
-_, three_current = np.load(DATA_DIR / "A=0, D=3.0, k=61.npy", allow_pickle = True)
+axes, one_current = np.load(DATA_DIR / "A=0, D=1.0, k=31.npy", allow_pickle = True)
+_, three_current = np.load(DATA_DIR / "A=0, D=3.0, k=31.npy", allow_pickle = True)
 maxN = 50
 
 plt.style.use(STYLESHEET)
@@ -129,7 +129,7 @@ plt.gca().add_artist(legend1)  # needed so the first legend isn't overwritten
 legend2 = plt.legend(handles=style_handles, loc='upper right')
 plt.gca().add_artist(legend2)
 
-# plt.xlim((0, 9))
+plt.xlim((0, 9))
 plt.xlabel(r"$\omega / \Omega$")
 plt.ylabel(r"$\eta_{\mu, m}$")
 # plt.axhline(0, color='black')

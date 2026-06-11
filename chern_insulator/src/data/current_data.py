@@ -131,3 +131,26 @@ class CurrentData:
                 if self.dc_population_variance is not None
                 else None
         )
+
+    def __mul__(self, other: int | float | complex) -> CurrentData:
+        """Multiplies the instance by a constant componentwise.
+        
+        Parameters
+        ----------
+        other : int | float | complex
+            The integer to multiply by.
+            
+        Returns
+        -------
+        CurrentData
+            A new instance with each component multiplied.
+        """
+
+        return CurrentData(
+            **{
+                field.name: getattr(self, field.name) * other
+                if getattr(self, field.name) is not None
+                else None
+                for field in dataclasses.fields(self)
+            }
+        )
