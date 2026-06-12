@@ -108,31 +108,57 @@ plt.style.use(STYLESHEET)
 # plt.show()
 
 # squeezing
-for gamma_m_index in range(one_current.maximal_squeezing.shape[2]):
-    plt.plot(np.arange(1, maxN + 1), one_current.maximal_squeezing[0, :, gamma_m_index], marker = 'x', color='red', linestyle='-')
-    plt.plot(np.arange(1, maxN + 1), one_current.maximal_squeezing[1, :, gamma_m_index], marker = 'x', color='red', linestyle='--')
-    plt.plot(np.arange(1, maxN + 1), three_current.maximal_squeezing[0, :, gamma_m_index], marker = 'x', color='blue', linestyle='-')
-    plt.plot(np.arange(1, maxN + 1), three_current.maximal_squeezing[1, :, gamma_m_index], marker = 'x', color='blue', linestyle='--')
+# Determine the number of gamma indices to calculate the color gradients
+num_gamma = one_current.maximal_squeezing.shape[2]
 
-color_handles = [
-    Line2D([0], [0], color='blue', linestyle='-', label='triv'),
-    Line2D([0], [0], color='red',  linestyle='-', label='top'),
-]
+# Sample from the Reds and Blues colormaps. 
+# We start at 0.4 to ensure the lightest colors remain visible against a white background.
+red_shades = plt.cm.Reds(np.linspace(0.4, 1.0, num_gamma))
+blue_shades = plt.cm.Blues(np.linspace(0.4, 1.0, num_gamma))
+
+# Plot the lines using the generated shades
+for gamma_m_index in range(num_gamma):
+    current_red = red_shades[gamma_m_index]
+    current_blue = blue_shades[gamma_m_index]
+    
+    plt.plot(np.arange(1, maxN + 1), one_current.maximal_squeezing[0, :, gamma_m_index], marker='x', color=current_red, linestyle='-')
+    plt.plot(np.arange(1, maxN + 1), one_current.maximal_squeezing[1, :, gamma_m_index], marker='x', color=current_red, linestyle='--')
+    plt.plot(np.arange(1, maxN + 1), three_current.maximal_squeezing[0, :, gamma_m_index], marker='x', color=current_blue, linestyle='-')
+    plt.plot(np.arange(1, maxN + 1), three_current.maximal_squeezing[1, :, gamma_m_index], marker='x', color=current_blue, linestyle='--')
+
+# Dynamically build the color legend handles to include the gamma_m_index
+gamma_m = np.log10(np.logspace(-4, -1, 5))
+color_handles = []
+for i in range(num_gamma):
+    color_handles.append(Line2D([0], [0], color=blue_shades[i], linestyle='-', label=rf'$\gamma_m / \Delta = 10^{{{gamma_m[i]:.2f}}}$'))
+for i in range(num_gamma):
+    color_handles.append(Line2D([0], [0], color=red_shades[i], linestyle='-', label=rf'$\gamma_m / \Delta = 10^{{{gamma_m[i]:.2f}}}$'))
 
 style_handles = [
     Line2D([0], [0], color='k', linestyle='-',  label='x'),
     Line2D([0], [0], color='k', linestyle='--', label='y'),
 ]
 
-legend1 = plt.legend(handles=color_handles, loc='upper left')
+top_handles = [
+    Line2D([0], [0], color='blue', linestyle='-',  label='triv'),
+    Line2D([0], [0], color='red', linestyle='-', label='top'),
+]
+
+# Configure legends
+legend1 = plt.legend(handles=color_handles, loc='upper right', fontsize='small', ncol=2) 
 plt.gca().add_artist(legend1)  # needed so the first legend isn't overwritten
-legend2 = plt.legend(handles=style_handles, loc='upper right')
+
+legend2 = plt.legend(handles=style_handles, loc='upper right', bbox_to_anchor=(1.0, 0.825))
 plt.gca().add_artist(legend2)
+
+legend3 = plt.legend(handles=top_handles, loc='upper right', bbox_to_anchor=(0.94, 0.825))
+plt.gca().add_artist(legend3)
 
 plt.xlim((0, 9))
 plt.xlabel(r"$\omega / \Omega$")
 plt.ylabel(r"$\eta_{\mu, m}$")
 # plt.axhline(0, color='black')
 # plt.yscale('log')
+
 plt.savefig(PLOTTING_DIR / "squeezing.png", dpi=300)
 plt.show()
