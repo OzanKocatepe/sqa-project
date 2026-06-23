@@ -114,7 +114,7 @@ def main() -> None:
         drivingAmp = 0.2,
         decayConstant = 0.2,
         maxN = 50,
-        num_particles = 1e8
+        num_particles = 1e10
     )
     tauMax = 20
 
