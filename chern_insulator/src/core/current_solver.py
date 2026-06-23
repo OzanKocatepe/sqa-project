@@ -2,7 +2,7 @@ import numpy as np
 from scipy import integrate
 
 from data import ModelParameters, Fourier
-from operators import ParamagneticCurrentX, ParamagneticCurrentY, DiamagneticCurrentXX, band_basis_projector, hamiltonian
+from operators import ParamagneticCurrentX, ParamagneticCurrentY, DiamagneticCurrentXX, DiamagneticCurrentYY, band_basis_projector, hamiltonian
 from LengthGauge import LengthGauge
 
 def calculate_paramagnetic_current(
@@ -415,7 +415,7 @@ def calculate_dc_population_variance_weak_laser_power(
         then the shape is (2, m, scattering_rate.size).
     ndarray[complex]
         The same as above, but without the amplitude factors out front in equation (25), so that this becomes the
-        real part of the generalised noise correlation tensor.
+        real part of the generalised noise correlation tensor at weak laser power.
     """
 
     scattering_rate = np.atleast_1d(scattering_rate)[np.newaxis, np.newaxis, :]
@@ -613,7 +613,7 @@ def calculate_second_order_correlation_function(
 
     return numerator / denominator**2
 
-def imaginary_time_avg_generalised_noise_correlation_tensor(
+def imaginary_time_avg_generalised_noise_correlation_tensor_weak_laser(
     params : ModelParameters,
     scattering_rate : float | np.ndarray[float]
 ) -> np.ndarray[complex]:
@@ -660,7 +660,7 @@ def imaginary_time_avg_generalised_noise_correlation_tensor(
         / (scattering_rate**2 + (2 * hamiltonian.energy(params) + omega_m)**2)
     ).squeeze()
 
-def calculate_maximal_squeezing(
+def calculate_squeezing_weak_laser(
     params : ModelParameters,
     time_averaged_generalised_noise_tensor : np.ndarray[complex]
 ) -> np.ndarray[float]:
@@ -677,7 +677,7 @@ def calculate_maximal_squeezing(
     Returns
     -------
     ndarray[float]
-        The maximal squeezing at each direction and mode, as an array of shape (2, m, M), corresponding
+        The maximal squeezing at weak laser power at each direction and mode, as an array of shape (2, m, M), corresponding
         to direction, mode, and scattering rate.
     """
 
@@ -693,3 +693,25 @@ def calculate_maximal_squeezing(
         1 + 4 * Q_cm * (params.matter_light_coupling / omega_m)**2
         * (parameterised_noise_tensor.real - np.abs(parameterised_noise_tensor) / np.sqrt(1 + 4 * Q_cm**2))
     )
+
+def calculate_weak_laser_noise_tensor(
+    params: ModelParameters,
+    scattering_rates: np.ndarray[float],
+    real_component: np.ndarray[complex],
+) -> np.ndarray[complex]:
+
+        band_basis = hamiltonian.get_band_basis(params)
+        undriven_diamagnetic_current = np.array([
+            band_basis_projector.rotate_to_band_basis(band_basis, DiamagneticCurrentXX.lattice_basis(params, 0))[1, 1],
+            band_basis_projector.rotate_to_band_basis(band_basis, DiamagneticCurrentYY.lattice_basis(params, 0))[1, 1]
+        ])[:, np.newaxis, np.newaxis]
+
+        imaginary_component = imaginary_time_avg_generalised_noise_correlation_tensor_weak_laser(
+            params,
+            scattering_rates
+        )
+
+        return (
+            real_component
+            + 1j * (undriven_diamagnetic_current + imaginary_component)
+        )

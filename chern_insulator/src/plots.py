@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from config.paths import DATA_DIR, PLOTTING_DIR, STYLESHEET
 
-axes, one_current = np.load(DATA_DIR / "A=0, D=1.0, k=31 N=10^6.npy", allow_pickle = True)
-_, three_current = np.load(DATA_DIR / "A=0, D=3.0, k=31 N=10^6.npy", allow_pickle = True)
+axes, one_current = np.load(DATA_DIR / "A=0, D=1.0, k=31.npy", allow_pickle = True)
+_, three_current = np.load(DATA_DIR / "A=0, D=3.0, k=31.npy", allow_pickle = True)
 maxN = 50
 
 plt.style.use(STYLESHEET)
@@ -109,7 +109,7 @@ plt.style.use(STYLESHEET)
 
 # squeezing
 # Determine the number of gamma indices to calculate the color gradients
-num_gamma = one_current.maximal_squeezing.shape[2]
+num_gamma = one_current.squeezing_weak_laser.shape[2]
 
 # Sample from the Reds and Blues colormaps. 
 # We start at 0.4 to ensure the lightest colors remain visible against a white background.
@@ -121,10 +121,10 @@ for gamma_m_index in range(num_gamma):
     current_red = red_shades[gamma_m_index]
     current_blue = blue_shades[gamma_m_index]
     
-    plt.plot(np.arange(1, maxN + 1), one_current.maximal_squeezing[0, :, gamma_m_index], marker='x', color=current_red, linestyle='-')
-    plt.plot(np.arange(1, maxN + 1), one_current.maximal_squeezing[1, :, gamma_m_index], marker='x', color=current_red, linestyle='--')
-    plt.plot(np.arange(1, maxN + 1), three_current.maximal_squeezing[0, :, gamma_m_index], marker='x', color=current_blue, linestyle='-')
-    plt.plot(np.arange(1, maxN + 1), three_current.maximal_squeezing[1, :, gamma_m_index], marker='x', color=current_blue, linestyle='--')
+    plt.plot(np.arange(1, maxN + 1), one_current.squeezing_weak_laser[0, :, gamma_m_index], marker='x', color=current_red, linestyle='-')
+    plt.plot(np.arange(1, maxN + 1), one_current.squeezing_weak_laser[1, :, gamma_m_index], marker='x', color=current_red, linestyle='--')
+    plt.plot(np.arange(1, maxN + 1), three_current.squeezing_weak_laser[0, :, gamma_m_index], marker='x', color=current_blue, linestyle='-')
+    plt.plot(np.arange(1, maxN + 1), three_current.squeezing_weak_laser[1, :, gamma_m_index], marker='x', color=current_blue, linestyle='--')
 
 # Dynamically build the color legend handles to include the gamma_m_index
 gamma_m = np.log10(np.logspace(-4, -1, 5))

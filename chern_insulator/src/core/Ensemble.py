@@ -184,9 +184,9 @@ class Ensemble:
             current_fourier_coefficients
         )
 
-        self.meanCurrent.maximal_squeezing = current_solver.calculate_maximal_squeezing(
+        self.meanCurrent.squeezing_weak_laser = current_solver.calculate_squeezing_weak_laser(
             self.__params,
-            self.meanCurrent.time_avg_generalised_noise_tensor
+            self.meanCurrent.time_avg_generalised_noise_tensor_weak_laser
         )
  
     def _MultiProcessingRun(self, args: tuple[tuple[float, float], Model, AxisData, bool]) -> tuple[tuple[float, float], Model]:

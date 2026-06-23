@@ -39,15 +39,14 @@ class CurrentData:
     diamagnetic_current: np.ndarray[complex] = field(default = None)
     total_current: np.ndarray[complex] = field(default = None)
     second_order_connected_current: np.ndarray[complex] = field(default = None)
-    length_gauge_total_current: np.ndarray[complex] = field(default = None)
     t_averaged_second_order_current: np.ndarray[complex] = field(default = None)
     spectral_noise_tensor: np.ndarray[complex] = field(default = None)
     semiclassical_mode_population: np.ndarray[float] = field(default = None)
     second_order_correlation_function: np.ndarray[float] = field(default = None)
     dc_population_variance: np.ndarray[complex] = field(default = None)
     dc_population_variance_weak_laser: np.ndarray[complex] = field(default = None)
-    time_avg_generalised_noise_tensor: np.ndarray[complex] = field(default = None)
-    maximal_squeezing: np.ndarray[float] = field(default = None)
+    time_avg_generalised_noise_tensor_weak_laser: np.ndarray[complex] = field(default = None)
+    squeezing_weak_laser: np.ndarray[float] = field(default = None)
 
     def __add__(self, other: CurrentData) -> CurrentData:
         """
@@ -102,36 +101,6 @@ class CurrentData:
             }
         )
         
-        # No checks since we only divide in one place, and if we need to do another division
-        # I trust myself to know that it passes directly to the inner arrays.
-        # Could add checks later.
-        return CurrentData(
-            paramagnetic_current = self.paramagnetic_current / other,
-            diamagnetic_current = self.diamagnetic_current / other,
-            total_current = self.total_current / other,
-            second_order_connected_current = self.second_order_connected_current / other
-                if self.second_order_connected_current is not None
-                else None,
-            length_gauge_total_current = self.length_gauge_total_current / other
-                if self.length_gauge_total_current is not None
-                else None,
-            t_averaged_second_order_current = self.t_averaged_second_order_current / other
-                if self.t_averaged_second_order_current is not None
-                else None,
-            spectral_noise_tensor = self.spectral_noise_tensor / other
-                if self.spectral_noise_tensor is not None
-                else None,
-            semiclassical_mode_population = self.semiclassical_mode_population / other
-                if self.semiclassical_mode_population is not None
-                else None,
-            second_order_correlation_function = self.second_order_correlation_function / other
-                if self.second_order_correlation_function is not None
-                else None,
-            dc_population_variance = self.dc_population_variance / other
-                if self.dc_population_variance is not None
-                else None
-        )
-
     def __mul__(self, other: int | float | complex) -> CurrentData:
         """Multiplies the instance by a constant componentwise.
         
