@@ -189,18 +189,24 @@ class Ensemble:
             self.meanCurrent.time_avg_generalised_noise_tensor_weak_laser
         )
 
-        self.meanCurrent.generalised_noise_tensor = current_solver.calculate_generalised_noise_tensor(
+        self.meanCurrent.angular_momentum = current_solver.calculate_angular_momentum_operator(
             self.__params,
-            self.__axes,
-            self.meanCurrent.spectral_noise_tensor,
-            self.meanCurrent.diamagnetic_current
+            current_fourier_coefficients
         )
 
-        self.meanCurrent.squeezing = current_solver.calculate_squeezing(
-            self.__params,
-            self.__axes,
-            self.meanCurrent.generalised_noise_tensor
-        )
+        if not disable_second_order:
+            self.meanCurrent.generalised_noise_tensor = current_solver.calculate_generalised_noise_tensor(
+                self.__params,
+                self.__axes,
+                self.meanCurrent.spectral_noise_tensor,
+                self.meanCurrent.diamagnetic_current
+            )
+
+            self.meanCurrent.squeezing = current_solver.calculate_squeezing(
+                self.__params,
+                self.__axes,
+                self.meanCurrent.generalised_noise_tensor
+            )
  
     def _MultiProcessingRun(self, args: tuple[tuple[float, float], Model, AxisData, bool]) -> tuple[tuple[float, float], Model]:
         """

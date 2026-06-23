@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from config.paths import DATA_DIR, PLOTTING_DIR, STYLESHEET
 
-axes, one_current = np.load(DATA_DIR / "A=0.2, D=1.0, k=21, t=11, N=10^10.npy", allow_pickle = True)
-_, three_current = np.load(DATA_DIR / "A=0.2, D=3.0, k=21, t=11, N=10^10.npy", allow_pickle = True)
+axes, one_current = np.load(DATA_DIR / "A=0.2, D=1.0, k=31.npy", allow_pickle = True)
+_, three_current =  np.load(DATA_DIR / "A=0.2, D=3.0, k=31.npy", allow_pickle = True)
 maxN = 50
 
 plt.style.use(STYLESHEET)
@@ -160,37 +160,57 @@ plt.style.use(STYLESHEET)
 # # plt.axhline(0, color='black')
 # # plt.yscale('log')
 
-# plt.savefig(PLOTTING_DIR / "squeezing.png", dpi=300)
+# plt.savefig(PLOTTING_DIR / "squeezing_weak_laser.png", dpi=300)
 # plt.show()
 
 # Plot the lines using the generated shades 
-plt.plot(np.arange(1, maxN + 1), one_current.squeezing[0, :], marker='x', color="red", linestyle='-')
-plt.plot(np.arange(1, maxN + 1), one_current.squeezing[1, :], marker='x', color="red", linestyle='--')
-plt.plot(np.arange(1, maxN + 1), three_current.squeezing[0, :], marker='x', color="blue", linestyle='-')
-plt.plot(np.arange(1, maxN + 1), three_current.squeezing[1, :], marker='x', color="blue", linestyle='--')
+# plt.plot(np.arange(1, maxN + 1), one_current.squeezing[0, :], marker='x', color="red", linestyle='-')
+# plt.plot(np.arange(1, maxN + 1), one_current.squeezing[1, :], marker='x', color="red", linestyle='--')
+# plt.plot(np.arange(1, maxN + 1), three_current.squeezing[0, :], marker='x', color="blue", linestyle='-')
+# plt.plot(np.arange(1, maxN + 1), three_current.squeezing[1, :], marker='x', color="blue", linestyle='--')
 
-style_handles = [
-    Line2D([0], [0], color='k', linestyle='-',  label='x'),
-    Line2D([0], [0], color='k', linestyle='--', label='y'),
-]
+# style_handles = [
+#     Line2D([0], [0], color='k', linestyle='-',  label='x'),
+#     Line2D([0], [0], color='k', linestyle='--', label='y'),
+# ]
+
+# top_handles = [
+#     Line2D([0], [0], color='blue', linestyle='-',  label='triv'),
+#     Line2D([0], [0], color='red', linestyle='-', label='top'),
+# ]
+
+# # Configure legends
+# legend2 = plt.legend(handles=style_handles, loc='upper right', bbox_to_anchor=(1.0, 0.825))
+# plt.gca().add_artist(legend2)
+
+# legend3 = plt.legend(handles=top_handles, loc='upper right', bbox_to_anchor=(0.94, 0.825))
+# plt.gca().add_artist(legend3)
+
+# plt.xlim((0, 9))
+# plt.xlabel(r"$\omega / \Omega$")
+# plt.ylabel(r"$\eta_{\mu, m}$")
+# # plt.axhline(0, color='black')
+# # plt.yscale('log')
+
+# plt.savefig(PLOTTING_DIR / "squeezing.png", dpi=300)
+# plt.show()
+
+plt.plot(np.arange(1, maxN + 1), one_current.angular_momentum, marker='x', color="red", linestyle='-')
+plt.plot(np.arange(1, maxN + 1), three_current.angular_momentum, marker='x', color="blue", linestyle='-')
 
 top_handles = [
     Line2D([0], [0], color='blue', linestyle='-',  label='triv'),
     Line2D([0], [0], color='red', linestyle='-', label='top'),
 ]
 
-# Configure legends
-legend2 = plt.legend(handles=style_handles, loc='upper right', bbox_to_anchor=(1.0, 0.825))
-plt.gca().add_artist(legend2)
-
 legend3 = plt.legend(handles=top_handles, loc='upper right', bbox_to_anchor=(0.94, 0.825))
 plt.gca().add_artist(legend3)
 
 plt.xlim((0, 9))
 plt.xlabel(r"$\omega / \Omega$")
-plt.ylabel(r"$\eta_{\mu, m}$")
+plt.ylabel(r"$L_m$")
 # plt.axhline(0, color='black')
 # plt.yscale('log')
 
-plt.savefig(PLOTTING_DIR / "squeezing.png", dpi=300)
+plt.savefig(PLOTTING_DIR / "angular_momentum.png", dpi=300)
 plt.show()

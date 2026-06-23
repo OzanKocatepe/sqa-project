@@ -799,3 +799,35 @@ def calculate_squeezing(
     return -10 * np.log10(
         1 + 4 * (averaged_noise_tensor.real - np.abs(averaged_noise_tensor) / np.sqrt(1 + 4 * Q_cm**2))
     )
+
+def calculate_angular_momentum_operator(
+        params : ModelParameters,
+        current_coefficients: np.ndarray[complex]
+) -> np.ndarray[complex]:
+    """Calculates the angular momentum operator at each mode.
+    
+    Parameters
+    ----------
+    params : ModelParameters
+        The parameters for each model.
+    current_coefficients : ndarray[complex]
+        The fourier coefficients of the current, with shape (2, 2n + 1) containing the indices from
+        -n to n.
+
+    Returns
+    -------
+    ndarray[complex]
+        An array of shape (n,) containing the angular momentum at modes 1 to n.
+    """
+
+    # Use shape (m, p)
+    m = (current_coefficients.shape[1] - 1) // 2
+    omega_m = params.angularFreq * np.arange(1, params.maxN + 1)[:, np.newaxis]
+    gamma_m = params.decayConstant * (np.arange(1, params.maxN + 1)**2)[:, np.newaxis]
+    omega_p = params.angularFreq * np.arange(-m, m + 1)[np.newaxis, :]
+
+    summand = (4 * gamma_m * omega_m * current_coefficients[0, np.newaxis, :] * current_coefficients[1, np.newaxis, :].conj()
+        / ( (omega_p**2 + gamma_m**2 - omega_m**2)**2 + 4 * gamma_m**2 * omega_m**2 )
+    )
+
+    return np.sum(summand, axis=1)

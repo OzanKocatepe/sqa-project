@@ -49,6 +49,7 @@ class CurrentData:
     generalised_noise_tensor: np.ndarray[complex] = field(default = None)
     squeezing_weak_laser: np.ndarray[float] = field(default = None)
     squeezing: np.ndarray[float] = field(default = None)
+    angular_momentum: np.ndarray[float] = field(default = None)
 
     def __add__(self, other: CurrentData) -> CurrentData:
         """
