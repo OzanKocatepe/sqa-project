@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import integrate
 
-from data import ModelParameters, Fourier
+from data import ModelParameters, Fourier, AxisData
 from operators import ParamagneticCurrentX, ParamagneticCurrentY, DiamagneticCurrentXX, DiamagneticCurrentYY, band_basis_projector, hamiltonian
 from LengthGauge import LengthGauge
 
@@ -76,8 +76,7 @@ def calculate_diamagnetic_current(
     -------
     ndarray[complex]:
         The value of the diamagnetic current operator at the corresponding times.
-        Has shape (time.size,), since we only need the xx-component of the diamagnetic
-        current in our case.
+        Has shape (2, time.size,), giving the xx- and yy- diamagnetic current at all times.
     """
 
     sigmam = fourierSeries[0].Evaluate(time)
@@ -85,13 +84,18 @@ def calculate_diamagnetic_current(
     sigmaz = fourierSeries[2].Evaluate(time)
 
     jdxx = DiamagneticCurrentXX.lattice_basis(params, time)
+    jdyy = DiamagneticCurrentYY.lattice_basis(params, time)
     basis = hamiltonian.get_band_basis(params)
     
-    return (
+    return np.array([
         band_basis_projector.rotated_minus_coeff(basis, jdxx) * sigmam
         + band_basis_projector.rotated_plus_coeff(basis, jdxx) * sigmap
-        + band_basis_projector.rotated_z_coeff(basis, jdxx) * sigmaz
-    )
+        + band_basis_projector.rotated_z_coeff(basis, jdxx) * sigmaz,
+
+        band_basis_projector.rotated_minus_coeff(basis, jdyy) * sigmam
+        + band_basis_projector.rotated_plus_coeff(basis, jdyy) * sigmap
+        + band_basis_projector.rotated_z_coeff(basis, jdyy) * sigmaz
+    ])
 
 def calculate_total_current(
     Ax: np.ndarray[float],
@@ -124,7 +128,7 @@ def calculate_total_current(
     totalCurrent = np.zeros(paramagnetic.shape, dtype=complex)
 
     # Total x-current depends on paramagnetic and diamagnetic x-currents, along with vector potential.
-    totalCurrent[0, :] = paramagnetic[0, :] + diamagnetic * Ax
+    totalCurrent[0, :] = paramagnetic[0, :] + diamagnetic[0, :] * Ax
     # Total y-current remains just the paramagnetic y-current.
     totalCurrent[1, :] = paramagnetic[1, :]
 
@@ -715,3 +719,77 @@ def calculate_weak_laser_noise_tensor(
             real_component
             + 1j * (undriven_diamagnetic_current + imaginary_component)
         )
+
+def calculate_generalised_noise_tensor(
+        params: ModelParameters,
+        spectral_noise_tensor: np.ndarray[complex],
+        diamagnetic_current: np.ndarray[complex]
+) -> np.ndarray[complex]:
+    """Calculates the generalised noise tensor using the current correlation tensor.
+    
+    Parameters
+    ----------
+    params : ModelParameters
+        The parameters of the model.
+    spectral_noise_tensor : ndarray[complex]
+        An array of shape (2, 2, n, t), with the axes corresponding to the first and second indices,
+        the harmonic, and the time t. This should be the resulting tensor from averaging over the entire Brillouin Zone.
+    diamagnetic_current : ndarray[complex]
+        An array of shape (2, t) where the first axis corresponds to xx or yy and the second corresponds to time t.
+        This is the expectation of the total diamagnetic current, averaged over the BZ.
+    
+    Returns
+    -------
+    ndarray[complex]
+        The generalised noise tensor, with shape (2, n, t) corresponding to direction, harmonic,
+        and time respectively.
+    """
+
+    omega_m = params.angularFreq * np.arange(1, params.maxN + 1)[np.newaxis, :, np.newaxis]
+    gamma_m = params.decayConstant * (np.arange(1, params.maxN + 1)**2)[np.newaxis, :, np.newaxis]
+    Q_cm = omega_m / (2 * gamma_m)
+
+    # Creates index which will select (0, 0) and (1, 1) from first two indices of spectral_noise_tensor.
+    idx = np.arange(2)
+    return (Q_cm * (params.matter_light_coupling / omega_m)**2 * 0.5j * diamagnetic_current[: np.newaxis, :]
+        + spectral_noise_tensor[idx, idx, :, :])
+
+def calculate_squeezing(
+        params: ModelParameters,
+        axes : AxisData,
+        generalised_noise_tensor: np.ndarray[complex]
+) -> np.ndarray[float]:
+    """Calculates the squeezing of the system.
+    
+    Parameters
+    ----------
+    params : ModelParameters
+        The parameters of the model.
+    axes : AxisData
+        The axes of the model.
+    generalised_noise_tensor : ndarray[complex]
+        The generalised noise tensor of the system, with shape (2, n, t) corresponding to direction,
+        harmonic, and time.
+
+    Returns
+    -------
+    ndarray[float]
+        The squeezing as an array of shape (2, n) in each direction and at each harmonic.
+    """
+    omega_m = params.angularFreq * np.arange(1, params.maxN + 1)[np.newaxis, :]
+    gamma_m = params.decayConstant * (np.arange(1, params.maxN + 1)**2)[np.newaxis, :]
+    Q_cm = omega_m / (2 * gamma_m)
+
+    startPoint = axes.t_axis_sec[-1000]
+    numPeriods = 10
+    integration_mask = (startPoint <= axes.t_axis_sec) & (axes.t_axis_sec <= startPoint + numPeriods / params.drivingFreq)
+
+    averaged_noise_tensor = (params.drivingFreq / numPeriods) * np.trapezoid(
+        y = generalised_noise_tensor[:, :, integration_mask],
+        x = axes.t_axis_sec[integration_mask],
+        axis = 2
+    )
+
+    return -10 * np.log10(
+        1 + 4 * (averaged_noise_tensor.real - np.abs(averaged_noise_tensor) / np.sqrt(1 + 4 * Q_cm**2))
+    )
