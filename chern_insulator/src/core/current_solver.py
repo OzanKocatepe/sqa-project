@@ -722,6 +722,7 @@ def calculate_weak_laser_noise_tensor(
 
 def calculate_generalised_noise_tensor(
         params: ModelParameters,
+        axes : AxisData,
         spectral_noise_tensor: np.ndarray[complex],
         diamagnetic_current: np.ndarray[complex]
 ) -> np.ndarray[complex]:
@@ -731,6 +732,8 @@ def calculate_generalised_noise_tensor(
     ----------
     params : ModelParameters
         The parameters of the model.
+    axes : AxisData
+        The axes of the model.
     spectral_noise_tensor : ndarray[complex]
         An array of shape (2, 2, n, t), with the axes corresponding to the first and second indices,
         the harmonic, and the time t. This should be the resulting tensor from averaging over the entire Brillouin Zone.
@@ -751,7 +754,14 @@ def calculate_generalised_noise_tensor(
 
     # Creates index which will select (0, 0) and (1, 1) from first two indices of spectral_noise_tensor.
     idx = np.arange(2)
-    return (Q_cm * (params.matter_light_coupling / omega_m)**2 * 0.5j * diamagnetic_current[: np.newaxis, :]
+
+    # Interpolates the diamagnetic current to find its values within one steady state (i.e. at points along the t-axis).
+    # This makes sure it has the right shape to broadcast with spectral_noise_tensor.
+    interpolated_diamagnetic_current = diamagnetic_current[:, 
+        np.around(axes.t_axis_sec * axes.tau_axis_sec.size / np.max(axes.tau_axis_sec), 0).astype(int)
+    ]
+
+    return (Q_cm * (params.matter_light_coupling / omega_m)**2 * 0.5j * interpolated_diamagnetic_current[:, np.newaxis, :]
         + spectral_noise_tensor[idx, idx, :, :])
 
 def calculate_squeezing(
@@ -780,13 +790,9 @@ def calculate_squeezing(
     gamma_m = params.decayConstant * (np.arange(1, params.maxN + 1)**2)[np.newaxis, :]
     Q_cm = omega_m / (2 * gamma_m)
 
-    startPoint = axes.t_axis_sec[-1000]
-    numPeriods = 10
-    integration_mask = (startPoint <= axes.t_axis_sec) & (axes.t_axis_sec <= startPoint + numPeriods / params.drivingFreq)
-
-    averaged_noise_tensor = (params.drivingFreq / numPeriods) * np.trapezoid(
-        y = generalised_noise_tensor[:, :, integration_mask],
-        x = axes.t_axis_sec[integration_mask],
+    averaged_noise_tensor = params.drivingFreq * np.trapezoid(
+        y = generalised_noise_tensor,
+        x = axes.t_axis_sec,
         axis = 2
     )
 

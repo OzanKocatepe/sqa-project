@@ -191,6 +191,7 @@ class Ensemble:
 
         self.meanCurrent.generalised_noise_tensor = current_solver.calculate_generalised_noise_tensor(
             self.__params,
+            self.__axes,
             self.meanCurrent.spectral_noise_tensor,
             self.meanCurrent.diamagnetic_current
         )
