@@ -29,7 +29,7 @@ class Ensemble:
         # The axis data shared by the system.
         self.__axes = None
         # Stores the final current information.
-        self.totalModelData = None
+        self.total_model_data = None
         self.bz_average_extrinsic = None
         self.ensemble_data = EnsembleData()
 
@@ -119,10 +119,10 @@ class Ensemble:
                 model.Run(self.__axes, disable_second_order)
 
                 # Adds current to mean current.
-                if self.totalModelData is None:
-                    self.totalModelData = model.currentData
+                if self.total_model_data is None:
+                    self.total_model_data = model.currentData
                 else:
-                    self.totalModelData = self.totalModelData + model.currentData
+                    self.total_model_data = self.total_model_data + model.currentData
 
                 # Deletes the model to free memory.
                 self.__models[key] = None
@@ -153,10 +153,10 @@ class Ensemble:
                     chunksize = 1
                 ):
                     # Adds the current to the total current.
-                    if self.totalModelData is None:
-                        self.totalModelData = currentData
+                    if self.total_model_data is None:
+                        self.total_model_data = currentData
                     else:
-                        self.totalModelData = self.totalModelData + currentData
+                        self.total_model_data = self.total_model_data + currentData
 
                     # Frees reference to the model to free memory.
                     self.__models[key] = None
@@ -165,7 +165,7 @@ class Ensemble:
                     pbar.update(1)
 
         # Intrinsic vs. Extrinsic Brillouin Zone sums.
-        self.bz_average_intrinsic = self.totalModelData / len(self.__models)
+        self.bz_average_intrinsic = self.total_model_data / len(self.__models)
         self.bz_average_extrinsic = self.bz_average_intrinsic * self.__params.num_particles
 
         # Calculates some properties that require the mean current, since their non-linear.
