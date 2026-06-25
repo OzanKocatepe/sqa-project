@@ -30,7 +30,7 @@ class Ensemble:
         self.__axes = None
         # Stores the final current information.
         self.totalModelData = None
-        self.bz_average_data = None
+        self.bz_average_extrinsic = None
         self.ensemble_data = EnsembleData()
 
     def AddMomentum(self, kValues: tuple[float, float] | list[tuple[float, float]] | np.ndarray[float]) -> None:
@@ -164,14 +164,16 @@ class Ensemble:
                     # the automatic incrementing.
                     pbar.update(1)
 
-        self.bz_average_data = self.totalModelData * self.__params.num_particles / len(self.__models)
+        # Intrinsic vs. Extrinsic Brillouin Zone sums.
+        self.bz_average_intrinsic = self.totalModelData / len(self.__models)
+        self.bz_average_extrinsic = self.bz_average_intrinsic * self.__params.num_particles
 
         # Calculates some properties that require the mean current, since their non-linear.
         # Calculates 2n - 1 fourier coefficients since thats the most we will need to calculate g2(0)
         # for 1 to n.
         current_fourier_coefficients = ensemble_solver.calculate_current_fourier_coefficients(
             self.__params,
-            self.totalModelData.total_current,
+            self.bz_average_extrinsic.total_current,
             self.__axes.tau_axis_sec,
             3 * self.__params.maxN
         )
@@ -188,7 +190,7 @@ class Ensemble:
 
         self.ensemble_data.squeezing_weak_laser = ensemble_solver.calculate_squeezing_weak_laser(
             self.__params,
-            self.totalModelData.time_avg_generalised_noise_tensor_weak_laser
+            self.bz_average_extrinsic.time_avg_generalised_noise_tensor_weak_laser
         )
 
         self.ensemble_data.angular_momentum = ensemble_solver.calculate_angular_momentum_operator(
@@ -200,34 +202,34 @@ class Ensemble:
             self.ensemble_data.time_avg_second_order_connected_current = ensemble_solver.integrate_second_order_current(
                 self.__params.drivingFreq,
                 self.__axes.t_axis_sec,
-                self.bz_average_data.second_order_connected_current
+                self.bz_average_extrinsic.second_order_connected_current
             )
 
             self.ensemble_data.spectral_noise_tensor = ensemble_solver.calculate_spectral_noise_tensor(
                 self.__params,
                 self.__axes.tau_axis_sec,
-                self.bz_average_data.second_order_connected_current
+                self.bz_average_extrinsic.second_order_connected_current
             )
 
             self.ensemble_data.dc_population_variance = ensemble_solver.calculate_dc_population_variance(
                 self.__params,
                 self.__axes.tau_axis_sec,
                 self.__axes.t_axis_sec,
-                self.bz_average_data.second_order_connected_current,
+                self.bz_average_extrinsic.second_order_connected_current,
                 self.__params.maxN
             )
 
             self.ensemble_data.generalised_noise_tensor = ensemble_solver.calculate_generalised_noise_tensor(
                 self.__params,
                 self.__axes,
-                self.totalModelData.spectral_noise_tensor,
-                self.totalModelData.diamagnetic_current
+                self.bz_average_extrinsic.spectral_noise_tensor,
+                self.bz_average_extrinsic.diamagnetic_current
             )
 
             self.ensemble_data.squeezing = ensemble_solver.calculate_squeezing(
                 self.__params,
                 self.__axes,
-                self.totalModelData.generalised_noise_tensor
+                self.bz_average_extrinsic.generalised_noise_tensor
             )
  
     def _MultiProcessingRun(self, args: tuple[tuple[float, float], Model, AxisData, bool]) -> tuple[tuple[float, float], Model]:
@@ -297,10 +299,10 @@ class Ensemble:
 
         os.makedirs(DATA_DIR, exist_ok = True)
         fileName = f"A={self.__params.drivingAmp}, D={self.__params.delta}, k={int(np.sqrt(len(self.__models)))}"
-        if self.totalModelData.second_order_connected_current is not None:
+        if self.bz_average_extrinsic.second_order_connected_current is not None:
             fileName += f", t={int(self.__axes.t_axis_sec.size)}"
         file = DATA_DIR / fileName
-        np.save(file, (self.__axes, self.totalModelData))
+        np.save(file, (self.__axes, self.bz_average_extrinsic, self.ensemble_data))
 
     def __CreateAxes(self, tauMax: float, numT: float) -> AxisData:
         """
