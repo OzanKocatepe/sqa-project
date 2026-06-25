@@ -201,7 +201,7 @@ class Plotting:
 
         axes = self.__ensemble.axes
         current = self.__ensemble.meanCurrent.total_current
-        lengthCurrent = self.__ensemble.meanCurrent.length_gauge_total_current
+        # lengthCurrent = self.__ensemble.meanCurrent.length_gauge_total_current
 
         labels = [r"$\hat j_x$", r"$\hat j_y$"]
         alpha = 0.2
