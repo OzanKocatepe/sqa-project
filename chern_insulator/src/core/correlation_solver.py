@@ -102,89 +102,6 @@ def solve_single_time_correlations(params: ModelParameters) -> list[Fourier]:
         ) 
     ]
 
-def solve_double_time_correlations_fourier(
-        tAxis: np.ndarray[float],
-        tauAxis: np.ndarray[float],
-        singleTimeFourier: list[Fourier]
-    ) -> np.ndarray[complex]:
-    """Calculates the double-time correlations.
-
-    WARNING: CURRENTLY WORK IN PROGRESS.
-
-    Parameters
-    ----------
-    tAxis : ndarray[float], shape (n,)
-        The tAxis, as stored in AxisData, in seconds.
-    tauAxis : ndarray[float], shape(n,)
-        The tauAxis, as stored in AxisData, in seconds.
-    singleTimeFourier : list[Fourier]
-        A list containing the single-time fourier series, in the order sigma_-, sigma_+, sigma_z.
-
-    Returns
-    -------
-    ndarray[complex]:
-        The double-time correlations as an array of shape (3, 3, t.size, tau.size). The first and second axes
-        correspond to the left and right operator respectively, with indices 0, 1, and 2 corresponding
-        to sigma_-, sigma_+, and sigma_z for both axes. The third axis and fourth axis correspond to the times
-        t and tau that the correlation has been evaluated at. Remember that the correlation functions are functions
-        sigma_i(t) sigma_j(t + tau).
-    """
-
-    raise PendingDeprecationWarning("SolveDoubleTimeCorrelationsFourier is incomplete and may be deleted.")
-
-    n = self.__params.maxN
-    fullN = 2 * n + 1
-    tPlusTauAxis = np.add.outer(tAxis, tauAxis)
-    # We use the exact same B matrix as the single-time case, since we are still expanding the same
-    # ODE matrix w.r.t. t'.
-    M = self.__SingleTimeFourierMatrix()
-
-    # Creates the right hand side of the equation Mx = b.
-    b = np.zeros((3 * fullN), dtype=complex)
-
-    doubleTimeCorrelations = np.zeros((3, 3, tAxis.size, tauAxis.size), dtype=complex)
-
-    # Loops through the left-opeator.
-    for leftOperatorIndex in range(3):
-        # Stores the coefficients for the corresponding right operator. 
-        # For example, rightOperatorCoeffs[1, 5] contains the coefficient of the 5th harmonic
-        # in the Fourier series
-
-        # Loops through all the coefficients for this operator.
-        for m in range(-n, n + 1):
-            # Corresponds to the inhomogenous part -gamma in the ODEs.
-            b[2 * fullN + n] = -self.__params.decayConstant * singleTimeFourier[leftOperatorIndex][m]
-
-            # This stores the coefficients for the Fourier series which makes up the nth coefficient of
-            # the full Fourier series for our functions. The first, second, and third portions of this contain
-            # the coefficients for sigma_i sigma_-, sigma_i sigma_+, and sigma_i sigma_z respectively.
-            nth_coefficient_coefficients = np.linalg.solve(M, b)
-
-            # Fourier series for the nth coefficient, as a function of t'.
-            c_m_coeffs = [
-                Fourier(
-                    freq = self.__params.drivingFreq,
-                    coeffs = nth_coefficient_coefficients[0 : fullN]
-                ),
-
-                Fourier(
-                    freq = self.__params.drivingFreq,
-                    coeffs = nth_coefficient_coefficients[fullN : 2*fullN]
-                ),
-
-                Fourier(
-                    freq = self.__params.drivingFreq,
-                    coeffs = nth_coefficient_coefficients[2 * fullN:]
-                ) 
-            ]
-
-            for rightOperatorIndex in range(3):
-                # Calculates the mth coefficient for this right operator at time(s) t' = t + tau.
-                c_m = c_m_coeffs[rightOperatorIndex].Evaluate(tPlusTauAxis)
-                doubleTimeCorrelations[leftOperatorIndex, rightOperatorIndex, :, :] += c_m * np.exp(1j * m * self.__params.angularFreq * tAxis)[:, np.newaxis]
-
-    return doubleTimeCorrelations
-
 def solve_double_time_correlations(
         params: ModelParameters,
         tAxis: np.ndarray[float],
@@ -255,41 +172,6 @@ def solve_double_time_correlations(
     )
 
     doubleTimeCorrelations = np.array(results.reshape(tAxis.size, tauAxis.size, 3, 3).transpose(3, 2, 0, 1))
-
-    # for tIndex in tqdm(range(tAxis.size),
-    #     disable = True,
-    #     desc = "Solving double-time correlations",
-    #     position = 1,
-    #     leave = False
-    # ):
-    #     # Calculates the correlation, but bc of the way matrix multiplication works
-    #     # the input has to be given indexed as [rightOperator, leftOperator], while
-    #     # we want our final array to have input [leftOperator, rightOperator].
-
-    #     # Hence, we transpose the initial conditions we put in, and then
-    #     # transpose the final results we get out.
-    #     correlation = integrate.solve_ivp(
-    #         fun = self.__dynamics.EquationsOfMotion,
-    #         t_span = (tAxis[tIndex], tAxis[tIndex] + np.max(tauAxis)),
-    #         # We want our matrix to have its columns have the same left operator
-    #         # (i.e. each column should act like a non-batched input),
-    #         # so we need to tranpose the axes of the initial conditions.
-    #         y0 = initialConds[:, :, tIndex].T.ravel(),
-    #         method = 'DOP853',
-    #         t_eval = tAxis[tIndex] + tauAxis,
-    #         rtol = 1e-3,
-    #         atol = 1e-6,
-    #         vectorized = True,
-    #         max_step = 1 / (20 * self.__params.drivingFreq),
-    #         # Uses -<sigma_i(t)\rangle gamma_- as the inhomogenous
-    #         # z-component.
-    #         args = (inhomParts[:, tIndex],)
-    #     ).y.reshape(3, 3, -1)
-
-    #     # Here is where the last transpose happens. The last matrix stays the same, but the first
-    #     # two axes are swapped, so the matrix at each time is transposed.
-    #     doubleTimeCorrelations[:, :, tIndex, :] = np.transpose(correlation, (1, 0, 2))
-
     return doubleTimeCorrelations
 
 def double_time_initial_conditions(t: np.ndarray[float], singleTimeFourier: list[Fourier]) -> np.ndarray[complex]:
