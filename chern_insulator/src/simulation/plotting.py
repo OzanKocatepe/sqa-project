@@ -51,7 +51,7 @@ class Plotting:
 
         axes = self.__ensemble.axes
         model = self.__ensemble.models[(kx, ky)]
-        sigma = model.correlationData.first_order_fourier
+        sigma = model.correlation_data.first_order_fourier
         functions = self.__plottingFunctions[1:]
         functionLabels = ['Real', 'Imaginary']
         
@@ -112,7 +112,7 @@ class Plotting:
             The y-component of the momentum to plot.
         """
 
-        corr = self.__ensemble.models[(kx, ky)].correlationData
+        corr = self.__ensemble.models[(kx, ky)].correlation_data
         axes = self.__ensemble.axes
         subscripts = ['-', '+', 'z']
 

@@ -2,8 +2,8 @@ import numpy as np
 import jax
 import jax.numpy as jnp
 
-from data import ModelParameters
-from physics import hamiltonian, band_basis_projector
+from data import ModelParameters, band_basis
+from physics import hamiltonian
 
 """Stores all information about dynamics of the system - specifically the
 equations of motion for single- and double-time correlations.
@@ -51,9 +51,9 @@ def equation_of_motion(
     # The most efficient this can be is calculating the B matrix once for all 9 correlations,
     # which occurs when we batch the ODE.
     basis = hamiltonian.get_band_basis(params)
-    Hm = band_basis_projector.rotated_minus_coeff(basis, hamiltonian.lattice_basis(params, t)),
-    Hp = band_basis_projector.rotated_plus_coeff(basis, hamiltonian.lattice_basis(params, t)),
-    Hz = band_basis_projector.rotated_z_coeff(basis, hamiltonian.lattice_basis(params, t)),
+    Hm = band_basis.rotated_minus_coeff(basis, hamiltonian.lattice_basis(params, t)),
+    Hp = band_basis.rotated_plus_coeff(basis, hamiltonian.lattice_basis(params, t)),
+    Hz = band_basis.rotated_z_coeff(basis, hamiltonian.lattice_basis(params, t)),
     gamma = params.decayConstant
 
     Hm, Hp, Hz = jnp.array(Hm).squeeze(), jnp.array(Hp).squeeze(), jnp.array(Hz).squeeze()

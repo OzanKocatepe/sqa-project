@@ -3,9 +3,8 @@ import diffrax
 import jax
 import jax.numpy as jnp
 
-from data import ModelParameters, Fourier
-from physics import hamiltonian, band_basis_projector
-from ..physics import dynamics
+from data import ModelParameters, Fourier, band_basis
+from physics import hamiltonian, dynamics
 
 def single_time_fourier_matrix(params: ModelParameters) -> np.ndarray[complex]:
     """
@@ -31,22 +30,22 @@ def single_time_fourier_matrix(params: ModelParameters) -> np.ndarray[complex]:
     # Convolution matrix for taking the derivative of a series.
     deriv = 1j * params.angularFreq * np.diag(np.arange(-n, n + 1))
 
-    band_basis = hamiltonian.get_band_basis(params)
+    basis = hamiltonian.get_band_basis(params)
 
     # Builds the convolution matrices for Hm, Hp, Hz.
     HmConv = Fourier(
         params.drivingFreq,
-        band_basis_projector.rotated_minus_coeff(band_basis, hamiltonian.lattice_fourier_coefficient(params, np.arange(-n, n + 1)))
+        band_basis.rotated_minus_coeff(basis, hamiltonian.lattice_fourier_coefficient(params, np.arange(-n, n + 1)))
     ).BuildConvolutionMatrix()
 
     HpConv = Fourier(
         params.drivingFreq,
-        band_basis_projector.rotated_plus_coeff(band_basis, hamiltonian.lattice_fourier_coefficient(params, np.arange(-n, n + 1)))
+        band_basis.rotated_plus_coeff(basis, hamiltonian.lattice_fourier_coefficient(params, np.arange(-n, n + 1)))
     ).BuildConvolutionMatrix()
 
     HzConv = Fourier(
         params.drivingFreq,
-        band_basis_projector.rotated_z_coeff(band_basis, hamiltonian.lattice_fourier_coefficient(params, np.arange(-n, n + 1)))
+        band_basis.rotated_z_coeff(basis, hamiltonian.lattice_fourier_coefficient(params, np.arange(-n, n + 1)))
     ).BuildConvolutionMatrix()
 
     # First row, equation for sigma_-.

@@ -1,4 +1,5 @@
 import numpy as np
+import jax.numpy as jnp
 from dataclasses import dataclass
 
 @dataclass(slots=True, frozen=True)
@@ -8,7 +9,7 @@ class BandBasis:
     plus_projection: np.ndarray[complex]
     minus_projection: np.ndarray[complex]
 
-def rotate_to_band_basis(basis: BandBasis, operator: np.ndarray[complex]) -> np.ndarray[complex]:
+def rotate_to_band_basis(basis: BandBasis, operator: jnp.ndarray[complex]) -> jnp.ndarray[complex]:
     """Rotates a matrix into the band basis.
     
     Parameters
@@ -29,22 +30,22 @@ def rotate_to_band_basis(basis: BandBasis, operator: np.ndarray[complex]) -> np.
     # If we have a single operator of shape (2, 2), transforms it into
     # shape (1, 2, 2).
     if operator.ndim == 2:
-        operator = operator[np.newaxis, :, :]
+        operator = operator[jnp.newaxis, :, :]
 
     # Rotates operator numerically using the calculated U matrix.
     # eigenmatrix = self.U.conj().T @ operator @ self.U
 
     # Rotates the operator numerically using the projection operators.
-    eigenmatrix = np.zeros_like(operator, dtype=complex)
+    eigenmatrix = jnp.zeros_like(operator, dtype=complex)
 
     # Calculate diagonal components.
-    eigenmatrix = eigenmatrix.at[:, 0, 0].set(np.trace(basis.plus_projection @ operator, axis1=1, axis2=2))
-    eigenmatrix = eigenmatrix.at[:, 1, 1].set(np.trace(basis.minus_projection @ operator, axis1=1, axis2=2))
+    eigenmatrix = eigenmatrix.at[:, 0, 0].set(jnp.trace(basis.plus_projection @ operator, axis1=1, axis2=2))
+    eigenmatrix = eigenmatrix.at[:, 1, 1].set(jnp.trace(basis.minus_projection @ operator, axis1=1, axis2=2))
 
     # Pick arbitrary vector r.
-    r = 1 / np.sqrt(2) * (basis.plus_eigenvector + basis.minus_eigenvector)
+    r = 1 / jnp.sqrt(2) * (basis.plus_eigenvector + basis.minus_eigenvector)
     # Calculate off-diagonal components.
-    denominator = np.sqrt(r.conj().T @ basis.plus_projection @ r @ r.conj().T @ basis.plus_projection @ r)
+    denominator = jnp.sqrt(r.conj().T @ basis.plus_projection @ r @ r.conj().T @ basis.plus_projection @ r)
     eigenmatrix = eigenmatrix.at[:, 0, 1].set((r.conj().T @ basis.plus_projection @ operator @ basis.minus_projection @ r / denominator).squeeze())
     eigenmatrix = eigenmatrix.at[:, 1, 0].set((r.conj().T @ basis.minus_projection @ operator @ basis.plus_projection @ r / denominator).squeeze())
 
@@ -55,7 +56,7 @@ def rotate_to_band_basis(basis: BandBasis, operator: np.ndarray[complex]) -> np.
     # based on our input.
     return eigenmatrix.squeeze()
 
-def minus_coeff(operator: np.ndarray[complex]) -> complex | np.ndarray[complex]:
+def minus_coeff(operator: jnp.ndarray[complex]) -> complex | jnp.ndarray[complex]:
     """Gets the coefficient of sigma_- for this matrix.
 
     Parameters
@@ -78,7 +79,7 @@ def minus_coeff(operator: np.ndarray[complex]) -> complex | np.ndarray[complex]:
     else:
         return operator[:, 1, 0]
 
-def plus_coeff(operator: np.ndarray[complex]) -> complex | np.ndarray[complex]:
+def plus_coeff(operator: jnp.ndarray[complex]) -> complex | jnp.ndarray[complex]:
     """Gets the coefficient of sigma_+ for this matrix.
 
     Parameters
@@ -101,7 +102,7 @@ def plus_coeff(operator: np.ndarray[complex]) -> complex | np.ndarray[complex]:
     else:
         return operator[:, 0, 1]
 
-def z_coeff(operator: np.ndarray[complex]) -> complex | np.ndarray[complex]:
+def z_coeff(operator: jnp.ndarray[complex]) -> complex | jnp.ndarray[complex]:
     """Gets the coefficient of sigma_z for this matrix.
 
     Parameters
@@ -124,7 +125,7 @@ def z_coeff(operator: np.ndarray[complex]) -> complex | np.ndarray[complex]:
     else:
         return 0.5 * (operator[:, 0, 0] - operator[:, 1, 1])
 
-def rotated_minus_coeff(basis: BandBasis, operator: np.ndarray[complex]) -> complex | np.ndarray[complex]:
+def rotated_minus_coeff(basis: BandBasis, operator: jnp.ndarray[complex]) -> complex | jnp.ndarray[complex]:
     """Gets the coefficient of sigma_- for this matrix in the band basis.
 
     Parameters
@@ -143,7 +144,7 @@ def rotated_minus_coeff(basis: BandBasis, operator: np.ndarray[complex]) -> comp
 
     return minus_coeff(rotate_to_band_basis(basis, operator))
 
-def rotated_plus_coeff(basis: BandBasis, operator: np.ndarray[complex]) -> complex | np.ndarray[complex]:
+def rotated_plus_coeff(basis: BandBasis, operator: jnp.ndarray[complex]) -> complex | jnp.ndarray[complex]:
     """Gets the coefficient of sigma_+ for this matrix in the band basis.
 
     Parameters
@@ -162,7 +163,7 @@ def rotated_plus_coeff(basis: BandBasis, operator: np.ndarray[complex]) -> compl
 
     return plus_coeff(rotate_to_band_basis(basis, operator))
 
-def rotated_z_coeff(basis: BandBasis, operator: np.ndarray[complex]) -> complex | np.ndarray[complex]:
+def rotated_z_coeff(basis: BandBasis, operator: jnp.ndarray[complex]) -> complex | jnp.ndarray[complex]:
     """Gets the coefficient of sigma_z for this matrix in the band basis.
 
     Parameters

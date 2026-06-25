@@ -1,6 +1,6 @@
 import numpy as np
 
-from data import ModelParameters, AxisData, ModelData
+from data import ModelParameters, AxisData, ModelData, CorrelationData
 from solvers import correlation_solver, model_solver
 from physics import hamiltonian
 
@@ -19,6 +19,7 @@ class Model:
         self.__params = params
 
         self.model_data = ModelData()
+        self.correlation_data = CorrelationData()
 
         # Will be given in the Run() function.
         self.__axes = None
@@ -50,20 +51,20 @@ class Model:
         # ----------------------
         
         # Solves the single-time fourier series.
-        self.correlationData.first_order_fourier = correlation_solver.solve_single_time_correlations(
+        self.correlation_data.first_order_fourier = correlation_solver.solve_single_time_correlations(
             self.__params
         )
 
         self.model_data.paramagnetic_current = model_solver.calculate_paramagnetic_current(
             self.__params,
             self.__axes.tau_axis_sec,
-            self.correlationData.first_order_fourier
+            self.correlation_data.first_order_fourier
         )
         
         self.model_data.diamagnetic_current = model_solver.calculate_diamagnetic_current(
             self.__params,
             self.__axes.tau_axis_sec,
-            self.correlationData.first_order_fourier
+            self.correlation_data.first_order_fourier
         )
         
         self.model_data.total_current = model_solver.calculate_total_current(
@@ -95,14 +96,14 @@ class Model:
                 self.__params,
                 self.__axes.t_axis_sec,
                 self.__axes.tau_axis_sec,
-                self.correlationData.first_order_fourier
+                self.correlation_data.first_order_fourier
             )
 
             self.model_data.second_order_connected_current = model_solver.calculate_double_time_current(
                 self.__params,
                 self.__axes.t_axis_sec,
                 self.__axes.tau_axis_sec,
-                self.correlationData.first_order_fourier,
+                self.correlation_data.first_order_fourier,
                 self.correlation_data.second_order_correlations
             )
 
