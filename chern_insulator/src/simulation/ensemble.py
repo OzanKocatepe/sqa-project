@@ -5,9 +5,9 @@ from config.paths import DATA_DIR
 import os
 import matplotlib.pyplot as plt
 
-from data import EnsembleParameters, ModelParameters, AxisData, CurrentData
+from data import EnsembleParameters, ModelParameters, AxisData, EnsembleData
 from .model import Model
-from . import current_solver
+from solvers import ensemble_solver
 
 class Ensemble:
     """Runs a collection of model instances and finds the overall results of the model."""
@@ -29,7 +29,9 @@ class Ensemble:
         # The axis data shared by the system.
         self.__axes = None
         # Stores the final current information.
-        self.meanCurrent = None
+        self.totalModelData = None
+        self.bz_average_data = None
+        self.ensemble_data = EnsembleData()
 
     def AddMomentum(self, kValues: tuple[float, float] | list[tuple[float, float]] | np.ndarray[float]) -> None:
         """
@@ -117,10 +119,10 @@ class Ensemble:
                 model.Run(self.__axes, disable_second_order)
 
                 # Adds current to mean current.
-                if self.meanCurrent is None:
-                    self.meanCurrent = model.currentData
+                if self.totalModelData is None:
+                    self.totalModelData = model.currentData
                 else:
-                    self.meanCurrent = self.meanCurrent + model.currentData
+                    self.totalModelData = self.totalModelData + model.currentData
 
                 # Deletes the model to free memory.
                 self.__models[key] = None
@@ -151,10 +153,10 @@ class Ensemble:
                     chunksize = 1
                 ):
                     # Adds the current to the total current.
-                    if self.meanCurrent is None:
-                        self.meanCurrent = currentData
+                    if self.totalModelData is None:
+                        self.totalModelData = currentData
                     else:
-                        self.meanCurrent = self.meanCurrent + currentData
+                        self.totalModelData = self.totalModelData + currentData
 
                     # Frees reference to the model to free memory.
                     self.__models[key] = None
@@ -162,51 +164,70 @@ class Ensemble:
                     # the automatic incrementing.
                     pbar.update(1)
 
-        self.meanCurrent = self.meanCurrent / len(self.__models)
-        # self.meanCurrent.time_avg_generalised_noise_tensor_weak_laser * self.__params.num_particles
+        self.bz_average_data = self.totalModelData * self.__params.num_particles / len(self.__models)
 
         # Calculates some properties that require the mean current, since their non-linear.
         # Calculates 2n - 1 fourier coefficients since thats the most we will need to calculate g2(0)
         # for 1 to n.
-        current_fourier_coefficients = current_solver.calculate_current_fourier_coefficients(
+        current_fourier_coefficients = ensemble_solver.calculate_current_fourier_coefficients(
             self.__params,
-            self.meanCurrent.total_current,
+            self.totalModelData.total_current,
             self.__axes.tau_axis_sec,
             3 * self.__params.maxN
         )
 
-        self.meanCurrent.semiclassical_mode_population = current_solver.calculate_semiclassical_mode_population(
+        self.ensemble_data.semiclassical_mode_population = ensemble_solver.calculate_semiclassical_mode_population(
             self.__params,
             current_fourier_coefficients
         )
 
-        self.meanCurrent.second_order_correlation_function = current_solver.calculate_second_order_correlation_function(
+        self.ensemble_data.second_order_correlation_function = ensemble_solver.calculate_second_order_correlation_function(
             self.__params,
             current_fourier_coefficients
         )
 
-        self.meanCurrent.squeezing_weak_laser = current_solver.calculate_squeezing_weak_laser(
+        self.ensemble_data.squeezing_weak_laser = ensemble_solver.calculate_squeezing_weak_laser(
             self.__params,
-            self.meanCurrent.time_avg_generalised_noise_tensor_weak_laser
+            self.totalModelData.time_avg_generalised_noise_tensor_weak_laser
         )
 
-        self.meanCurrent.angular_momentum = current_solver.calculate_angular_momentum_operator(
+        self.ensemble_data.angular_momentum = ensemble_solver.calculate_angular_momentum_operator(
             self.__params,
             current_fourier_coefficients
         )
 
         if not disable_second_order:
-            self.meanCurrent.generalised_noise_tensor = current_solver.calculate_generalised_noise_tensor(
-                self.__params,
-                self.__axes,
-                self.meanCurrent.spectral_noise_tensor,
-                self.meanCurrent.diamagnetic_current
+            self.ensemble_data.time_avg_second_order_connected_current = ensemble_solver.integrate_second_order_current(
+                self.__params.drivingFreq,
+                self.__axes.t_axis_sec,
+                self.bz_average_data.second_order_connected_current
             )
 
-            self.meanCurrent.squeezing = current_solver.calculate_squeezing(
+            self.ensemble_data.spectral_noise_tensor = ensemble_solver.calculate_spectral_noise_tensor(
+                self.__params,
+                self.__axes.tau_axis_sec,
+                self.bz_average_data.second_order_connected_current
+            )
+
+            self.ensemble_data.dc_population_variance = ensemble_solver.calculate_dc_population_variance(
+                self.__params,
+                self.__axes.tau_axis_sec,
+                self.__axes.t_axis_sec,
+                self.bz_average_data.second_order_connected_current,
+                self.__params.maxN
+            )
+
+            self.ensemble_data.generalised_noise_tensor = ensemble_solver.calculate_generalised_noise_tensor(
                 self.__params,
                 self.__axes,
-                self.meanCurrent.generalised_noise_tensor
+                self.totalModelData.spectral_noise_tensor,
+                self.totalModelData.diamagnetic_current
+            )
+
+            self.ensemble_data.squeezing = ensemble_solver.calculate_squeezing(
+                self.__params,
+                self.__axes,
+                self.totalModelData.generalised_noise_tensor
             )
  
     def _MultiProcessingRun(self, args: tuple[tuple[float, float], Model, AxisData, bool]) -> tuple[tuple[float, float], Model]:
@@ -236,7 +257,7 @@ class Ensemble:
         key, model, axes, disable_second_order = args
         
         model.Run(axes, disable_second_order)
-        return key, model.currentData
+        return key, model.model_data
 
     def SampleBrillouinZone(self, numK: int) -> None:
         """
@@ -276,10 +297,10 @@ class Ensemble:
 
         os.makedirs(DATA_DIR, exist_ok = True)
         fileName = f"A={self.__params.drivingAmp}, D={self.__params.delta}, k={int(np.sqrt(len(self.__models)))}"
-        if self.meanCurrent.second_order_connected_current is not None:
+        if self.totalModelData.second_order_connected_current is not None:
             fileName += f", t={int(self.__axes.t_axis_sec.size)}"
         file = DATA_DIR / fileName
-        np.save(file, (self.__axes, self.meanCurrent))
+        np.save(file, (self.__axes, self.totalModelData))
 
     def __CreateAxes(self, tauMax: float, numT: float) -> AxisData:
         """

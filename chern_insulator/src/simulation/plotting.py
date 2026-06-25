@@ -66,7 +66,7 @@ class Plotting:
                                   color = 'black', label='Fourier Series')
                 
                 if overplotNumericalSolution:
-                    from operators import Hamiltonian
+                    from physics import Hamiltonian
                     h = Hamiltonian(model.params)
 
                     numericalSigma = integrate.solve_ivp(
@@ -163,7 +163,7 @@ class Plotting:
         we plot the real and imaginary components on their own axes.
         """
 
-        curr = self.__ensemble.meanCurrent
+        curr = self.__ensemble.totalModelData
         axes = self.__ensemble.axes
         subscripts = ['x', 'y']
 
@@ -200,7 +200,7 @@ class Plotting:
         """Plots the total current as a function of time."""
 
         axes = self.__ensemble.axes
-        current = self.__ensemble.meanCurrent.total_current
+        current = self.__ensemble.totalModelData.total_current
 
         labels = [r"$\hat j_x$", r"$\hat j_y$"]
         alpha = 0.2
@@ -271,7 +271,7 @@ class Plotting:
         indices = [(0, 0), (0, 1), (1, 0), (1, 1)]
 
         axes = self.__ensemble.axes
-        current = self.__ensemble.meanCurrent.t_averaged_second_order_current
+        current = self.__ensemble.totalModelData.t_averaged_second_order_current
         
         for highlightedIndex in range(4):
             fig, ax = plt.subplots(2, 1)
@@ -337,7 +337,7 @@ class Plotting:
         """
 
         axes = self.__ensemble.axes
-        current = self.__ensemble.meanCurrent
+        current = self.__ensemble.totalModelData
 
         jxFFT = np.fft.fftshift(np.fft.fft(current.total_current[0]))
         jyFFT = np.fft.fftshift(np.fft.fft(current.total_current[1]))

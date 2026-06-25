@@ -4,8 +4,8 @@ import jax
 import jax.numpy as jnp
 
 from data import ModelParameters, Fourier
-from operators import hamiltonian, band_basis_projector
-from . import dynamics
+from physics import hamiltonian, band_basis_projector
+from ..physics import dynamics
 
 def single_time_fourier_matrix(params: ModelParameters) -> np.ndarray[complex]:
     """

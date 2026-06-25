@@ -1,8 +1,8 @@
 import numpy as np
 
-from data import ModelParameters, AxisData, CorrelationData, CurrentData
-from . import correlation_solver, current_solver
-from operators import band_basis_projector, hamiltonian, DiamagneticCurrentXX, DiamagneticCurrentYY
+from data import ModelParameters, AxisData, ModelData
+from solvers import correlation_solver, model_solver
+from physics import hamiltonian
 
 class Model:
     """Contains a Chern Insulator model evaluated at a single pair kx, ky."""
@@ -18,13 +18,12 @@ class Model:
 
         self.__params = params
 
-        self.correlationData = CorrelationData()
-        self.currentData = CurrentData()
+        self.model_data = ModelData()
 
         # Will be given in the Run() function.
         self.__axes = None
 
-    def Run(self, axes: AxisData, disable_second_order: bool) -> tuple[CorrelationData, CurrentData]:
+    def Run(self, axes: AxisData, disable_second_order: bool) -> tuple[ModelData]:
         """
         Runs all of the simulation code for this model.
 
@@ -38,9 +37,9 @@ class Model:
 
         Returns
         -------
-        CorrelationData:
+        modelData:
             The correlation data for this model.
-        CurrentData:
+        modelData:
             The current data for this model.
         """
 
@@ -55,33 +54,33 @@ class Model:
             self.__params
         )
 
-        self.currentData.paramagnetic_current = current_solver.calculate_paramagnetic_current(
+        self.model_data.paramagnetic_current = model_solver.calculate_paramagnetic_current(
             self.__params,
             self.__axes.tau_axis_sec,
             self.correlationData.first_order_fourier
         )
         
-        self.currentData.diamagnetic_current = current_solver.calculate_diamagnetic_current(
+        self.model_data.diamagnetic_current = model_solver.calculate_diamagnetic_current(
             self.__params,
             self.__axes.tau_axis_sec,
             self.correlationData.first_order_fourier
         )
         
-        self.currentData.total_current = current_solver.calculate_total_current(
+        self.model_data.total_current = model_solver.calculate_total_current(
             hamiltonian.Ax(self.params, self.__axes.tau_axis_sec),
-            self.currentData.paramagnetic_current,
-            self.currentData.diamagnetic_current
+            self.model_data.paramagnetic_current,
+            self.model_data.diamagnetic_current
         )
 
         # Defines consistent scattering rates.
         scattering_rates = np.logspace(-4, -1, 5) * hamiltonian.find_band_gap(self.__params.delta, resolution=100)
 
-        self.currentData.dc_population_variance_weak_laser, noise_correlation_tensor_weak_laser_real = current_solver.calculate_dc_population_variance_weak_laser_power(
+        self.model_data.dc_population_variance_weak_laser, noise_correlation_tensor_weak_laser_real = model_solver.calculate_dc_population_variance_weak_laser_power(
             self.__params,
             scattering_rates
         )
 
-        self.currentData.time_avg_generalised_noise_tensor_weak_laser = current_solver.calculate_weak_laser_noise_tensor(
+        self.model_data.time_avg_generalised_noise_tensor_weak_laser = model_solver.calculate_weak_laser_noise_tensor(
             self.__params,
             scattering_rates,
             noise_correlation_tensor_weak_laser_real
@@ -92,43 +91,22 @@ class Model:
 
         if not disable_second_order:
             # Solves the double-time correlations using scipy ODE solver (solve_ivp).
-            self.correlationData.second_order_correlations = correlation_solver.solve_double_time_correlations(
+            self.correlation_data.second_order_correlations = correlation_solver.solve_double_time_correlations(
                 self.__params,
                 self.__axes.t_axis_sec,
                 self.__axes.tau_axis_sec,
                 self.correlationData.first_order_fourier
             )
 
-            self.currentData.second_order_connected_current = current_solver.calculate_double_time_current(
+            self.model_data.second_order_connected_current = model_solver.calculate_double_time_current(
                 self.__params,
                 self.__axes.t_axis_sec,
                 self.__axes.tau_axis_sec,
                 self.correlationData.first_order_fourier,
-                self.correlationData.second_order_correlations
+                self.correlation_data.second_order_correlations
             )
 
-            self.currentData.t_averaged_second_order_current = current_solver.integrate_second_order_current(
-                self.__params.drivingFreq,
-                self.__axes.t_axis_sec,
-                self.currentData.second_order_connected_current
-            )
-
-            self.currentData.spectral_noise_tensor = current_solver.calculate_spectral_noise_tensor(
-                self.__params,
-                self.__axes.tau_axis_sec,
-                self.currentData.second_order_connected_current,
-                self.__params.maxN
-            )
-
-            self.currentData.dc_population_variance = current_solver.calculate_dc_population_variance(
-                self.__params,
-                self.__axes.tau_axis_sec,
-                self.__axes.t_axis_sec,
-                self.currentData.second_order_connected_current,
-                self.__params.maxN
-            )
-
-        return self.correlationData, self.currentData
+        return self.model_data
      
     @property
     def params(self) -> ModelParameters:

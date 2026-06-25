@@ -3,7 +3,7 @@ import jax
 import jax.numpy as jnp
 
 from data import ModelParameters
-from operators import hamiltonian, band_basis_projector
+from physics import hamiltonian, band_basis_projector
 
 """Stores all information about dynamics of the system - specifically the
 equations of motion for single- and double-time correlations.

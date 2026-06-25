@@ -1,5 +1,5 @@
 from data import ModelParameters
-from operators.Hamiltonian import Hamiltonian
+from physics import Hamiltonian
 
 import numpy as np
 

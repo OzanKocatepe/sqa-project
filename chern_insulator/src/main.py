@@ -8,8 +8,8 @@ from datetime import datetime
 import threading
 
 from data import EnsembleParameters
-from core import Ensemble, Plotting
-from topology import chern_number
+from simulation import Ensemble, Plotting
+from physics.topology import chern_number
 from config.paths import PLOTTING_DIR, STYLESHEET, DATA_DIR
 
 def log_memory(interval_seconds=300, log_file=DATA_DIR / "memory_log.txt"):

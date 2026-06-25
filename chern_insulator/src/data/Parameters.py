@@ -50,7 +50,7 @@ class EnsembleParameters:
         # set the drivingFreq and so we will not recalculate it.
         
         if self.drivingFreq is None:
-            from operators.hamiltonian import find_band_gap
+            from physics.hamiltonian import find_band_gap
 
             # Finds the minimum band gap over the Brillouin zone.
             # The band gap for an ensemble is controlled only by the delta.
