@@ -163,7 +163,7 @@ class Ensemble:
                     pbar.update(1)
 
         self.meanCurrent = self.meanCurrent / len(self.__models)
-        self.meanCurrent.time_avg_generalised_noise_tensor_weak_laser * self.__params.num_particles
+        # self.meanCurrent.time_avg_generalised_noise_tensor_weak_laser * self.__params.num_particles
 
         # Calculates some properties that require the mean current, since their non-linear.
         # Calculates 2n - 1 fourier coefficients since thats the most we will need to calculate g2(0)

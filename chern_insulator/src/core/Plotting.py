@@ -196,17 +196,15 @@ class Plotting:
                 plt.show()
         
 
-    def PlotTotalCurrent(self, overplotLengthGauge: bool=False) -> None:
+    def PlotTotalCurrent(self) -> None:
         """Plots the total current as a function of time."""
 
         axes = self.__ensemble.axes
         current = self.__ensemble.meanCurrent.total_current
-        # lengthCurrent = self.__ensemble.meanCurrent.length_gauge_total_current
 
         labels = [r"$\hat j_x$", r"$\hat j_y$"]
         alpha = 0.2
         colors = ['tab:blue', 'orange']
-        lengthGaugeColors = ['purple', 'red']
 
         for operatorIndex in np.arange(2).astype(int):
             # Stores the index of the operator that's going to be 
@@ -228,40 +226,16 @@ class Plotting:
             # Plots the other operator with small opacity.
             ax[0].plot(axes.tau_axis_dim,
                        current[opacityIndex].real,
-                       color = lengthGaugeColors[opacityIndex],
+                       color = colors[opacityIndex],
                        label = labels[opacityIndex],
                        alpha = alpha)
 
             ax[1].plot(axes.tau_axis_dim,
                        current[opacityIndex].imag,
-                       color = lengthGaugeColors[opacityIndex],
+                       color = colors[opacityIndex],
                        label = labels[opacityIndex],
                        alpha = alpha)
-            
-            if overplotLengthGauge:
-                ax[0].plot(axes.tau_axis_dim,
-                        lengthCurrent[operatorIndex].real,
-                        color = lengthGaugeColors[operatorIndex],
-                        label = f"{labels[operatorIndex]} (LG)")
-
-                ax[1].plot(axes.tau_axis_dim,
-                        lengthCurrent[operatorIndex].imag,
-                        color = lengthGaugeColors[operatorIndex],
-                        label = f"{labels[operatorIndex]} (LG)")
-
-                # Plots the other operator with small opacity.
-                ax[0].plot(axes.tau_axis_dim,
-                        lengthCurrent[opacityIndex].real,
-                        color = colors[opacityIndex],
-                        label = f"{labels[opacityIndex]} (LG)",
-                        alpha = alpha)
-
-                ax[1].plot(axes.tau_axis_dim,
-                        lengthCurrent[opacityIndex].imag,
-                        color = colors[opacityIndex],
-                        label = f"{labels[opacityIndex]} (LG)",
-                        alpha = alpha)
-            
+             
             # Sets x-axes to dimensionless time.
             ax[0].set_xlabel(self.__tLabel)
             ax[1].set_xlabel(self.__tLabel)
@@ -352,7 +326,7 @@ class Plotting:
             plt.savefig(f"{folder}/{fileNames[highlightedIndex]}.png", dpi=300)
             plt.show() 
 
-    def PlotTotalCurrentFFT(self, linearScale: bool=False, overplotLengthGauge: bool=False) -> None:
+    def PlotTotalCurrentFFT(self, linearScale: bool=False) -> None:
         """Plots the FFT of the total current as a function of frequency.
         
         Parameters
@@ -379,23 +353,7 @@ class Plotting:
             np.abs(jyFFT),
             label=r'$\hat j_y$',
             color='orange')
-        
-        if overplotLengthGauge:
-            jxLGFFT = np.fft.fftshift(np.fft.fft(current.length_gauge_total_current[0]))
-            jyLGFFT = np.fft.fftshift(np.fft.fft(current.length_gauge_total_current[1]))
-
-            plt.plot(
-                axes.freq_axis,
-                np.abs(jxLGFFT),
-                label=r'$\hat j_x$ (LG)',
-                color='purple')
-
-            plt.plot(
-                axes.freq_axis,
-                np.abs(jyLGFFT),
-                label=r'$\hat j_y$ (LG)',
-                color='red')
-        
+         
         if not linearScale:
             plt.yscale('log')
 

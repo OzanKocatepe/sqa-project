@@ -3,7 +3,6 @@ from scipy import integrate
 
 from data import ModelParameters, Fourier, AxisData
 from operators import ParamagneticCurrentX, ParamagneticCurrentY, DiamagneticCurrentXX, DiamagneticCurrentYY, band_basis_projector, hamiltonian
-from LengthGauge import LengthGauge
 
 def calculate_paramagnetic_current(
         params: ModelParameters,
@@ -213,52 +212,6 @@ def calculate_double_time_current(
                     )
 
     return doubleCurrentCorrelations 
-
-def calculate_length_gauge_current(time: float | np.ndarray[float]) -> np.ndarray[complex]:
-    """Calculates the expectation value of the current in the length gauge.
-    
-    Parameters
-    ----------
-    time : float | ndarray[float]
-        The points in time, in seconds, to evaluate the current operator at.
-
-    
-    Returns
-    -------
-    ndarray[complex]:
-        The value of the length gauge current operator at the corresponding times.
-        Has shape (2, time.size), where the first dimension corresponds to the
-        current in the x-dimension and y-dimension for indices 0 and 1 respectively.
-    """
-
-    raise DeprecationWarning("This function is no longer supported.")
-
-    current = np.zeros((2, time.size), dtype=complex)
-
-    lg = LengthGauge(self.__params, self.__hamiltonian)
-
-    # Solves the ODE for our density matrix at the desired times.
-    rho = integrate.solve_ivp(
-        fun = lg.DensityMatrixODE,
-        t_span = (0, np.max(time)),
-        y0 = np.array([0.0, 0.0, 0.0, 1.0], dtype=complex),
-        t_eval = time,
-        rtol=1e-9,
-        atol=1e-12
-    ).y.T
-
-    # Reshapes rho into a matrix rather than a flattened array.
-    rho = rho.reshape((time.size, 2, 2))
-
-    # Calculates our current operators at each desired time.
-    jx = lg.jxLengthGauge(time)
-    jy = lg.jyLengthGauge(time)
-
-    # Calculates the average current.
-    current[0, :] = np.trace(jx @ rho, axis1=1, axis2=2)
-    current[1, :] = np.trace(jy @ rho, axis1=1, axis2=2)
-
-    return current
 
 def integrate_second_order_current(drivingFreq: float, tAxis: np.ndarray[float], doubleTimeCurrent: np.ndarray[complex]) -> np.ndarray[complex]:
     """Integrates the second-order current functions over the t-axis.

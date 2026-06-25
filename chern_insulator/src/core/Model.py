@@ -61,8 +61,6 @@ class Model:
             self.correlationData.first_order_fourier
         )
         
-        # self.__currentData.lengthGaugeCurrent = CurrentSolver.CalculateLengthGaugeCurrent(self.__axes.tauAxisSec)
-
         self.currentData.diamagnetic_current = current_solver.calculate_diamagnetic_current(
             self.__params,
             self.__axes.tau_axis_sec,

@@ -23,8 +23,6 @@ class CurrentData:
     doubleTimeCurrent : ndarray[complex]
         Stores the double-time currents in an array of shape (2, 2, t.size, tau.size),
         with the first two axes corresponding to the left and right current direction respectively.
-    lengthGaugeCurrent : ndarray[complex]
-        The first-order current calculated in the length gauge.
     meanSecondOrderCurrent : ndarray[complex]
         The double-time current integrated along the t axis, with shape (2, 2, tau.size).
     spectralNoiseTensor : ndarray[complex]
