@@ -171,7 +171,14 @@ class Ensemble:
         # Calculates some properties that require the mean current, since their non-linear.
         # Calculates 2n - 1 fourier coefficients since thats the most we will need to calculate g2(0)
         # for 1 to n.
-        current_fourier_coefficients = ensemble_solver.calculate_current_fourier_coefficients(
+        current_fourier_coefficients_intrinsic = ensemble_solver.calculate_current_fourier_coefficients(
+            self.__params,
+            self.bz_average_intrinsic.total_current,
+            self.__axes.tau_axis_sec,
+            3 * self.__params.maxN
+        )
+
+        current_fourier_coefficients_extrinsic = ensemble_solver.calculate_current_fourier_coefficients(
             self.__params,
             self.bz_average_extrinsic.total_current,
             self.__axes.tau_axis_sec,
@@ -180,12 +187,12 @@ class Ensemble:
 
         self.ensemble_data.semiclassical_mode_population = ensemble_solver.calculate_semiclassical_mode_population(
             self.__params,
-            current_fourier_coefficients
+            current_fourier_coefficients_extrinsic
         )
 
         self.ensemble_data.second_order_correlation_function = ensemble_solver.calculate_second_order_correlation_function(
             self.__params,
-            current_fourier_coefficients
+            current_fourier_coefficients_extrinsic
         )
 
         self.ensemble_data.squeezing_weak_laser = ensemble_solver.calculate_squeezing_weak_laser(
@@ -195,7 +202,7 @@ class Ensemble:
 
         self.ensemble_data.angular_momentum = ensemble_solver.calculate_angular_momentum_operator(
             self.__params,
-            current_fourier_coefficients
+            current_fourier_coefficients_intrinsic
         )
 
         if not disable_second_order:

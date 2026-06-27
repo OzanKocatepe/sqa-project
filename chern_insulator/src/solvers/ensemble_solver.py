@@ -228,7 +228,7 @@ def calculate_angular_momentum_operator(
     gamma_m = params.decayConstant * (np.arange(1, params.maxN + 1)**2)[:, np.newaxis]
     omega_p = params.angularFreq * np.arange(-p, p + 1)[np.newaxis, :]
 
-    summand = (4 * gamma_m * omega_m * current_coefficients[0, np.newaxis, :] * current_coefficients[1, np.newaxis, :].conj()
+    summand = (4 * gamma_m * current_coefficients[0, np.newaxis, :] * current_coefficients[1, np.newaxis, :].conj()
         / ( (omega_p**2 + gamma_m**2 - omega_m**2)**2 + 4 * gamma_m**2 * omega_m**2 )
     )
 
