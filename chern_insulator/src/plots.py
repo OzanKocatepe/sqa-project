@@ -195,8 +195,8 @@ plt.show()
 # plt.savefig(PLOTTING_DIR / "squeezing.png", dpi=300)
 # plt.show()
 
-plt.plot(np.arange(1, maxN + 1), one_ensemble_current.angular_momentum, marker='x', color="red", linestyle='-')
-plt.plot(np.arange(1, maxN + 1), three_ensemble_current.angular_momentum, marker='x', color="blue", linestyle='-')
+plt.plot(np.arange(1, maxN + 1), np.abs(one_ensemble_current.angular_momentum), marker='x', color="red", linestyle='-')
+plt.plot(np.arange(1, maxN + 1), np.abs(three_ensemble_current.angular_momentum), marker='x', color="blue", linestyle='-')
 
 top_handles = [
     Line2D([0], [0], color='blue', linestyle='-',  label='triv'),
@@ -210,7 +210,7 @@ plt.xlim((0, 9))
 plt.xlabel(r"$\omega / \Omega$")
 plt.ylabel(r"$L_m$")
 # plt.axhline(0, color='black')
-# plt.yscale('log')
+plt.yscale('log')
 
 plt.savefig(PLOTTING_DIR / "angular_momentum.png", dpi=300)
 plt.show()
