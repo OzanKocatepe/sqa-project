@@ -4,8 +4,8 @@ from matplotlib.lines import Line2D
 from matplotlib.ticker import SymmetricalLogLocator
 from config.paths import DATA_DIR, PLOTTING_DIR, STYLESHEET
 
-axes, one_bz_average_current, one_ensemble_current  = np.load(DATA_DIR / "A=0.2, D=1.0, k=3, t=3.npy", allow_pickle = True)
-_, three_bz_average_current, three_ensemble_current = np.load(DATA_DIR / "A=0.2, D=3.0, k=3, t=3.npy", allow_pickle = True)
+axes, one_bz_average_current, one_ensemble_current  = np.load(DATA_DIR / "A=0.2, D=1.0, k=61, t=21.npy", allow_pickle = True)
+_, three_bz_average_current, three_ensemble_current = np.load(DATA_DIR / "A=0.2, D=3.0, k=61, t=21.npy", allow_pickle = True)
 maxN = 50
 
 plt.style.use(STYLESHEET)
