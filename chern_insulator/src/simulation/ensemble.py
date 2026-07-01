@@ -215,7 +215,8 @@ class Ensemble:
             self.ensemble_data.spectral_noise_tensor = ensemble_solver.calculate_spectral_noise_tensor(
                 self.__params,
                 self.__axes.tau_axis_sec,
-                self.bz_average_extrinsic.second_order_connected_current
+                self.bz_average_extrinsic.second_order_connected_current,
+                self.__params.maxN
             )
 
             self.ensemble_data.dc_population_variance = ensemble_solver.calculate_dc_population_variance(
@@ -229,14 +230,14 @@ class Ensemble:
             self.ensemble_data.generalised_noise_tensor = ensemble_solver.calculate_generalised_noise_tensor(
                 self.__params,
                 self.__axes,
-                self.bz_average_extrinsic.spectral_noise_tensor,
+                self.ensemble_data.spectral_noise_tensor,
                 self.bz_average_extrinsic.diamagnetic_current
             )
 
             self.ensemble_data.squeezing = ensemble_solver.calculate_squeezing(
                 self.__params,
                 self.__axes,
-                self.bz_average_extrinsic.generalised_noise_tensor
+                self.ensemble_data.generalised_noise_tensor
             )
  
     def _MultiProcessingRun(self, args: tuple[tuple[float, float], Model, AxisData, bool]) -> tuple[tuple[float, float], Model]:
