@@ -4,8 +4,8 @@ from matplotlib.lines import Line2D
 from matplotlib.ticker import SymmetricalLogLocator
 from config.paths import DATA_DIR, PLOTTING_DIR, STYLESHEET
 
-axes, one_bz_average_current, one_ensemble_current  = np.load(DATA_DIR / "A=0.2, D=1.0, k=61, t=21.npy", allow_pickle = True)
-_, three_bz_average_current, three_ensemble_current = np.load(DATA_DIR / "A=0.2, D=3.0, k=61, t=21.npy", allow_pickle = True)
+axes, one_bz_average_current, one_ensemble_current  = np.load(DATA_DIR / "A=0.0, D=1.0, k=21, t=6.npy", allow_pickle = True)
+_, three_bz_average_current, three_ensemble_current = np.load(DATA_DIR / "A=0.0, D=3.0, k=21, t=6.npy", allow_pickle = True)
 maxN = 50
 
 plt.style.use(STYLESHEET)
@@ -196,35 +196,35 @@ plt.ylabel(r"$\eta_{\mu, m}$")
 plt.savefig(PLOTTING_DIR / "squeezing.png", dpi=300)
 plt.show()
 
-plt.rcParams.update({'font.size' : 12})
-plt.plot(np.arange(1, maxN + 1), one_ensemble_current.angular_momentum,   marker='x', color="red",  linestyle='-', markersize=10)
-plt.plot(np.arange(1, maxN + 1), three_ensemble_current.angular_momentum, marker='x', color="blue", linestyle='-', markersize=10)
+# plt.rcParams.update({'font.size' : 12})
+# plt.plot(np.arange(1, maxN + 1), one_ensemble_current.angular_momentum,   marker='x', color="red",  linestyle='-', markersize=10)
+# plt.plot(np.arange(1, maxN + 1), three_ensemble_current.angular_momentum, marker='x', color="blue", linestyle='-', markersize=10)
 
-top_handles = [
-    Line2D([0], [0], color='blue', linestyle='-',  label='triv'),
-    Line2D([0], [0], color='red', linestyle='-', label='top'),
-]
+# top_handles = [
+#     Line2D([0], [0], color='blue', linestyle='-',  label='triv'),
+#     Line2D([0], [0], color='red', linestyle='-', label='top'),
+# ]
 
-legend3 = plt.legend(handles=top_handles, loc='upper right')
-plt.gca().add_artist(legend3)
+# legend3 = plt.legend(handles=top_handles, loc='upper right')
+# plt.gca().add_artist(legend3)
 
-plt.xlim((1, 9))
-plt.ylim((-1e-2, 1e-4))
-plt.xlabel(r"$\omega / \Omega$")
-plt.ylabel(r"$L_m$")
+# plt.xlim((1, 9))
+# plt.ylim((-1e-2, 1e-4))
+# plt.xlabel(r"$\omega / \Omega$")
+# plt.ylabel(r"$L_m$")
 # plt.axhline(0, color='black')
 # plt.yscale('symlog', linthresh=1e-11, linscale=0.5)
 # plt.yscale('asinh')
 # plt.minorticks_on()
 # plt.grid(which="both", axis='y')
 
-ax = plt.gca()
+# ax = plt.gca()
 
-ax.set_yscale(
-    'symlog',
-    linthresh=1e-9,
-    linscale=0.5
-)
+# ax.set_yscale(
+#     'symlog',
+#     linthresh=1e-9,
+#     linscale=0.5
+# )
 
 # ax.yaxis.set_minor_locator(
 #     SymmetricalLogLocator(
@@ -237,8 +237,8 @@ ax.set_yscale(
 # ax.grid(which='major', axis='y')
 # ax.grid(which='minor', axis='y', alpha=0.3)
 
-plt.savefig(PLOTTING_DIR / "angular_momentum.png", dpi=300)
-plt.show()
+# plt.savefig(PLOTTING_DIR / "angular_momentum.png", dpi=300)
+# plt.show()
 
 # plt.plot(np.arange(1, maxN + 1), np.abs(one_ensemble_current.angular_momentum / three_ensemble_current.angular_momentum))
 # plt.xlim((1, 9))
