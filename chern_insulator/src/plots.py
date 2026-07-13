@@ -4,8 +4,8 @@ from matplotlib.lines import Line2D
 from matplotlib.ticker import SymmetricalLogLocator
 from config.paths import DATA_DIR, PLOTTING_DIR, STYLESHEET
 
-axes, one_bz_average_current, one_ensemble_current  = np.load(DATA_DIR / "A=0.0, D=1.0, k=21, t=6.npy", allow_pickle = True)
-_, three_bz_average_current, three_ensemble_current = np.load(DATA_DIR / "A=0.0, D=3.0, k=21, t=6.npy", allow_pickle = True)
+axes, one_bz_average_current, one_ensemble_current  = np.load(DATA_DIR / "A=0.2, D=1.0, k=21.npy", allow_pickle = True)
+_, three_bz_average_current, three_ensemble_current = np.load(DATA_DIR / "A=0.2, D=3.0, k=21.npy", allow_pickle = True)
 maxN = 50
 
 plt.style.use(STYLESHEET)
@@ -130,8 +130,10 @@ for gamma_m_index in range(num_gamma):
 # Dynamically build the color legend handles to include the gamma_m_index
 gamma_m = np.log10(np.logspace(-4, -1, 5))
 color_handles = []
+
 for i in range(num_gamma):
     color_handles.append(Line2D([0], [0], color=blue_shades[i], linestyle='-', label=rf'$\gamma_m / \Delta = 10^{{{gamma_m[i]:.2f}}}$'))
+
 for i in range(num_gamma):
     color_handles.append(Line2D([0], [0], color=red_shades[i], linestyle='-', label=rf'$\gamma_m / \Delta = 10^{{{gamma_m[i]:.2f}}}$'))
 
@@ -156,6 +158,7 @@ legend3 = plt.legend(handles=top_handles, loc='upper right', bbox_to_anchor=(0.9
 plt.gca().add_artist(legend3)
 
 plt.xlim((0, 9))
+plt.ylim((-2e-5, 1.5e-4))
 plt.xlabel(r"$\omega / \Omega$")
 plt.ylabel(r"$\eta_{\mu, m}$")
 # plt.axhline(0, color='black')
