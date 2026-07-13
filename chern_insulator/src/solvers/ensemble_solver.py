@@ -195,7 +195,7 @@ def calculate_squeezing_weak_laser(
 
     # Defines noise tensor divided by the amplitude factor.
     # parameterised_noise_tensor = time_averaged_generalised_noise_tensor * omega_m**2 / (Q_cm * params.matter_light_coupling**2)
-    parameterised_noise_tensor = time_averaged_generalised_noise_tensor
+    parameterised_noise_tensor = (omega_m / params.matter_light_coupling**2) * time_averaged_generalised_noise_tensor
 
     return -10 * np.log10(
         1 + 4 * Q_cm * (params.matter_light_coupling / omega_m)**2
@@ -381,7 +381,7 @@ def calculate_generalised_noise_tensor(
         np.around(axes.t_axis_sec * axes.tau_axis_sec.size / np.max(axes.tau_axis_sec), 0).astype(int)
     ]
 
-    return (Q_cm * (params.matter_light_coupling / omega_m)**2 * 0.5j * interpolated_diamagnetic_current[:, np.newaxis, :]
+    return (params.matter_light_coupling**2 / omega_m) * (0.5j * interpolated_diamagnetic_current[:, np.newaxis, :]
         + spectral_noise_tensor[idx, idx, :, :])
 
 def calculate_squeezing(
@@ -416,8 +416,10 @@ def calculate_squeezing(
         axis = 2
     )
 
+    parameterised_noise_tensor = (omega_m / params.matter_light_coupling**2) * averaged_noise_tensor
+
     return -10 * np.log10(
-        1 + 4 * (averaged_noise_tensor.real - np.abs(averaged_noise_tensor) / np.sqrt(1 + 4 * Q_cm**2))
+        1 + 4 * Q_cm * (params.matter_light_coupling / omega_m)**2 * (parameterised_noise_tensor.real - np.abs(parameterised_noise_tensor) / np.sqrt(1 + 4 * Q_cm**2))
     )
 
 def integrate_second_order_current(drivingFreq: float, tAxis: np.ndarray[float], doubleTimeCurrent: np.ndarray[complex]) -> np.ndarray[complex]:

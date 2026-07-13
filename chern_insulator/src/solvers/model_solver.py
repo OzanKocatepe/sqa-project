@@ -180,13 +180,14 @@ def calculate_dc_population_variance_weak_laser_power(
     Q_cm = omega_m / (2 * gamma_m)
 
     # Has shape (mu, m, M).
-    real_noise_correlation_tensor = (
+    summand_no_factor = (
         (2 * scattering_rate * off_diagonal_current)
         / (scattering_rate**2 + (2 * hamiltonian.energy(params) + omega_m)**2)
     )
 
     # Multiplies by the front amplitude factors to get the population variance. Same shape as above.
-    dc_population_variance = Q_cm * (params.matter_light_coupling / omega_m)**2 * real_noise_correlation_tensor
+    dc_population_variance = Q_cm * (params.matter_light_coupling / omega_m)**2 * summand_no_factor
+    real_noise_correlation_tensor = (params.matter_light_coupling**2 / (2 * omega_m)) * summand_no_factor
 
     return dc_population_variance.squeeze(), real_noise_correlation_tensor.squeeze()
 
@@ -312,7 +313,7 @@ def imaginary_time_avg_generalised_noise_correlation_tensor_weak_laser(
     omega_m = params.angularFreq * np.arange(1, params.maxN + 1)[np.newaxis, :, np.newaxis]
 
     # Should have shape (mu, m, gamma).
-    return (
+    return (params.matter_light_coupling**2 / omega_m) * (
         (-(2 * hamiltonian.energy(params) + omega_m) * off_diagonal_current)
         / (scattering_rate**2 + (2 * hamiltonian.energy(params) + omega_m)**2)
     ).squeeze()
@@ -324,10 +325,12 @@ def calculate_weak_laser_noise_tensor(
 ) -> np.ndarray[complex]:
 
         basis = hamiltonian.get_band_basis(params)
-        undriven_diamagnetic_current = np.array([
+        undriven_diamagnetic_current = (params.matter_light_coupling**2 / omega_m) * np.array([
             band_basis.rotate_to_band_basis(basis, DiamagneticCurrentXX.lattice_basis(params, 0))[1, 1],
             band_basis.rotate_to_band_basis(basis, DiamagneticCurrentYY.lattice_basis(params, 0))[1, 1]
         ])[:, np.newaxis, np.newaxis]
+
+        omega_m = params.angularFreq * np.arange(1, params.maxN + 1)[np.newaxis, :, np.newaxis]
 
         imaginary_component = imaginary_time_avg_generalised_noise_correlation_tensor_weak_laser(
             params,
@@ -336,5 +339,5 @@ def calculate_weak_laser_noise_tensor(
 
         return (
             real_component
-            + 1j * (undriven_diamagnetic_current + imaginary_component)
+            + 1j * (0.5 * undriven_diamagnetic_current + imaginary_component)
         )
