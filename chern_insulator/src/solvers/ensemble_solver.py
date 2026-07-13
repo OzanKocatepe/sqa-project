@@ -274,7 +274,7 @@ def calculate_spectral_noise_tensor(
     integrand = doubleTimeCurrent[:, :, np.newaxis, :, :] * exponentials[np.newaxis, np.newaxis, :, np.newaxis, :]
 
     gamma_m = np.arange(1, n + 1)**2 * params.decayConstant
-    amps = params.matter_light_coupling**2 / (2 * gamma_m * omega_m)
+    amps = params.matter_light_coupling**2 / omega_m
 
     return amps[np.newaxis, np.newaxis, :, np.newaxis] * np.trapezoid(
         y = integrand,
@@ -381,8 +381,8 @@ def calculate_generalised_noise_tensor(
         np.around(axes.t_axis_sec * axes.tau_axis_sec.size / np.max(axes.tau_axis_sec), 0).astype(int)
     ]
 
-    return (params.matter_light_coupling**2 / omega_m) * (0.5j * interpolated_diamagnetic_current[:, np.newaxis, :]
-        + spectral_noise_tensor[idx, idx, :, :])
+    return ( (params.matter_light_coupling**2 / omega_m) * 0.5j * interpolated_diamagnetic_current[:, np.newaxis, :]
+        + spectral_noise_tensor[idx, idx, :, :] )
 
 def calculate_squeezing(
         params: ModelParameters,

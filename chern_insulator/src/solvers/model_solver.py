@@ -324,13 +324,13 @@ def calculate_weak_laser_noise_tensor(
     real_component: np.ndarray[complex],
 ) -> np.ndarray[complex]:
 
+        omega_m = params.angularFreq * np.arange(1, params.maxN + 1)[np.newaxis, :, np.newaxis]
+
         basis = hamiltonian.get_band_basis(params)
         undriven_diamagnetic_current = (params.matter_light_coupling**2 / omega_m) * np.array([
             band_basis.rotate_to_band_basis(basis, DiamagneticCurrentXX.lattice_basis(params, 0))[1, 1],
             band_basis.rotate_to_band_basis(basis, DiamagneticCurrentYY.lattice_basis(params, 0))[1, 1]
         ])[:, np.newaxis, np.newaxis]
-
-        omega_m = params.angularFreq * np.arange(1, params.maxN + 1)[np.newaxis, :, np.newaxis]
 
         imaginary_component = imaginary_time_avg_generalised_noise_correlation_tensor_weak_laser(
             params,
