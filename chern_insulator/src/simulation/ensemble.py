@@ -120,9 +120,9 @@ class Ensemble:
 
                 # Adds current to mean current.
                 if self.total_model_data is None:
-                    self.total_model_data = model.currentData
+                    self.total_model_data = model.model_data
                 else:
-                    self.total_model_data = self.total_model_data + model.currentData
+                    self.total_model_data = self.total_model_data + model.model_data
 
                 # Deletes the model to free memory.
                 self.__models[key] = None
