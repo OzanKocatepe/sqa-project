@@ -375,14 +375,11 @@ def calculate_generalised_noise_tensor(
     # Creates index which will select (0, 0) and (1, 1) from first two indices of spectral_noise_tensor.
     idx = np.arange(2)
     
-    # Offsets t-axis so that we find interpolated *steady state* diamagnetic current in next step,
-    # rather than finding the transient diamagnetic current.
-    steady_state_t_axis = axes.t_axis_sec + axes.tau_axis_sec[-1000]
-
     # Interpolates the diamagnetic current to find its values within one steady state (i.e. at points along the t-axis).
-    # This makes sure it has the right shape to broadcast with spectral_noise_tensor.
+    # This makes sure it has the right shape to broadcast with spectral_noise_tensor. No need to offset t_axis_sec since
+    # diamagnetic current is calculated using matrix ODE, so solution is already perfectly periodic and in steady-state.
     interpolated_diamagnetic_current = diamagnetic_current[:, 
-        np.around(steady_state_t_axis * axes.tau_axis_sec.size / np.max(axes.tau_axis_sec), 0).astype(int)
+        np.around(axes.t_axis_sec * axes.tau_axis_sec.size / np.max(axes.tau_axis_sec), 0).astype(int)
     ]
     
     return ( (params.matter_light_coupling**2 / omega_m) * 0.5j * interpolated_diamagnetic_current[:, np.newaxis, :]
