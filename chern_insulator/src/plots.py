@@ -158,7 +158,7 @@ legend3 = plt.legend(handles=top_handles, loc='upper right', bbox_to_anchor=(0.9
 plt.gca().add_artist(legend3)
 
 plt.xlim((0, 9))
-plt.ylim((-2e-5, 1.5e-4))
+plt.ylim((-0.5e-5, 2e-5))
 plt.xlabel(r"$\omega / \Omega$")
 plt.ylabel(r"$\eta_{\mu, m}$")
 # plt.axhline(0, color='black')
@@ -191,7 +191,7 @@ legend3 = plt.legend(handles=top_handles, loc='upper right', bbox_to_anchor=(0.9
 plt.gca().add_artist(legend3)
 
 plt.xlim((0, 9))
-plt.ylim((-2e-5, 1.5e-4))
+# plt.ylim((-0.5e-5, 2e-5))
 plt.xlabel(r"$\omega / \Omega$")
 plt.ylabel(r"$\eta_{\mu, m}$")
 # plt.axhline(0, color='black')
