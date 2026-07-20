@@ -164,7 +164,7 @@ def calculate_second_order_correlation_function(
     denominator = calculate_semiclassical_mode_population(
         params,
         current_coefficients[:, start:end + 1]
-    ) * omega_m[:, :, 0, 0, 0]
+    ) * (omega_m[:, :, 0, 0, 0] / params.matter_light_coupling**2)
 
     return numerator / denominator**2
 

@@ -219,7 +219,7 @@ def calculate_double_time_current(
         An array of shape (2, 2, tAxis.size, tauAxis.size) containing the double-time current correlations.
         The first and second axes correspond to the direction of the current operator, with indices
         0 and 1 corresponding to the x- and y- current respectively.
-        The last two axes correspond to the double-time correlator j_alpha(t) j_beta(t + tau) at times
+        The last two axes correspond to the double-time correlator j_alpha(t + tau) j_beta(t) at times
         t and t + tau.
     """
 
@@ -269,7 +269,7 @@ def calculate_double_time_current(
                         * connected
                     )
 
-    return doubleCurrentCorrelations 
+    return np.swapaxes(doubleCurrentCorrelations, 0, 1).conj()
 
 def imaginary_time_avg_generalised_noise_correlation_tensor_weak_laser(
     params : ModelParameters,
