@@ -4,8 +4,8 @@ from matplotlib.lines import Line2D
 from matplotlib.ticker import SymmetricalLogLocator
 from config.paths import DATA_DIR, PLOTTING_DIR, STYLESHEET
 
-axes, one_bz_average_current, one_ensemble_current  = np.load(DATA_DIR / "A=0.2, D=1.0, k=21, t=6.npy", allow_pickle = True)
-_, three_bz_average_current, three_ensemble_current = np.load(DATA_DIR / "A=0.2, D=3.0, k=21, t=6.npy", allow_pickle = True)
+axes, one_bz_average_current, one_ensemble_current  = np.load(DATA_DIR / "A=0.0, D=1.0, k=21, t=6.npy", allow_pickle = True)
+_, three_bz_average_current, three_ensemble_current = np.load(DATA_DIR / "A=0.0, D=3.0, k=21, t=6.npy", allow_pickle = True)
 maxN = 50
 
 plt.style.use(STYLESHEET)
@@ -32,6 +32,7 @@ legend2 = plt.legend(handles=style_handles, loc='upper right')
 plt.gca().add_artist(legend2)
 
 plt.xlim((0, 9))
+plt.ylim((0, 2))
 plt.xlabel(r"$\omega / \Omega$")
 plt.ylabel(r"$g_2(0)$")
 # plt.yscale('log')
@@ -80,26 +81,47 @@ plt.show()
 # plt.show()
 
 # delta n
-for gamma_m_index in range(one_bz_average_current.dc_population_variance_weak_laser.shape[2]):
-    plt.plot(np.arange(1, maxN + 1), one_bz_average_current.dc_population_variance_weak_laser[0, :, gamma_m_index], marker = 'x', color='red', linestyle='-')
-    plt.plot(np.arange(1, maxN + 1), one_bz_average_current.dc_population_variance_weak_laser[1, :, gamma_m_index], marker = 'x', color='red', linestyle='--')
-    plt.plot(np.arange(1, maxN + 1), three_bz_average_current.dc_population_variance_weak_laser[0, :, gamma_m_index], marker = 'x', color='blue', linestyle='-')
-    plt.plot(np.arange(1, maxN + 1), three_bz_average_current.dc_population_variance_weak_laser[1, :, gamma_m_index], marker = 'x', color='blue', linestyle='--')
 
-color_handles = [
-    Line2D([0], [0], color='blue', linestyle='-', label='triv'),
-    Line2D([0], [0], color='red',  linestyle='-', label='top'),
-]
+# Sample from the Reds and Blues colormaps. 
+# We start at 0.4 to ensure the lightest colors remain visible against a white background.
+num_gamma = one_bz_average_current.dc_population_variance_weak_laser.shape[2]
+red_shades = plt.cm.Reds(np.linspace(0.4, 1.0, num_gamma))
+blue_shades = plt.cm.Blues(np.linspace(0.4, 1.0, num_gamma))
+
+for gamma_m_index in range(one_bz_average_current.dc_population_variance_weak_laser.shape[2]):
+    plt.plot(np.arange(1, maxN + 1), one_bz_average_current.dc_population_variance_weak_laser[0, :, gamma_m_index], marker = 'x', color=red_shades[gamma_m_index], linestyle='-')
+    plt.plot(np.arange(1, maxN + 1), one_bz_average_current.dc_population_variance_weak_laser[1, :, gamma_m_index], marker = 'x', color=red_shades[gamma_m_index], linestyle='--')
+    plt.plot(np.arange(1, maxN + 1), three_bz_average_current.dc_population_variance_weak_laser[0, :, gamma_m_index], marker = 'x', color=blue_shades[gamma_m_index], linestyle='-')
+    plt.plot(np.arange(1, maxN + 1), three_bz_average_current.dc_population_variance_weak_laser[1, :, gamma_m_index], marker = 'x', color=blue_shades[gamma_m_index], linestyle='--')
+
+gamma_m = np.log10(np.logspace(-4, -1, 5))
+color_handles = []
+
+for i in range(num_gamma):
+    color_handles.append(Line2D([0], [0], color=blue_shades[i], linestyle='-', label=rf'$\gamma_m / \Delta = 10^{{{gamma_m[i]:.2f}}}$'))
+
+for i in range(num_gamma):
+    color_handles.append(Line2D([0], [0], color=red_shades[i], linestyle='-', label=rf'$\gamma_m / \Delta = 10^{{{gamma_m[i]:.2f}}}$'))
 
 style_handles = [
     Line2D([0], [0], color='k', linestyle='-',  label='x'),
     Line2D([0], [0], color='k', linestyle='--', label='y'),
 ]
 
-legend1 = plt.legend(handles=color_handles, loc='upper left')
+top_handles = [
+    Line2D([0], [0], color='blue', linestyle='-',  label='triv'),
+    Line2D([0], [0], color='red', linestyle='-', label='top'),
+]
+
+# Configure legends
+legend1 = plt.legend(handles=color_handles, loc='upper right', fontsize='small', ncol=2) 
 plt.gca().add_artist(legend1)  # needed so the first legend isn't overwritten
-legend2 = plt.legend(handles=style_handles, loc='upper right')
+
+legend2 = plt.legend(handles=style_handles, loc='upper right', bbox_to_anchor=(1.0, 0.825))
 plt.gca().add_artist(legend2)
+
+legend3 = plt.legend(handles=top_handles, loc='upper right', bbox_to_anchor=(0.94, 0.825))
+plt.gca().add_artist(legend3)
 
 plt.xlim((0, 9))
 plt.xlabel(r"$\omega / \Omega$")
@@ -158,7 +180,7 @@ legend3 = plt.legend(handles=top_handles, loc='upper right', bbox_to_anchor=(0.9
 plt.gca().add_artist(legend3)
 
 plt.xlim((0, 9))
-plt.ylim((-0.5e-5, 2e-5))
+plt.ylim((-0.5e-6, 1e-5))
 plt.xlabel(r"$\omega / \Omega$")
 plt.ylabel(r"$\eta_{\mu, m}$")
 # plt.axhline(0, color='black')
@@ -191,7 +213,7 @@ legend3 = plt.legend(handles=top_handles, loc='upper right', bbox_to_anchor=(0.9
 plt.gca().add_artist(legend3)
 
 plt.xlim((0, 9))
-# plt.ylim((-0.5e-5, 2e-5))
+plt.ylim((-0.5e-6, 1e-5))
 plt.xlabel(r"$\omega / \Omega$")
 plt.ylabel(r"$\eta_{\mu, m}$")
 # plt.axhline(0, color='black')
