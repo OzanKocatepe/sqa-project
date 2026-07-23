@@ -176,7 +176,7 @@ class Plotting:
                     mesh = ax[col].pcolormesh(
                         self.__ensemble.axes.tau_axis_dim,
                         self.__ensemble.axes.t_axis_dim,
-                        funcs[col](curr.second_order_connected_current[leftOperatorIndex, rightOperatorIndex]),
+                        funcs[col](curr.matter_correlation_tensor[leftOperatorIndex, rightOperatorIndex]),
                         cmap = 'bwr',
                         shading = 'nearest')
 

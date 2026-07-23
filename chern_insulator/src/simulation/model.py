@@ -99,7 +99,7 @@ class Model:
                 self.correlation_data.first_order_fourier
             )
 
-            self.model_data.second_order_connected_current = model_solver.calculate_double_time_current(
+            self.model_data.second_order_current, self.model_data.second_order_current_product, self.model_data.matter_correlation_tensor = model_solver.calculate_double_time_current(
                 self.__params,
                 self.__axes.t_axis_sec,
                 self.__axes.tau_axis_sec,

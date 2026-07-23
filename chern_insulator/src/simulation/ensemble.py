@@ -209,13 +209,13 @@ class Ensemble:
             self.ensemble_data.time_avg_second_order_connected_current = ensemble_solver.integrate_second_order_current(
                 self.__params.drivingFreq,
                 self.__axes.t_axis_sec,
-                self.bz_average_extrinsic.second_order_connected_current
+                self.bz_average_extrinsic.matter_correlation_tensor
             )
 
             self.ensemble_data.spectral_noise_tensor = ensemble_solver.calculate_spectral_noise_tensor(
                 self.__params,
                 self.__axes.tau_axis_sec,
-                self.bz_average_extrinsic.second_order_connected_current,
+                self.bz_average_extrinsic.matter_correlation_tensor,
                 self.__params.maxN
             )
 
@@ -223,7 +223,7 @@ class Ensemble:
                 self.__params,
                 self.__axes.tau_axis_sec,
                 self.__axes.t_axis_sec,
-                self.bz_average_extrinsic.second_order_connected_current,
+                self.bz_average_extrinsic.matter_correlation_tensor,
                 self.__params.maxN
             )
 
@@ -307,7 +307,7 @@ class Ensemble:
 
         os.makedirs(DATA_DIR, exist_ok = True)
         fileName = f"A={self.__params.drivingAmp}, D={self.__params.delta}, k={int(np.sqrt(len(self.__models)))}"
-        if self.bz_average_extrinsic.second_order_connected_current is not None:
+        if self.bz_average_extrinsic.matter_correlation_tensor is not None:
             fileName += f", t={int(self.__axes.t_axis_sec.size)}"
         file = DATA_DIR / fileName
         np.save(file, (self.__axes, self.bz_average_extrinsic, self.ensemble_data))

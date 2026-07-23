@@ -18,7 +18,9 @@ class ModelData:
     time_avg_generalised_noise_tensor_weak_laser: np.ndarray[complex] = None
 
     # These are the second-order products which must be calculated per-momentum.
-    second_order_connected_current: np.ndarray[complex] = None
+    second_order_current: np.ndarray[complex] = None
+    second_order_current_product: np.ndarray[complex] = None
+    matter_correlation_tensor: np.ndarray[complex] = None
 
     def __add__(self, other: ModelData) -> ModelData:
         def add_none_safe(a, b):

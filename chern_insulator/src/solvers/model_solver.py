@@ -196,7 +196,7 @@ def calculate_double_time_current(
     tAxis: np.ndarray[float],
     tauAxis: np.ndarray[float],
     singleTimeFourier: list[Fourier],
-    doubleTimeCorrelators: np.ndarrayp[complex]
+    doubleTimeCorrelators: np.ndarray[complex]
 ) -> np.ndarray[complex]:
     """Calculates the double-time current correlators.
 
@@ -216,14 +216,19 @@ def calculate_double_time_current(
     Returns
     -------
     ndarray[complex]
-        An array of shape (2, 2, tAxis.size, tauAxis.size) containing the double-time current correlations.
-        The first and second axes correspond to the direction of the current operator, with indices
-        0 and 1 corresponding to the x- and y- current respectively.
-        The last two axes correspond to the double-time correlator j_alpha(t + tau) j_beta(t) at times
-        t and t + tau.
+        An array of shape (2, 2, tAxis.size, tauAxis.size) containing the second order current correlations,
+        <j(t + tau) j(t)>. The first and second axes correspond to the direction of the current operator,
+        with indices 0 and 1 corresponding to the x- and y- current respectively.
+        The last two axes correspond to the values of t and tau respectively.
+    ndarray[complex]
+        The same shape as above, but containing the <j(t + tau)> <j(t)> product term.
+    ndarray[complex]
+        The difference between the two terms above, <j(t + tau) j(t)> - <j (t + tau)> <j(t)>,
+        which is the matter correlation tensor.
     """
 
-    doubleCurrentCorrelations = np.zeros((2, 2, tAxis.size, tauAxis.size), dtype=complex)
+    second_order_current = np.zeros((2, 2, tAxis.size, tauAxis.size), dtype=complex)
+    current_product = np.zeros((2, 2, tAxis.size, tauAxis.size), dtype=complex)
     tPlusTauAxis = np.add.outer(tAxis, tauAxis)
 
     currentOperators = [
@@ -255,21 +260,31 @@ def calculate_double_time_current(
             for firstCoeff in range(3):
                 for secondCoeff in range(3):
                     # Calculates the product term in the connected correlator.
-                    prod = (singleTimeFourier[firstCoeff].Evaluate(tAxis)[:, np.newaxis]
+                    correlation_product = (singleTimeFourier[firstCoeff].Evaluate(tAxis)[:, np.newaxis]
                             * singleTimeFourier[secondCoeff].Evaluate(tPlusTauAxis))
-                    # Calculates the connected correlator.
-                    connected = doubleTimeCorrelators[firstCoeff, secondCoeff, :, :] - prod
+
                     # Multiplies the first and second coefficient, resulting in an array of shape
                     # (t.size, tau.size). Then, multiplies that by the connected correlator at each point.
                     # Adds this onto the connected current correlator for this direction, so by the end
                     # of the loop we've added on every contribution for this direction.
-                    doubleCurrentCorrelations[leftDirection, rightDirection, :, :] += (
+                    second_order_current[leftDirection, rightDirection, :, :] += (
                         firstOperatorCoefficients[firstCoeff][:, np.newaxis]
                         * secondOperatorCoefficients[secondCoeff]
-                        * connected
+                        * doubleTimeCorrelators[firstCoeff, secondCoeff, :, :]
                     )
 
-    return np.swapaxes(doubleCurrentCorrelations, 0, 1).conj()
+                    current_product[leftDirection, rightDirection, :, :] += (
+                        firstOperatorCoefficients[firstCoeff][:, np.newaxis]
+                        * secondOperatorCoefficients[secondCoeff]
+                        * correlation_product
+                    )
+
+    # Corrects the time ordering in both cases.
+    second_order_current = np.swapaxes(second_order_current, 0, 1).conj()
+    current_product = np.swapaxes(current_product, 0, 1)
+    matter_correlation_tensor = second_order_current - current_product
+
+    return second_order_current, current_product, matter_correlation_tensor
 
 def imaginary_time_avg_generalised_noise_correlation_tensor_weak_laser(
     params : ModelParameters,
