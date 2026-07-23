@@ -11,8 +11,13 @@ directions = ['x', 'y']
 deltas = [1.0, 3.0]
 currents = [one_second_order_current, three_second_order_current]
 
-for delta_index in range(2):
-    for left_operator in range(2):
-        for right_operator in range(2):
-            np.savetxt(DATA_DIR / f"<j{directions[left_operator]}(t + tau) j{directions[right_operator]}(t)>, delta={deltas[delta_index]}.txt",
-                       currents[delta_index][left_operator, right_operator, :, :])
+# for delta_index in range(2):
+#     for left_operator in range(2):
+#         for right_operator in range(2):
+            # np.savetxt(DATA_DIR / f"<j{directions[left_operator]}(t + tau) j{directions[right_operator]}(t)>, delta={deltas[delta_index]}.txt",
+            #            currents[delta_index][left_operator, right_operator, :, :])
+
+np.savetxt(DATA_DIR / "t_axis_sec.txt", axes.t_axis_sec)
+np.savetxt(DATA_DIR / "t_axis_dim.txt", axes.tau_axis_dim)
+np.savetxt(DATA_DIR / "tau_axis_sec.txt", axes.t_axis_sec)
+np.savetxt(DATA_DIR / "tau_axis_dim.txt", axes.tau_axis_dim)
