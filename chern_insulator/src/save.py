@@ -17,7 +17,10 @@ currents = [one_second_order_current, three_second_order_current]
             # np.savetxt(DATA_DIR / f"<j{directions[left_operator]}(t + tau) j{directions[right_operator]}(t)>, delta={deltas[delta_index]}.txt",
             #            currents[delta_index][left_operator, right_operator, :, :])
 
-np.savetxt(DATA_DIR / "t_axis_sec.txt", axes.t_axis_sec)
-np.savetxt(DATA_DIR / "t_axis_dim.txt", axes.tau_axis_dim)
-np.savetxt(DATA_DIR / "tau_axis_sec.txt", axes.t_axis_sec)
-np.savetxt(DATA_DIR / "tau_axis_dim.txt", axes.tau_axis_dim)
+# np.savetxt(DATA_DIR / "t_axis_sec.txt", axes.t_axis_sec)
+# np.savetxt(DATA_DIR / "t_axis_dim.txt", axes.tau_axis_dim)
+# np.savetxt(DATA_DIR / "tau_axis_sec.txt", axes.t_axis_sec)
+# np.savetxt(DATA_DIR / "tau_axis_dim.txt", axes.tau_axis_dim)
+
+np.savetxt(DATA_DIR / "diamagnetic_current, delta=1.0.txt", one_model_data.diamagnetic_current)
+np.savetxt(DATA_DIR / "diamagnetic_current, delta=3.0.txt", three_model_data.diamagnetic_current)
