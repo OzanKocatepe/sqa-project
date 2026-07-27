@@ -22,5 +22,13 @@ currents = [one_second_order_current, three_second_order_current]
 # np.savetxt(DATA_DIR / "tau_axis_sec.txt", axes.t_axis_sec)
 # np.savetxt(DATA_DIR / "tau_axis_dim.txt", axes.tau_axis_dim)
 
-np.savetxt(DATA_DIR / "diamagnetic_current, delta=1.0.txt", one_model_data.diamagnetic_current)
-np.savetxt(DATA_DIR / "diamagnetic_current, delta=3.0.txt", three_model_data.diamagnetic_current)
+np.savetxt(DATA_DIR / "diamagnetic_current_xx, delta=1.0.txt", one_model_data.diamagnetic_current[0])
+np.savetxt(DATA_DIR / "diamagnetic_current_xx, delta=3.0.txt", three_model_data.diamagnetic_current[0])
+
+np.savetxt(DATA_DIR / "diamagnetic_current_yy, delta=1.0.txt", one_model_data.diamagnetic_current[1])
+np.savetxt(DATA_DIR / "diamagnetic_current_yy, delta=3.0.txt", three_model_data.diamagnetic_current[1])
+
+angular_freq = 0.8
+driving_amp = 0.1
+np.savetxt(DATA_DIR / "diamagnetic_current, delta=1.0.txt", one_model_data.diamagnetic_current[0] * driving_amp * np.sin(angular_freq * axes.tau_axis_sec))
+np.savetxt(DATA_DIR / "diamagnetic_current, delta=3.0.txt", three_model_data.diamagnetic_current[0] * driving_amp * np.sin(angular_freq * axes.tau_axis_sec))

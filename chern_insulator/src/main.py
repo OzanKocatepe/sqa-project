@@ -116,6 +116,8 @@ def main() -> None:
         maxN = 50,
         num_particles = 1e10
     )
+    print(f"Delta = {params.delta}, Angular Freq = {params.angularFreq}")
+    exit()
     tauMax = 20
 
     ensemble = Ensemble(params)
