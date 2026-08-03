@@ -54,3 +54,10 @@ class ModelData:
                 for field in fields(self)
             }
         )
+
+    def __setstate__(self, state):
+        _, slots_state = state if isinstance(state, tuple) else (None, state)
+        if "second_order_connected_current" in slots_state:
+            slots_state["matter_correlation_tensor"] = slots_state.pop("second_order_connected_current")
+        for key, value in slots_state.items():
+            object.__setattr__(self, key, value)
